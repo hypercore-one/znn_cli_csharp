@@ -356,6 +356,78 @@ namespace ZenonCli
             }
         }
 
+        public class Htlc
+        {
+            [Verb("htlc.get", HelpText = "List htlc by id")]
+            public class Get : KeyStoreAndConnectionOptions
+            {
+                [Value(0, Required = true, MetaName = "id")]
+                public string? Id { get; set; }
+            }
+
+            [Verb("htlc.timeLocked", HelpText = "List all time locked htlc's")]
+            public class GetByTimeLocked : KeyStoreAndConnectionOptions
+            {
+                [Value(1, Default = 0, MetaName = "pageIndex")]
+                public int? PageIndex { get; set; }
+
+                [Value(2, Default = 25, MetaName = "PageSize")]
+                public int? PageSize { get; set; }
+            }
+
+            [Verb("htlc.hashLocked", HelpText = "List all hash locked htlc's")]
+            public class GetByHashLocked : KeyStoreAndConnectionOptions
+            {
+                [Value(1, Default = 0, MetaName = "pageIndex")]
+                public int? PageIndex { get; set; }
+
+                [Value(2, Default = 25, MetaName = "PageSize")]
+                public int? PageSize { get; set; }
+            }
+
+            [Verb("htlc.create", HelpText = "Create htlc")]
+            public class Create : KeyStoreAndConnectionOptions
+            {
+                [Value(1, Required = true, MetaName = "hashLockedAddress")]
+                public string? HashLockedAddress { get; set; }
+
+                [Value(2, Required = true, MetaName = "tokenStandard")]
+                public string? TokenStandard { get; set; }
+
+                [Value(3, Required = true, MetaName = "amount")]
+                public long Amount { get; set; }
+
+                [Value(4, Required = true, MetaName = "expirationTime", HelpText = "Total seconds from now")]
+                public long ExpirationTime { get; set; }
+
+                [Value(5, Required = true, MetaName = "hashType", HelpText = "0 = SHA3-256")]
+                public int HashType { get; set; }
+
+                [Value(6, Required = true, MetaName = "keyMaxSize")]
+                public int KeyMaxSize { get; set; }
+
+                [Value(7, MetaName = "preimage")]
+                public string? Preimage { get; set; }
+            }
+
+            [Verb("htlc.reclaim", HelpText = "Reclaim htlc")]
+            public class Reclaim : KeyStoreAndConnectionOptions
+            {
+                [Value(0, Required = true, MetaName = "id")]
+                public string? Id { get; set; }
+            }
+
+            [Verb("htlc.unlock", HelpText = "Unlock htlc")]
+            public class Unlock : KeyStoreAndConnectionOptions
+            {
+                [Value(0, Required = true, MetaName = "id")]
+                public string? Id { get; set; }
+
+                [Value(1, MetaName = "preimage")]
+                public string? Preimage { get; set; }
+            }
+        }
+
         public class Wallet
         {
             [Verb("wallet.list", HelpText = "List all wallets")]
@@ -551,6 +623,25 @@ namespace ZenonCli
                         break;
                     case Token.DisableMint td:
                         await ProcessAsync(td);
+                        break;
+
+                    case Htlc.Get hg:
+                        await ProcessAsync(hg);
+                        break;
+                    case Htlc.GetByTimeLocked hgt:
+                        await ProcessAsync(hgt);
+                        break;
+                    case Htlc.GetByHashLocked hgh:
+                        await ProcessAsync(hgh);
+                        break;
+                    case Htlc.Create hc:
+                        await ProcessAsync(hc);
+                        break;
+                    case Htlc.Reclaim hr:
+                        await ProcessAsync(hr);
+                        break;
+                    case Htlc.Unlock hu:
+                        await ProcessAsync(hu);
                         break;
 
                     case Wallet.List wl:
@@ -1729,6 +1820,207 @@ namespace ZenonCli
 
             await Znn.Instance.Send(Znn.Instance.Embedded.Token.UpdateToken(
                 tokenStandard, token.Owner, false, token.IsBurnable));
+
+            WriteInfo("Done");
+        }
+
+        #endregion
+
+        #region Htlc
+
+        static async Task ProcessAsync(Htlc.Get options)
+        {
+            var id = Hash.Parse(options.Id);
+            var htlc = await Znn.Instance.Embedded.Htlc.GetHtlcInfoById(id);
+
+            if (htlc == null)
+            {
+                WriteError("The htlc does not exist");
+                return;
+            }
+
+            var token = await Znn.Instance.Embedded.Token.GetByZts(htlc.TokenStandard);
+
+            WriteInfo($"Htlc {htlc.Id} with an amount of {FormatAmount(htlc.Amount, token.Decimals)} {token.Symbol}");
+            WriteInfo($"   Time locked by {htlc.TimeLocked} for {FormatDuration(htlc.ExpirationTime)} and hash locked for {htlc.HashLocked} with hash type {htlc.HashType}");
+        }
+
+        static async Task ProcessAsync(Htlc.GetByTimeLocked options)
+        {
+            var address = Znn.Instance.DefaultKeyPair.Address;
+            var result = await Znn.Instance.Embedded.Htlc.GetHtlcInfosByTimeLockedAddress(address);
+
+            if (result == null || result.Length == 0)
+            {
+                WriteInfo("No time locked htlc entries found");
+                return;
+            }
+
+            foreach (var htlc in result)
+            {
+                var token = await Znn.Instance.Embedded.Token.GetByZts(htlc.TokenStandard);
+
+                WriteInfo($"Htlc {htlc.Id} with an amount of {FormatAmount(htlc.Amount, token.Decimals)} {token.Symbol}");
+                WriteInfo($"   Time locked by {htlc.TimeLocked} for {FormatDuration(htlc.ExpirationTime)} and hash locked for {htlc.HashLocked} with hash type {htlc.HashType}");
+            }
+        }
+
+        static async Task ProcessAsync(Htlc.GetByHashLocked options)
+        {
+            var address = Znn.Instance.DefaultKeyPair.Address;
+            var result = await Znn.Instance.Embedded.Htlc.GetHtlcInfosByHashLockedAddress(address);
+
+            if (result == null || result.Length == 0)
+            {
+                WriteInfo("No hash locked htlc entries found");
+                return;
+            }
+
+            foreach (var htlc in result)
+            {
+                var token = await Znn.Instance.Embedded.Token.GetByZts(htlc.TokenStandard);
+
+                WriteInfo($"Htlc {htlc.Id} with an amount of {FormatAmount(htlc.Amount, token.Decimals)} {token.Symbol}");
+                WriteInfo($"   Time locked by {htlc.TimeLocked} for {FormatDuration(htlc.ExpirationTime)} and hash locked for {htlc.HashLocked} with hash type {htlc.HashType}");
+            }
+        }
+
+        static async Task ProcessAsync(Htlc.Create options)
+        {
+            var address = Znn.Instance.DefaultKeyPair.Address;
+            var hashLocked = Address.Parse(options.HashLockedAddress);
+            var tokenStandard = TokenStandard.Parse(options.TokenStandard);
+            long amount = 0;
+
+            if (options.HashType != 0)
+            {
+                WriteInfo("Invalid hash type");
+                return;
+            }
+
+            if (options.KeyMaxSize != 32)
+            {
+                WriteInfo("Invalid key max size");
+                return;
+            }
+
+            if (String.IsNullOrEmpty(options.Preimage))
+            {
+                WriteInfo("Insert preimage:");
+                options.Preimage = ReadPassword();
+            }
+
+            if (String.IsNullOrEmpty(options.Preimage))
+            {
+                WriteError("Invalid preimage");
+                return;
+            }
+
+            var info =
+                await Znn.Instance.Ledger.GetAccountInfoByAddress(address);
+
+            bool ok = true;
+            bool found = false;
+            Zenon.Model.NoM.Token? token = null;
+
+            foreach (var item in info.BalanceInfoList)
+            {
+                if (item.Token.TokenStandard == tokenStandard)
+                {
+                    amount = options.Amount * item.Token.DecimalsExponent;
+                    token = item.Token;
+
+                    if (item.Balance < amount)
+                    {
+                        WriteError($"You only have {FormatAmount(item.Balance.Value, item.Token.Decimals)} {item.Token.Symbol} tokens");
+                        ok = false;
+                        break;
+                    }
+                    found = true;
+                }
+            }
+
+            if (!ok) return;
+            if (!found)
+            {
+                WriteError($"You only have {FormatAmount(0, 0)} {tokenStandard} tokens");
+                return;
+            }
+
+            var expirationTime = DateTimeOffset.Now.ToUnixTimeSeconds() + options.ExpirationTime;
+            var hashLock = Crypto.Digest(Encoding.UTF8.GetBytes(options.Preimage));
+
+            var block = Znn.Instance.Embedded.Htlc
+                .CreateHtlc(address, hashLocked, tokenStandard, amount, expirationTime, options.HashType, options.KeyMaxSize, hashLock);
+
+            WriteInfo($"Creating htlc with an amount of {FormatAmount(amount, token.Decimals)} {token.Symbol}");
+            WriteInfo($"   Time locked by {address} for {FormatDuration(expirationTime)} and hash locked for {hashLocked} with hash type {options.HashType}");
+
+            await Znn.Instance.Send(block);
+
+            WriteInfo("Done");
+        }
+
+        static async Task ProcessAsync(Htlc.Reclaim options)
+        {
+            var address = Znn.Instance.DefaultKeyPair.Address;
+            var id = Hash.Parse(options.Id);
+
+            var htlc = await Znn.Instance.Embedded.Htlc.GetHtlcInfoById(id);
+
+            if (htlc == null)
+            {
+                WriteError("The htlc does not exist");
+                return;
+            }
+
+            if (htlc.ExpirationTime > DateTimeOffset.Now.ToUnixTimeSeconds())
+            {
+                WriteError("Cannot reclaim htlc. Time lock is not expired.");
+                return;
+            }
+
+            var token = await Znn.Instance.Embedded.Token.GetByZts(htlc.TokenStandard);
+
+            WriteInfo($"Reclaiming htlc {htlc.Id} with an amount of {FormatAmount(htlc.Amount, token.Decimals)} {token.Symbol}");
+            WriteInfo($"   Time locked by {htlc.TimeLocked} for {FormatDuration(htlc.ExpirationTime)} and hash locked for {htlc.HashLocked} with hash type {htlc.HashType}");
+
+            await Znn.Instance.Send(Znn.Instance.Embedded.Htlc.ReclaimHtlc(address, id));
+
+            WriteInfo("Done");
+        }
+
+        static async Task ProcessAsync(Htlc.Unlock options)
+        {
+            var address = Znn.Instance.DefaultKeyPair.Address;
+            var id = Hash.Parse(options.Id);
+
+            var htlc = await Znn.Instance.Embedded.Htlc.GetHtlcInfoById(id);
+
+            if (htlc == null || htlc.HashLocked != address)
+            {
+                WriteError("The htlc does not exist");
+                return;
+            }
+
+            if (String.IsNullOrEmpty(options.Preimage))
+            {
+                WriteInfo("Insert preimage:");
+                options.Preimage = ReadPassword();
+            }
+
+            if (String.IsNullOrEmpty(options.Preimage))
+            {
+                WriteError("Invalid preimage");
+                return;
+            }
+
+            var token = await Znn.Instance.Embedded.Token.GetByZts(htlc.TokenStandard);
+
+            WriteInfo($"Unlocking htlc {htlc.Id} with an amount of {FormatAmount(htlc.Amount, token.Decimals)} {token.Symbol}");
+            WriteInfo($"   Time locked by {htlc.TimeLocked} for {FormatDuration(htlc.ExpirationTime)} and hash locked for {htlc.HashLocked} with hash type {htlc.HashType}");
+
+            await Znn.Instance.Send(Znn.Instance.Embedded.Htlc.UnlockHtlc(address, id, Encoding.UTF8.GetBytes(options.Preimage)));
 
             WriteInfo("Done");
         }
