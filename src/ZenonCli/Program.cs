@@ -1,11 +1,11 @@
-﻿using System;
+﻿using CommandLine;
+using Newtonsoft.Json;
 using System.Collections.Concurrent;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using CommandLine;
-using Newtonsoft.Json;
 using Zenon;
+using Zenon.Crypto;
 using Zenon.Model.NoM;
 using Zenon.Model.Primitives;
 using Zenon.Wallet;
@@ -618,7 +618,7 @@ namespace ZenonCli
             else
             {
                 // Multiple keyStores present, but none is selected: action required
-                ThrowError($"Please provide a keyStore or an address. Use 'wallet.list' to list all available keyStores");
+                ThrowError($"Please provide a keyStore or an address. Use wallet.list to list all available keyStores");
             }
 
             string? passphrase = options.Passphrase;
@@ -1454,6 +1454,12 @@ namespace ZenonCli
             var tokenStandard = TokenStandard.Parse(options.TokenStandard);
             var token = await Znn.Instance.Embedded.Token.GetByZts(tokenStandard);
 
+            if (token == null)
+            {
+                WriteError("The token does not exist");
+                return;
+            }
+
             var type = "Token";
 
             if (token.TokenStandard == TokenStandard.QsrZts ||
@@ -1862,7 +1868,7 @@ namespace ZenonCli
 
         static string FormatDuration(long seconds)
         {
-            return TimeSpan.FromSeconds(seconds).ToString();
+            return DateTimeOffset.FromUnixTimeSeconds(seconds).ToLocalTime().TimeOfDay.ToString();
         }
 
         static void ThrowError(string message)
