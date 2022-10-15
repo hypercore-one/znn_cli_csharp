@@ -391,7 +391,7 @@ namespace ZenonCli
                 [Value(1, Required = true, MetaName = "hashLockedAddress")]
                 public string? HashLockedAddress { get; set; }
 
-                [Value(2, Required = true, MetaName = "tokenStandard")]
+                [Value(2, Required = true, MetaName = "tokenStandard", MetaValue = "[ZNN/QSR/ZTS]")]
                 public string? TokenStandard { get; set; }
 
                 [Value(3, Required = true, MetaName = "amount")]
@@ -1889,7 +1889,21 @@ namespace ZenonCli
         {
             var address = Znn.Instance.DefaultKeyPair.Address;
             var hashLocked = Address.Parse(options.HashLockedAddress);
-            var tokenStandard = TokenStandard.Parse(options.TokenStandard);
+
+            TokenStandard tokenStandard;
+            if (String.Equals(options.TokenStandard, "ZNN", StringComparison.OrdinalIgnoreCase))
+            {
+                tokenStandard = TokenStandard.ZnnZts;
+            }
+            else if (String.Equals(options.TokenStandard, "QSR", StringComparison.OrdinalIgnoreCase))
+            {
+                tokenStandard = TokenStandard.QsrZts;
+            }
+            else
+            {
+                tokenStandard = TokenStandard.Parse(options.TokenStandard);
+            }
+
             long amount = 0;
 
             if (options.HashType != 0)
