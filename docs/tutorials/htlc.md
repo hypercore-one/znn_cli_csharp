@@ -66,7 +66,7 @@ git config --global user.name [your name]
 We will make a **repos** directory under the current userprofile to store all our work. Replace the path if you want it stored on a different location.
 
 ``` powershell 
-cd $env:USERPROFILE
+cd $ENV:USERPROFILE
 mkdir repos
 cd repos
 ```
@@ -118,7 +118,7 @@ Search for the address **z1qqjnwjjpnue8xmmpanz6csze6tcmtzzdtfsww7**
 Open a new [PowerShell administrative shell](https://www.howtogeek.com/742916/how-to-open-windows-powershell-as-an-admin-in-windows-10/) and change directory to **repos**.
 
 ``` powershell
-cd $env:USERPROFILE/repos
+cd $ENV:USERPROFILE/repos
 ```
 
 Create a clone of the **htlc** branch of the [KingGorrin znn-cli-csharp repository](https://github.com/KingGorrin/znn_cli_csharp.git).
@@ -242,7 +242,7 @@ Execute the following commands in order to undo all the installation files of th
 ``` powershell
 del $ENV:AppData\znn\wallet\Alice
 del $ENV:AppData\znn\wallet\Bob
-rm c:\repos -r -force
+rm $ENV:USERPROFILE/repos -r -force
 choco uninstall dotnet-sdk -y
 choco uninstall mingw -y
 choco uninstall go -y
