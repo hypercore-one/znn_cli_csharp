@@ -73,7 +73,7 @@ cd repos
 
 ### BICH go-zenon
 
-Create a clone of the **devnet** branch of the [Big Inches Club House go-zenon repository](git clone -b devnet]https://github.com/Big-Inches-Club-House/go-zenon.git).
+Create a clone of the **devnet** branch of the [Big Inches Club House go-zenon repository](https://github.com/Big-Inches-Club-House/go-zenon.git).
 
 ``` powers
 git clone -b devnet https://github.com/Big-Inches-Club-House/go-zenon.git
@@ -175,6 +175,8 @@ In order to speed up the process of sending transactions on our devnet we will g
 
 Alice will fuse 100 QSR on both addresses using the **devnet** id 321.
 
+> The first transaction can take a while when using PoW.
+
 ``` powershell
 .\znn-cli.exe plasma.fuse z1qqjnwjjpnue8xmmpanz6csze6tcmtzzdtfsww7 100 -k Alice -n 321
 .\znn-cli.exe plasma.fuse z1qpsjv3wzzuuzdudg7tf6uhvr6sk4ag8me42ua4 100 -k Alice -n 321
@@ -240,7 +242,7 @@ Execute the following commands in order to undo all the installation files of th
 ``` powershell
 del $ENV:AppData\znn\wallet\Alice
 del $ENV:AppData\znn\wallet\Bob
-rd /s /q "c:\repos"
+rm c:\repos -r -force
 choco uninstall dotnet-sdk -y
 choco uninstall mingw -y
 choco uninstall go -y
