@@ -22,7 +22,7 @@ After installing **Chocolatey**, ensure that you are using an [PowerShell admini
 
 We will need **git** to interact wth the GitHub repositories. Execute the following command in PowerShell.
 
-```powershell
+``` powershell
 choco install git -y
 ```
 
@@ -30,7 +30,7 @@ choco install git -y
 
 We will need Go to to compile the go-zenon code. Execute the following command in PowerShell.
 
-```powershell
+``` powershell
 choco install go -y
 ```
 
@@ -63,10 +63,10 @@ git config --global user.name [your name]
 
 ## Compilation
 
-We will make a **repos** directory on the **C** drive to store all our work. Replace the drive letter if you want to it on a different location.
+We will make a **repos** directory under the current userprofile to store all our work. Replace the path if you want it stored on a different location.
 
 ``` powershell 
-cd c:\
+cd $env:USERPROFILE
 mkdir repos
 cd repos
 ```
@@ -75,7 +75,7 @@ cd repos
 
 Create a clone of the **devnet** branch of the [Big Inches Club House go-zenon repository](https://github.com/Big-Inches-Club-House/go-zenon.git).
 
-``` powers
+``` powershell
 git clone -b devnet https://github.com/Big-Inches-Club-House/go-zenon.git
 ```
 
@@ -94,8 +94,8 @@ git merge origin/htlc
 Compile the **go-zenon** code.
 
 ``` powershell
-go build -o build\libznn.dll -buildmode=c-shared -tags libznn main_libznn.go
-go build -o build\znnd.exe main.go
+go build -o build/libznn.dll -buildmode=c-shared -tags libznn main_libznn.go
+go build -o build/znnd.exe main.go
 ```
 
 Configure and run a **devnet** node.
@@ -118,7 +118,7 @@ Search for the address **z1qqjnwjjpnue8xmmpanz6csze6tcmtzzdtfsww7**
 Open a new [PowerShell administrative shell](https://www.howtogeek.com/742916/how-to-open-windows-powershell-as-an-admin-in-windows-10/) and change directory to **repos**.
 
 ``` powershell
-cd c:\repos
+cd $env:USERPROFILE/repos
 ```
 
 Create a clone of the **htlc** branch of the [KingGorrin znn-cli-csharp repository](https://github.com/KingGorrin/znn_cli_csharp.git).
@@ -136,13 +136,13 @@ cd znn_cli_csharp
 Compile the **znn_cli_csharp** code
 
 ``` powershell
-dotnet build .\src\ZenonCli.sln
+dotnet build ./src/ZenonCli/ZenonCli.csproj
 ```
 
 Change directory to the binaries directory.
 
 ``` powershell
-cd .\bin\ZenonCli\debug\net6.0\
+cd ./bin/ZenonCli/net6.0/
 ```
 
 ## Setup  wallets
@@ -160,13 +160,13 @@ Both wallets use the passphrase **secret**
 Execute the following command to create Alice's wallet.
 
 ``` powershell
-.\znn-cli.exe wallet.createFromMnemonic "route become dream access impulse price inform obtain engage ski believe awful absent pig thing vibrant possible exotic flee pepper marble rural fire fancy" secret Alice
+./znn-cli wallet.createFromMnemonic "route become dream access impulse price inform obtain engage ski believe awful absent pig thing vibrant possible exotic flee pepper marble rural fire fancy" secret Alice
 ```
 
 Execute the following command to create Bob's wallet.
 
 ``` powershell
-.\znn-cli.exe wallet.createFromMnemonic "alone emotion announce page spend eager middle lucky frame craft junk artefact upper finger drive corn version slot blade picnic festival wealth critic silver" secret Bob
+./znn-cli wallet.createFromMnemonic "alone emotion announce page spend eager middle lucky frame craft junk artefact upper finger drive corn version slot blade picnic festival wealth critic silver" secret Bob
 ```
 
 ### Generate plasma
@@ -178,8 +178,8 @@ Alice will fuse 100 QSR on both addresses using the **devnet** id 321.
 > The first transaction can take a while when using PoW.
 
 ``` powershell
-.\znn-cli.exe plasma.fuse z1qqjnwjjpnue8xmmpanz6csze6tcmtzzdtfsww7 100 -k Alice -n 321
-.\znn-cli.exe plasma.fuse z1qpsjv3wzzuuzdudg7tf6uhvr6sk4ag8me42ua4 100 -k Alice -n 321
+./znn-cli plasma.fuse z1qqjnwjjpnue8xmmpanz6csze6tcmtzzdtfsww7 100 -k Alice -n 321
+./znn-cli plasma.fuse z1qpsjv3wzzuuzdudg7tf6uhvr6sk4ag8me42ua4 100 -k Alice -n 321
 ```
 
 ## HTLC scenario 1
@@ -189,13 +189,13 @@ Alice wants to lock 100 ZNN for Bob with an expiration of 1 hour.
 Alice will first check her balance to make sure she has enough funds.
 
 ``` powershell
-.\znn-cli.exe balance -k Alice -n 321
+./znn-cli balance -k Alice -n 321
 ```
 
 Alice creates the HTLC using Bob's address and the preimage **all your znn belong to us**.
 
 ``` powershell
-.\znn-cli.exe htlc.create z1qpsjv3wzzuuzdudg7tf6uhvr6sk4ag8me42ua4 ZNN 100 3600 0 32 "all your znn belong to us" -k Alice -n 321
+./znn-cli htlc.create z1qpsjv3wzzuuzdudg7tf6uhvr6sk4ag8me42ua4 ZNN 100 3600 0 32 "all your znn belong to us" -k Alice -n 321
 ```
 
 Alice will make sure the HTLC is created and the funds have been deducted from her account before notifying Bob.
@@ -203,14 +203,14 @@ Alice will make sure the HTLC is created and the funds have been deducted from h
 >  Wait 2 Momentums for the transaction to be processed.
 
 ``` powershell
-.\znn-cli.exe htlc.timeLocked -k Alice -n 321
-.\znn-cli.exe balance -k Alice -n 321
+./znn-cli htlc.timeLocked -k Alice -n 321
+./znn-cli balance -k Alice -n 321
 ```
 
 Alice will notify Bob for him to inspect the HTLC.
 
 ``` powershell
-.\znn-cli.exe htlc.hashLocked -k Bob -n 321
+./znn-cli htlc.hashLocked -k Bob -n 321
 ```
 
 Bob inspects the HTLC and agrees to the conditions and write down the HTLC hash id.
@@ -218,7 +218,7 @@ Bob inspects the HTLC and agrees to the conditions and write down the HTLC hash 
 Bob has one hour the time to do his part of the deal. Once finished Alice will reveal the preimage to Bob so that he can unlock the 100 ZNN.
 
 ``` powershell
-.\znn-cli.exe htlc.unlock [hash id] "all your znn belong to us" -k Bob -n 321
+./znn-cli htlc.unlock [hash id] "all your znn belong to us" -k Bob -n 321
 ```
 
 > Wait 2 Momentums for the transaction to be processed.
@@ -226,13 +226,13 @@ Bob has one hour the time to do his part of the deal. Once finished Alice will r
 Bob has unlocked the 100 ZNN which the contract has send to his wallet. Bob now needs to receive the unreceived transactions.
 
 ``` powershell
-.\znn-cli.exe receiveAll -k Bob -n 321
+./znn-cli receiveAll -k Bob -n 321
 ```
 
 Bob is trilled and checks his balance to make sure everything is fine.
 
 ``` powershell
-.\znn-cli.exe balance -k Bob -n 321
+./znn-cli balance -k Bob -n 321
 ```
 
 ## Clean up
