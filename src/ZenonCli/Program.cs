@@ -5,7 +5,6 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using Zenon;
-using Zenon.Crypto;
 using Zenon.Model.NoM;
 using Zenon.Model.Primitives;
 using Zenon.Wallet;
@@ -108,7 +107,7 @@ namespace ZenonCli
 
         public class Plasma
         {
-            [Verb("plasma.list", HelpText = "List plasma fusion transactions.")]
+            [Verb("plasma.list", HelpText = "List plasma fusion entries.")]
             public class List : KeyStoreAndConnectionOptions
             {
                 [Value(0, Default = 0, MetaName = "pageIndex")]
@@ -118,7 +117,7 @@ namespace ZenonCli
                 public int? PageSize { get; set; }
             }
 
-            [Verb("plasma.get", HelpText = "")]
+            [Verb("plasma.get")]
             public class Get : KeyStoreAndConnectionOptions
             { }
 
@@ -186,7 +185,7 @@ namespace ZenonCli
                 [Value(0, Required = true, MetaName = "amount")]
                 public long Amount { get; set; }
 
-                [Value(1, Required = true, MetaName = "amount", HelpText = "Duration in months")]
+                [Value(1, Required = true, MetaName = "duration", HelpText = "Duration in months")]
                 public long Duration { get; set; }
             }
 
@@ -719,14 +718,14 @@ namespace ZenonCli
                 WriteInfo("Insert passphrase:");
                 passphrase = ReadPassword();
             }
-            
+
             int index = options.Index;
-            
+
             try
             {
                 Znn.Instance.DefaultKeyStore = Znn.Instance.KeyStoreManager.ReadKeyStore(passphrase, keyStorePath);
                 Znn.Instance.DefaultKeyStorePath = keyStorePath;
-            } 
+            }
             catch (IncorrectPasswordException)
             {
                 ThrowError($"Invalid passphrase for keyStore {keyStorePath}");
@@ -927,7 +926,7 @@ namespace ZenonCli
             });
             WriteInfo("Subscribed successfully!");
 
-            while(true)
+            while (true)
             {
                 Hash? hash;
                 if (queue.TryTake(out hash))
@@ -1030,7 +1029,7 @@ namespace ZenonCli
             var address = Znn.Instance.DefaultKeyPair.Address;
             var plasmaInfo = await Znn.Instance.Embedded.Plasma.Get(address);
 
-            WriteInfo($"{address} has {plasmaInfo.CurrentPlasma} / {plasmaInfo.MaxPlasma} plasma with {FormatAmount(plasmaInfo.QsrAmount, Constants.QsrDecimals)} 'QSR' fused.");
+            WriteInfo($"{address} has {plasmaInfo.CurrentPlasma} / {plasmaInfo.MaxPlasma} plasma with {FormatAmount(plasmaInfo.QsrAmount, Constants.QsrDecimals)} QSR fused.");
         }
 
         static async Task ProcessAsync(Plasma.Fuse options)
@@ -1144,8 +1143,8 @@ namespace ZenonCli
                 accountInfo.Qsr < Constants.SentinelRegisterQsrAmount)
             {
                 WriteInfo($"Cannot register Sentinel with address {address}");
-                WriteInfo($"Required {FormatAmount(Constants.SentinelRegisterZnnAmount, Constants.ZnnDecimals)} ZNN and {FormatAmount(Constants.SentinelRegisterQsrAmount, Constants.QsrDecimals)} 'QSR'");
-                WriteInfo($"Available {FormatAmount(accountInfo.Znn.Value, Constants.ZnnDecimals)} ZNN and {FormatAmount(accountInfo.Qsr.Value, Constants.QsrDecimals)} 'QSR'");
+                WriteInfo($"Required {FormatAmount(Constants.SentinelRegisterZnnAmount, Constants.ZnnDecimals)} ZNN and {FormatAmount(Constants.SentinelRegisterQsrAmount, Constants.QsrDecimals)} QSR");
+                WriteInfo($"Available {FormatAmount(accountInfo.Znn.Value, Constants.ZnnDecimals)} ZNN and {FormatAmount(accountInfo.Qsr.Value, Constants.QsrDecimals)} QSR");
                 return;
             }
 
@@ -1156,7 +1155,7 @@ namespace ZenonCli
             }
             await Znn.Instance.Send(Znn.Instance.Embedded.Sentinel.Register());
             WriteInfo("Done");
-            WriteInfo($"Check after 2 momentums if the Sentinel was successfully registered using 'sentinel.list' command");
+            WriteInfo($"Check after 2 momentums if the Sentinel was successfully registered using sentinel.list command");
         }
 
         static async Task ProcessAsync(Sentinel.Revoke options)
@@ -1196,7 +1195,7 @@ namespace ZenonCli
         {
             var address = Znn.Instance.DefaultKeyPair.Address;
 
-            var depositedQsr = 
+            var depositedQsr =
                 await Znn.Instance.Embedded.Sentinel.GetDepositedQsr(address);
 
             if (depositedQsr == 0)
@@ -1218,6 +1217,7 @@ namespace ZenonCli
 
         static async Task ProcessAsync(Stake.List options)
         {
+            var currentTime = DateTimeOffset.Now.ToUnixTimeSeconds();
             var address = Znn.Instance.DefaultKeyPair.Address;
 
             if (!options.PageIndex.HasValue)
@@ -1225,8 +1225,6 @@ namespace ZenonCli
 
             if (!options.PageSize.HasValue)
                 options.PageSize = 25;
-
-            var currentTime = DateTimeOffset.Now.ToUnixTimeSeconds();
 
             var stakeList = await Znn.Instance.Embedded.Stake.GetEntriesByAddress(
                 address, options.PageIndex.Value, options.PageSize.Value);
@@ -1242,7 +1240,7 @@ namespace ZenonCli
 
             foreach (var entry in stakeList.List)
             {
-                WriteInfo($"Stake id {entry.Id} with amount {FormatAmount(entry.Amount, Constants.ZnnDecimals)} 'ZNN'");
+                WriteInfo($"Stake id {entry.Id} with amount {FormatAmount(entry.Amount, Constants.ZnnDecimals)} ZNN");
 
                 if (entry.ExpirationTimestamp > currentTime)
                 {
@@ -1250,7 +1248,7 @@ namespace ZenonCli
                 }
                 else
                 {
-                    WriteInfo("    'Can be revoked now'");
+                    WriteInfo("    Can be revoked now");
                 }
             }
         }
@@ -1283,7 +1281,7 @@ namespace ZenonCli
             }
 
             WriteInfo($"Staking {FormatAmount(amount, Constants.ZnnDecimals)} ZNN for {duration} {Constants.StakeUnitDurationName}(s)");
-            
+
             await Znn.Instance.Send(
                 Znn.Instance.Embedded.Stake.Stake(Constants.StakeTimeUnitSec * duration, amount));
 
@@ -1303,7 +1301,8 @@ namespace ZenonCli
 
             var entries = await Znn.Instance.Embedded.Stake.GetEntriesByAddress(address, pageIndex);
 
-            while (entries.List.Length != 0) {
+            while (entries.List.Length != 0)
+            {
                 foreach (var entry in entries.List)
                 {
                     if (entry.Id == hash)
@@ -1320,9 +1319,12 @@ namespace ZenonCli
                 entries = await Znn.Instance.Embedded.Stake.GetEntriesByAddress(address, pageIndex);
             }
 
-            if (gotError) {
+            if (gotError)
+            {
                 return;
-            } else if (!one) {
+            }
+            else if (!one)
+            {
                 WriteError($"No stake entry found with id {hash}");
                 return;
             }
@@ -1353,7 +1355,7 @@ namespace ZenonCli
                 WriteInfo($"#{pillar.Rank + 1} Pillar {pillar.Name} has a delegated weight of {FormatAmount(pillar.Weight, Constants.ZnnDecimals)} ZNN");
                 WriteInfo($"    Producer address {pillar.ProducerAddress}");
                 WriteInfo($"    Momentums {pillar.CurrentStats.ProducedMomentums} / expected {pillar.CurrentStats.ExpectedMomentums}");
-            }   
+            }
         }
 
         static async Task ProcessAsync(Pillar.Register options)
@@ -1385,7 +1387,7 @@ namespace ZenonCli
             var newName = options.Name;
             var ok =
                 await Znn.Instance.Embedded.Pillar.CheckNameAvailability(newName);
-           
+
             while (!ok)
             {
                 newName = Ask("This Pillar name is already reserved. Please choose another name for the Pillar");
@@ -1468,7 +1470,7 @@ namespace ZenonCli
         static async Task ProcessAsync(Pillar.Collect options)
         {
             await Znn.Instance.Send(Znn.Instance.Embedded.Pillar.CollectReward());
-            
+
             WriteInfo("Done");
             WriteInfo($"Use receiveAll to collect your Pillar reward(s) after 1 momentum");
         }
@@ -1575,7 +1577,7 @@ namespace ZenonCli
             var type = "Token";
 
             var tokens = await Znn.Instance.Embedded.Token.GetByOwner(ownerAddress);
-            
+
             foreach (var token in tokens.List)
             {
                 type = "Token";
@@ -1683,21 +1685,28 @@ namespace ZenonCli
             WriteInfo($"{mintable} {burnable} {utility}");
             return;
 
-            if (mintable == true) {
-                if (maxSupply < totalSupply) {
+            if (mintable == true)
+            {
+                if (maxSupply < totalSupply)
+                {
                     WriteError("Max supply must to be larger than the total supply");
                     return;
                 }
-                if (maxSupply > (1 << 53)) {
+                if (maxSupply > (1 << 53))
+                {
                     WriteError($"Max supply must to be less than {((1 << 53)) - 1}");
                     return;
                 }
-            } else {
-                if (maxSupply != totalSupply) {
+            }
+            else
+            {
+                if (maxSupply != totalSupply)
+                {
                     WriteError("Max supply must be equal to totalSupply for non-mintable tokens");
                     return;
                 }
-                if (totalSupply == 0) {
+                if (totalSupply == 0)
+                {
                     WriteError("Total supply cannot be \"0\" for non-mintable tokens");
                     return;
                 }
@@ -1712,13 +1721,13 @@ namespace ZenonCli
 
             await Znn.Instance.Send(
                 Znn.Instance.Embedded.Token.IssueToken(
-                    options.Name, 
-                    options.Symbol, 
+                    options.Name,
+                    options.Symbol,
                     options.Domain,
-                    totalSupply, 
-                    maxSupply, 
-                    decimals, 
-                    mintable, 
+                    totalSupply,
+                    maxSupply,
+                    decimals,
+                    mintable,
                     burnable,
                     utility));
 
@@ -1747,7 +1756,7 @@ namespace ZenonCli
 
             await Znn.Instance.Send(
                 Znn.Instance.Embedded.Token.MintToken(tokenStandard, amount, mintAddress));
-            
+
             WriteInfo("Done");
         }
 
@@ -1760,7 +1769,7 @@ namespace ZenonCli
             var info =
                 await Znn.Instance.Ledger.GetAccountInfoByAddress(address);
             var ok = true;
-            
+
             foreach (var entry in info.BalanceInfoList)
             {
                 if (entry.Token.TokenStandard == tokenStandard &&
@@ -1771,8 +1780,8 @@ namespace ZenonCli
                     break;
                 }
             }
-            
-            if (!ok) 
+
+            if (!ok)
                 return;
 
             WriteInfo($"Burning {options.TokenStandard} ZTS token ...");
@@ -1797,10 +1806,10 @@ namespace ZenonCli
                 WriteError($"Not owner of token {tokenStandard}");
                 return;
             }
-            
+
             await Znn.Instance.Send(Znn.Instance.Embedded.Token.UpdateToken(
                 tokenStandard, newOwnerAddress, token.IsMintable, token.IsBurnable));
-            
+
             WriteInfo("Done");
         }
 
@@ -1811,7 +1820,7 @@ namespace ZenonCli
             var address = Znn.Instance.DefaultKeyPair.Address;
             var tokenStandard = TokenStandard.Parse(options.TokenStandard);
             var token = await Znn.Instance.Embedded.Token.GetByZts(tokenStandard);
-            
+
             if (token.Owner != address)
             {
                 WriteError($"Not owner of token {tokenStandard}");
@@ -2084,7 +2093,7 @@ namespace ZenonCli
 
         static int Process(Wallet.DumpMnemonic options)
         {
-            WriteInfo($"Mnemonic for keyStore File: '{Znn.Instance.DefaultKeyStorePath}'");
+            WriteInfo($"Mnemonic for keyStore File: {Znn.Instance.DefaultKeyStorePath}");
 
             WriteInfo(Znn.Instance.DefaultKeyStore.Mnemonic);
 
@@ -2093,7 +2102,7 @@ namespace ZenonCli
 
         static int Process(Wallet.DeriveAddresses options)
         {
-            WriteInfo($"Addresses for keyStore File: '{Znn.Instance.DefaultKeyStorePath}'");
+            WriteInfo($"Addresses for keyStore File: {Znn.Instance.DefaultKeyStorePath}");
 
             var addresses = Znn.Instance.DefaultKeyStore.DeriveAddressesByRange(options.Start, options.End);
 
@@ -2174,7 +2183,7 @@ namespace ZenonCli
 
         static string FormatDuration(long seconds)
         {
-            return DateTimeOffset.FromUnixTimeSeconds(seconds).ToLocalTime().TimeOfDay.ToString();
+            return TimeSpan.FromSeconds(seconds).ToString();
         }
 
         static void ThrowError(string message)
