@@ -39,7 +39,7 @@ namespace ZenonCli
             public int Index { get; set; }
         }
 
-        interface IConnectionOptions
+        interface IConnectionOptions : IFlags
         {
             [Option('n', "netId", Default = Constants.NetId, HelpText = "Specify the network id to use")]
             public int NetId { get; set; }
@@ -57,18 +57,24 @@ namespace ZenonCli
 
         public abstract class ConnectionOptions : IConnectionOptions
         {
+            public bool Verbose { get; set; }
             public string? Url { get; set; }
             public int NetId { get; set; }
         }
 
         public abstract class KeyStoreAndConnectionOptions : KeyStoreOptions, IConnectionOptions
         {
+            public bool Verbose { get; set; }
             public string? Url { get; set; }
             public int NetId { get; set; }
         }
 
         public class General
         {
+            [Verb("version", HelpText = "Display version information.")]
+            public class Version : ConnectionOptions
+            { }
+
             [Verb("send", HelpText = "Send tokens to an address.")]
             public class Send : KeyStoreAndConnectionOptions
             {
@@ -530,7 +536,13 @@ namespace ZenonCli
         {
             var types = LoadVerbs();
 
-            await Parser.Default.ParseArguments(args, types)
+            var parser = new Parser(config =>
+            {
+                config.AutoVersion = false;
+                config.HelpWriter = Console.Out;
+            });
+
+            await parser.ParseArguments(args, types)
                 .WithParsedAsync(RunAsync);
         }
 
@@ -550,6 +562,9 @@ namespace ZenonCli
 
                 switch (obj)
                 {
+                    case General.Version gv:
+                        await ProcessAsync(gv);
+                        break;
                     case General.Send gs:
                         await ProcessAsync(gs);
                         break;
@@ -794,6 +809,9 @@ namespace ZenonCli
         {
             Znn.Instance.NetId = options.NetId;
 
+            if (options.Verbose)
+                ((Zenon.Client.WsClient)Znn.Instance.Client.Value).TraceSourceLevels = System.Diagnostics.SourceLevels.Verbose;
+
             await Znn.Instance.Client.Value.StartAsync(new Uri(options.Url!), false);
         }
 
@@ -803,6 +821,14 @@ namespace ZenonCli
         }
 
         #endregion
+
+        static async Task ProcessAsync(General.Version options)
+        {
+            var info =
+                await Znn.Instance.Stats.ProcessInfo();
+
+            WriteInfo($"Zenon Node {info.version} using Zenon .NET SDK v{Constants.ZnnSdkVersion}");
+        }
 
         #region General
 
