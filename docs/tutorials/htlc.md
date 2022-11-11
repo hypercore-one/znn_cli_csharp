@@ -66,7 +66,7 @@ Alice checks her balance to make sure she has enough funds.
 ./znn-cli balance -k Alice -n 321
 ```
 
-Alice creates a hash which she will use to lock the funds.
+Alice creates a hash (using the defualt SHA3-256 hashing alghoritme) which she will use to lock the funds.
 
 ``` powershell
 ./znn-cli createHash "all your znn belong to us"
@@ -139,7 +139,7 @@ Alice checks her balance to make sure she has enough funds.
 ./znn-cli balance -k Alice -n 321
 ```
 
-Alice creates a hash which she will use to lock the funds.
+Alice creates a hash (using the defualt SHA3-256 hashing alghoritme) which she will use to lock the funds.
 
 ``` powershell
 ./znn-cli createHash "all your znn belong to us"

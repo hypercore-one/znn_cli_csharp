@@ -19,6 +19,9 @@ namespace ZenonCli
 {
     class Program
     {
+        public const int HashTypeSha3256 = 0;
+        public const int HashTypeSha2256 = 1;
+
         #region Options
 
         interface IFlags
@@ -128,7 +131,7 @@ namespace ZenonCli
                 [Value(0, MetaName = "message")]
                 public string? Message { get; set; }
 
-                [Value(1, MetaName = "hashType", Default = 0, HelpText = "0 = SHA3-256")]
+                [Value(1, MetaName = "hashType", Default = 0, HelpText = "0 = SHA3-256, 1 = SHA-256")]
                 public int? HashType { get; set; }
             }
         }
@@ -430,7 +433,7 @@ namespace ZenonCli
                 [Value(5, Required = true, MetaName = "hashLock", HelpText = "The hash lock as a hexidecimal string.")]
                 public string? HashLock { get; set; }
 
-                [Value(6, MetaName = "hashType", Default = 0, HelpText = "0 = SHA3-256")]
+                [Value(6, MetaName = "hashType", Default = 0, HelpText = "0 = SHA3-256, 1 = SHA-256")]
                 public int? HashType { get; set; }
 
                 [Value(7, MetaName = "keyMaxSize", Default = 32, HelpText = "Maximum size of the pre-image.")]
@@ -1074,7 +1077,7 @@ namespace ZenonCli
         {
             if (!options.HashType.HasValue)
             {
-                options.HashType = 0;
+                options.HashType = HashTypeSha3256;
             }
 
             if (String.IsNullOrEmpty(options.Message))
@@ -1089,13 +1092,22 @@ namespace ZenonCli
                 return;
             }
 
-            if (options.HashType != 0)
-            {
-                WriteError($"Invalid hash type. Value {options.HashType} not supported.");
-                return;
-            }
+            byte[]? digest = null;
 
-            var digest = Crypto.Digest(Encoding.UTF8.GetBytes(options.Message));
+            switch (options.HashType)
+            {
+                case HashTypeSha3256:
+                    digest = Crypto.Digest(Encoding.UTF8.GetBytes(options.Message));
+                    break;
+
+                case HashTypeSha2256:
+                    digest = Helper.ComputeStringToSha256Hash(options.Message);
+                    break;
+
+                default:
+                    WriteError($"Invalid hash type. Value {options.HashType} not supported.");
+                    return;
+            }
 
             WriteInfo($"Hash: {BytesUtils.ToHexString(digest)}");
         }
@@ -2042,14 +2054,14 @@ namespace ZenonCli
 
             if (!options.HashType.HasValue)
             {
-                options.HashType = 0;
+                options.HashType = HashTypeSha3256;
             }
             if (!options.KeyMaxSize.HasValue)
             {
                 options.KeyMaxSize = 32;
             }
 
-            if (options.HashType != 0)
+            if (options.HashType != HashTypeSha3256 && options.HashType != HashTypeSha2256)
             {
                 WriteError($"Invalid hash type. Hash type {options.HashType} not supported.");
                 return;
