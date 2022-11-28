@@ -1994,13 +1994,13 @@ namespace ZenonCli
             var result = await Znn.Instance.Embedded.Htlc
                 .GetHtlcInfosByTimeLockedAddress(address, options.PageIndex.Value, options.PageSize.Value);
 
-            if (result == null || result.Length == 0)
+            if (result == null || result.Count == 0)
             {
                 WriteInfo("No time locked htlc entries found");
                 return;
             }
 
-            foreach (var htlc in result)
+            foreach (var htlc in result.List)
             {
                 var token = await Znn.Instance.Embedded.Token.GetByZts(htlc.TokenStandard);
 
@@ -2027,13 +2027,13 @@ namespace ZenonCli
             var result = await Znn.Instance.Embedded.Htlc
                 .GetHtlcInfosByHashLockedAddress(address, options.PageIndex.Value, options.PageSize.Value);
 
-            if (result == null || result.Length == 0)
+            if (result == null || result.Count == 0)
             {
                 WriteInfo("No hash locked htlc entries found");
                 return;
             }
 
-            foreach (var htlc in result)
+            foreach (var htlc in result.List)
             {
                 var token = await Znn.Instance.Embedded.Token.GetByZts(htlc.TokenStandard);
 
@@ -2334,7 +2334,7 @@ namespace ZenonCli
             var timeHtlc = await Znn.Instance.Embedded.Htlc.GetHtlcInfosByTimeLockedAddress(address);
             var hashHtlc = await Znn.Instance.Embedded.Htlc.GetHtlcInfosByHashLockedAddress(address);
 
-            await MonitorAsync(timeHtlc.Concat(hashHtlc).ToArray());
+            await MonitorAsync(timeHtlc.List.Concat(hashHtlc.List).ToArray());
         }
 
         static async Task MonitorAsync(params HtlcInfo[] htlcs)
