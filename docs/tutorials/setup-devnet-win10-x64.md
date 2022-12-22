@@ -41,7 +41,7 @@ choco install dotnet-sdk -y
 We will need a GCC compiler to compile the go-zenon code. Execute the following command in PowerShell.
 
 ``` powershell
-choco install mingw -y
+choco install winlibs-llvm-free
 ```
 
 ## Configuration
