@@ -44,8 +44,8 @@ namespace ZenonCli
 
         interface IConnectionOptions : IFlags
         {
-            [Option('n', "netId", Default = Constants.NetId, HelpText = "Specify the network id to use")]
-            public int NetId { get; set; }
+            [Option('n', "chainId", Default = Constants.ChainId, HelpText = "Specify the chain idendtifier to use")]
+            public int ChainId { get; set; }
 
             [Option('u', "url", Required = false, Default = "ws://127.0.0.1:35998", HelpText = "Provide a websocket znnd connection URL with a port")]
             public string? Url { get; set; }
@@ -62,14 +62,14 @@ namespace ZenonCli
         {
             public bool Verbose { get; set; }
             public string? Url { get; set; }
-            public int NetId { get; set; }
+            public int ChainId { get; set; }
         }
 
         public abstract class KeyStoreAndConnectionOptions : KeyStoreOptions, IConnectionOptions
         {
             public bool Verbose { get; set; }
             public string? Url { get; set; }
-            public int NetId { get; set; }
+            public int ChainId { get; set; }
         }
 
         public class General
@@ -810,7 +810,7 @@ namespace ZenonCli
 
         static async Task StartConnectionAsync(IConnectionOptions options)
         {
-            Znn.Instance.NetId = options.NetId;
+            Znn.Instance.ChainIdentifier = options.ChainId;
 
             if (options.Verbose)
                 ((Zenon.Client.WsClient)Znn.Instance.Client.Value).TraceSourceLevels = System.Diagnostics.SourceLevels.Verbose;

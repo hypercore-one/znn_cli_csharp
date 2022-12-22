@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -19,7 +19,7 @@
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
-    <PackageReference Include="Zenon.Sdk" Version="0.3.9-ga69529d64d" />
+    <PackageReference Include="Zenon.Sdk" Version="0.3.10-gf0df63664e" />
   </ItemGroup>
 
 </Project>
