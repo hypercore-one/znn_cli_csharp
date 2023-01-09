@@ -43,13 +43,13 @@ Execute the following command to create Bob's wallet.
 
 In order to speed up the process of sending transactions on our devnet we will generate some plasma on both addresses.
 
-Alice will fuse 100 QSR on both addresses using the **devnet** id 321.
+Alice will fuse 100 QSR on both addresses.
 
 > The first transaction can take a while when using PoW.
 
 ``` powershell
-./znn-cli plasma.fuse z1qqjnwjjpnue8xmmpanz6csze6tcmtzzdtfsww7 100 -k Alice -n 321
-./znn-cli plasma.fuse z1qpsjv3wzzuuzdudg7tf6uhvr6sk4ag8me42ua4 100 -k Alice -n 321
+./znn-cli plasma.fuse z1qqjnwjjpnue8xmmpanz6csze6tcmtzzdtfsww7 100 -k Alice
+./znn-cli plasma.fuse z1qpsjv3wzzuuzdudg7tf6uhvr6sk4ag8me42ua4 100 -k Alice
 ```
 
 ## HTLC scenario 1
@@ -63,19 +63,22 @@ Alice wants to buy something from Bob. She will give Bob 1 hour the time to deli
 Alice checks her balance to make sure she has enough funds.
 
 ``` powershell
-./znn-cli balance -k Alice -n 321
+./znn-cli balance -k Alice
 ```
 
-Alice creates a hash (using the defualt SHA3-256 hashing alghoritme) which she will use to lock the funds.
+Alice creates a hash (using the default SHA3-256 hashing alghoritme and preimage size of 32) which she will use to lock the funds.
 
 ``` powershell
-./znn-cli createHash "all your znn belong to us"
+./znn-cli createHash
 ```
 
-Alice locks 100 ZNN for Bob for 1 hour and uses the hash a the hashlock.
+> Preimage: b57103844dd7c6d4fe4edcd925f192a8d2d2ab9e0f0679c266c8bda2e37a71a5
+> SHA3-256 Hash: c0dd78888939d31c445a52a7c6b20b9a23f28613e7373550875d11ddae902077
+
+Alice locks 100 ZNN for Bob for 1 hour and uses the hash as the hashlock.
 
 ``` powershell
-./znn-cli htlc.create z1qpsjv3wzzuuzdudg7tf6uhvr6sk4ag8me42ua4 ZNN 100 3600 de543a6cab8db5bdc086d1720b97b0f097458841cd0264d789350e3b07587f5b -k Alice -n 321
+./znn-cli htlc.create z1qpsjv3wzzuuzdudg7tf6uhvr6sk4ag8me42ua4 ZNN 100 3600 c0dd78888939d31c445a52a7c6b20b9a23f28613e7373550875d11ddae902077 -k Alice
 ```
 
 Alice makes sure the HTLC is created and the funds have been deducted from her account before notifying Bob.
@@ -83,22 +86,22 @@ Alice makes sure the HTLC is created and the funds have been deducted from her a
 >  Wait 2 Momentums for the transaction to be processed.
 
 ``` powershell
-./znn-cli htlc.timeLocked -k Alice -n 321
-./znn-cli balance -k Alice -n 321
+./znn-cli htlc.timeLocked -k Alice
+./znn-cli balance -k Alice
 ```
 
 Alice notifies Bob for him to inspect the HTLC.
 
 ``` powershell
-./znn-cli htlc.hashLocked -k Bob -n 321
+./znn-cli htlc.hashLocked -k Bob
 ```
 
 Bob inspects the HTLC and agrees to the conditions and writes down the HTLC hash id.
 
-Bob has 1 hour the time to do his part of the deal. Once finished Alice will reveal the pre-image to Bob so that he can unlock the 100 ZNN.
+Bob has 1 hour the time to do his part of the deal. Once finished Alice will reveal the preimage to Bob so that he can unlock the 100 ZNN.
 
 ``` powershell
-./znn-cli htlc.unlock [hash id] "all your znn belong to us" -k Bob -n 321
+./znn-cli htlc.unlock [hash id] b57103844dd7c6d4fe4edcd925f192a8d2d2ab9e0f0679c266c8bda2e37a71a5 -k Bob
 ```
 
 > Wait 2 Momentums for the transaction to be processed.
@@ -106,13 +109,13 @@ Bob has 1 hour the time to do his part of the deal. Once finished Alice will rev
 Bob has unlocked the 100 ZNN which the contract has send to his wallet. Bob needs to receive the unreceived transactions.
 
 ``` powershell
-./znn-cli receiveAll -k Bob -n 321
+./znn-cli receiveAll -k Bob
 ```
 
 Bob is trilled and checks his balance to make sure everything is fine.
 
 ``` powershell
-./znn-cli balance -k Bob -n 321
+./znn-cli balance -k Bob
 ```
 
 ## HTLC scenario 2
@@ -122,7 +125,7 @@ Alice wants to exchange 100 ZNN for 1000 QSR with Bob.
 Bob will need some QSR in order for this to work. We will pretend this did not happen.
 
 ``` powershell
-./znn-cli send z1qpsjv3wzzuuzdudg7tf6uhvr6sk4ag8me42ua4 1000 QSR -k Alice -n 321
+./znn-cli send z1qpsjv3wzzuuzdudg7tf6uhvr6sk4ag8me42ua4 1000 QSR -k Alice
 ```
 
 > Wait 2 Momentums for the transaction to be processed.
@@ -130,25 +133,28 @@ Bob will need some QSR in order for this to work. We will pretend this did not h
 Bob needs to receive the unreceived transactions.
 
 ``` powershell
-./znn-cli receiveAll -k Bob -n 321
+./znn-cli receiveAll -k Bob
 ```
 
 Alice checks her balance to make sure she has enough funds.
 
 ``` powershell
-./znn-cli balance -k Alice -n 321
+./znn-cli balance -k Alice
 ```
 
-Alice creates a hash (using the defualt SHA3-256 hashing alghoritme) which she will use to lock the funds.
+Alice creates a hash (using the defualt SHA3-256 hashing alghoritme and preimage size of 32) which she will use to lock the funds.
 
 ``` powershell
-./znn-cli createHash "all your znn belong to us"
+./znn-cli createHash
 ```
 
-Alice locks 100 ZNN for Bob for 1 hour and uses the hash a the hashlock.
+> Preimage: b57103844dd7c6d4fe4edcd925f192a8d2d2ab9e0f0679c266c8bda2e37a71a5
+> Hash: c0dd78888939d31c445a52a7c6b20b9a23f28613e7373550875d11ddae902077
+
+Alice locks 100 ZNN for Bob for 2 hours and uses the hash as the hashlock.
 
 ``` powershell
-./znn-cli htlc.create z1qpsjv3wzzuuzdudg7tf6uhvr6sk4ag8me42ua4 ZNN 100 3600 de543a6cab8db5bdc086d1720b97b0f097458841cd0264d789350e3b07587f5b -k Alice -n 321
+./znn-cli htlc.create z1qpsjv3wzzuuzdudg7tf6uhvr6sk4ag8me42ua4 ZNN 100 7200 c0dd78888939d31c445a52a7c6b20b9a23f28613e7373550875d11ddae902077 -k Alice
 ```
 
 Alice makes sure the HTLC is created and the funds have been deducted from her account before notifying Bob.
@@ -156,22 +162,22 @@ Alice makes sure the HTLC is created and the funds have been deducted from her a
 >  Wait 2 Momentums for the transaction to be processed.
 
 ``` powershell
-./znn-cli htlc.timeLocked -k Alice -n 321
-./znn-cli balance -k Alice -n 321
+./znn-cli htlc.timeLocked -k Alice
+./znn-cli balance -k Alice
 ```
 
 Alice notifies Bob for him to inspect the HTLC.
 
 ``` powershell
-./znn-cli htlc.hashLocked -k Bob -n 321
+./znn-cli htlc.hashLocked -k Bob
 ```
 
-Bob inspects the HTLC and agrees to the conditions and creates a HTLC locking 1000 QSR for Alice for 30 minutes using the same hashlock Alice used.
+Bob inspects the HTLC and agrees to the conditions and creates a HTLC locking 1000 QSR for Alice for 1 hour using the same hashlock Alice used.
 
 >  It's important that Bob's HTLC expires before Alice's
 
 ``` powershell
-./znn-cli htlc.create z1qqjnwjjpnue8xmmpanz6csze6tcmtzzdtfsww7 QSR 1000 1800 de543a6cab8db5bdc086d1720b97b0f097458841cd0264d789350e3b07587f5b -k Bob -n 321
+./znn-cli htlc.create z1qqjnwjjpnue8xmmpanz6csze6tcmtzzdtfsww7 QSR 1000 3600 c0dd78888939d31c445a52a7c6b20b9a23f28613e7373550875d11ddae902077 -k Bob
 ```
 
 Bob makes sure the HTLC is created and the funds have been deducted from his account before notifying Alice.
@@ -179,26 +185,28 @@ Bob makes sure the HTLC is created and the funds have been deducted from his acc
 >  Wait 2 Momentums for the transaction to be processed.
 
 ``` powershell
-./znn-cli htlc.timeLocked -k Bob -n 321
-./znn-cli balance -k Bob -n 321
+./znn-cli htlc.timeLocked -k Bob
+./znn-cli balance -k Bob
 ```
 
 Bob wants to know when Alice unlocks the HTLC containing the 1000 QSR.
 
+> For the sake of this tutorial we disable the auto unlock feature.
+
 ``` powershell
-./znn-cli htlc.monitor [hash id] -k Bob -n 321
+./znn-cli htlc.monitor [hash id] false -k Bob
 ```
 
 Bob notifies Alice for her to inspect the HTLC.
 
 ``` powershell
-./znn-cli htlc.hashLocked -k Alice -n 321
+./znn-cli htlc.hashLocked -k Alice
 ```
 
 Alice inspects the HTLC and agrees to the conditions and unlocks the HTLC.
 
 ``` powershell
-./znn-cli htlc.unlock [hash id] "all your znn belong to us" -k Alice -n 321
+./znn-cli htlc.unlock [hash id] b57103844dd7c6d4fe4edcd925f192a8d2d2ab9e0f0679c266c8bda2e37a71a5 -k Alice
 ```
 
 > Wait 2 Momentums for the transaction to be processed.
@@ -206,19 +214,19 @@ Alice inspects the HTLC and agrees to the conditions and unlocks the HTLC.
 Alice has unlocked the 1000 QSR which the contract has send to her wallet. Alice needs to receive the unreceived transactions.
 
 ``` powershell
-./znn-cli receiveAll -k Alice -n 321
+./znn-cli receiveAll -k Alice
 ```
 
 Alice checks her balance to make sure everything is fine.
 
 ``` powershell
-./znn-cli balance -k Alice -n 321
+./znn-cli balance -k Alice
 ```
 
 Meanwhile Bob gets notified of the pre-image Alice used to unlock Bob's HTLC and uses it to unlock Alice's HTLC.
 
 ``` powershell
-./znn-cli htlc.unlock [hash id] "all your znn belong to us" -k Bob -n 321
+./znn-cli htlc.unlock [hash id] b57103844dd7c6d4fe4edcd925f192a8d2d2ab9e0f0679c266c8bda2e37a71a5 -k Bob
 ```
 
 > Wait 2 Momentums for the transaction to be processed.
@@ -226,11 +234,11 @@ Meanwhile Bob gets notified of the pre-image Alice used to unlock Bob's HTLC and
 Bob has unlocked the 100 ZNN which the contract has send to his wallet. Bob needs to receive the unreceived transactions.
 
 ``` powershell
-./znn-cli receiveAll -k Bob -n 321
+./znn-cli receiveAll -k Bob
 ```
 
 Bob checks his balance to make sure everything is fine.
 
 ``` powershell
-./znn-cli balance -k Bob -n 321
+./znn-cli balance -k Bob
 ```
