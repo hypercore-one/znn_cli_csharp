@@ -5,36 +5,10 @@ namespace ZenonCli.Options
     public class Htlc
     {
         [Verb("htlc.get", HelpText = "List htlc by id")]
-        public class Get : KeyStoreAndConnectionOptions
+        public class Get : ConnectionOptions
         {
             [Value(0, Required = true, MetaName = "id")]
             public string? Id { get; set; }
-        }
-
-        [Verb("htlc.timeLocked", HelpText = "List all time locked htlc's")]
-        public class GetByTimeLocked : KeyStoreAndConnectionOptions
-        {
-            [Value(0, MetaName = "address")]
-            public string? Address { get; set; }
-
-            [Value(1, Default = 0, MetaName = "pageIndex")]
-            public int? PageIndex { get; set; }
-
-            [Value(2, Default = 25, MetaName = "pageSize")]
-            public int? PageSize { get; set; }
-        }
-
-        [Verb("htlc.hashLocked", HelpText = "List all hash locked htlc's")]
-        public class GetByHashLocked : KeyStoreAndConnectionOptions
-        {
-            [Value(0, MetaName = "address")]
-            public string? Address { get; set; }
-
-            [Value(1, Default = 0, MetaName = "pageIndex")]
-            public int? PageIndex { get; set; }
-
-            [Value(2, Default = 25, MetaName = "pageSize")]
-            public int? PageSize { get; set; }
         }
 
         [Verb("htlc.create", HelpText = "Create htlc")]
@@ -66,10 +40,6 @@ namespace ZenonCli.Options
             public string? Id { get; set; }
         }
 
-        [Verb("htlc.reclaimAll", HelpText = "Reclaim all htlc's")]
-        public class ReclaimAll : KeyStoreAndConnectionOptions
-        { }
-
         [Verb("htlc.unlock", HelpText = "Unlock htlc")]
         public class Unlock : KeyStoreAndConnectionOptions
         {
@@ -92,16 +62,6 @@ namespace ZenonCli.Options
         {
             [Value(0, Required = true, MetaName = "id", HelpText = "The id of the htlc to monitor.")]
             public string? Id { get; set; }
-
-            [Value(1, MetaName = "unlock", Default = true, HelpText = "Unlock any associated htlc that are hashLocked to current address.")]
-            public bool Unlock { get; set; }
-        }
-
-        [Verb("htlc.monitorAll", HelpText = "Monitor all htlc's.")]
-        public class MonitorAll : KeyStoreAndConnectionOptions
-        {
-            [Value(0, MetaName = "unlock", Default = true, HelpText = "Unlock any associated htlc that are hashLocked to current address.")]
-            public bool Unlock { get; set; }
         }
     }
 }

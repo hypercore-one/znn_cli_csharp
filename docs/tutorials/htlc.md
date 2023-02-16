@@ -75,7 +75,7 @@ Alice creates a hash (using the default SHA3-256 hashing alghoritme and preimage
 > Preimage: b57103844dd7c6d4fe4edcd925f192a8d2d2ab9e0f0679c266c8bda2e37a71a5
 > SHA3-256 Hash: c0dd78888939d31c445a52a7c6b20b9a23f28613e7373550875d11ddae902077
 
-Alice locks 100 ZNN for Bob for 1 hour and uses the hash as the hashlock.
+Alice locks 100 ZNN for Bob for 1 hour, using the hash as the hashlock and writes down the HTLC hash id.
 
 ``` powershell
 ./znn-cli htlc.create z1qpsjv3wzzuuzdudg7tf6uhvr6sk4ag8me42ua4 ZNN 100 3600 c0dd78888939d31c445a52a7c6b20b9a23f28613e7373550875d11ddae902077 -k Alice
@@ -86,17 +86,17 @@ Alice makes sure the HTLC is created and the funds have been deducted from her a
 >  Wait 2 Momentums for the transaction to be processed.
 
 ``` powershell
-./znn-cli htlc.timeLocked -k Alice
+./znn-cli htlc.get [hash id]
 ./znn-cli balance -k Alice
 ```
 
-Alice notifies Bob for him to inspect the HTLC.
+Alice notifies Bob by giving him the hash id of the HTLC for him to inspect.
 
 ``` powershell
-./znn-cli htlc.hashLocked -k Bob
+./znn-cli htlc.get [hash id]
 ```
 
-Bob inspects the HTLC and agrees to the conditions and writes down the HTLC hash id.
+Bob inspects the HTLC and agrees to the conditions.
 
 Bob has 1 hour the time to do his part of the deal. Once finished Alice will reveal the preimage to Bob so that he can unlock the 100 ZNN.
 
@@ -162,14 +162,14 @@ Alice makes sure the HTLC is created and the funds have been deducted from her a
 >  Wait 2 Momentums for the transaction to be processed.
 
 ``` powershell
-./znn-cli htlc.timeLocked -k Alice
+./znn-cli htlc.get [hash id]
 ./znn-cli balance -k Alice
 ```
 
-Alice notifies Bob for him to inspect the HTLC.
+Alice notifies Bob by giving him the hash id of the HTLC for him to inspect.
 
 ``` powershell
-./znn-cli htlc.hashLocked -k Bob
+./znn-cli htlc.get [hash id]
 ```
 
 Bob inspects the HTLC and agrees to the conditions and creates a HTLC locking 1000 QSR for Alice for 1 hour using the same hashlock Alice used.
@@ -180,27 +180,25 @@ Bob inspects the HTLC and agrees to the conditions and creates a HTLC locking 10
 ./znn-cli htlc.create z1qqjnwjjpnue8xmmpanz6csze6tcmtzzdtfsww7 QSR 1000 3600 c0dd78888939d31c445a52a7c6b20b9a23f28613e7373550875d11ddae902077 -k Bob
 ```
 
-Bob makes sure the HTLC is created and the funds have been deducted from his account before notifying Alice.
+Bob makes sure the HTLC is created and writes down the HTLC hash id and that the funds have been deducted from his account before notifying Alice.
 
 >  Wait 2 Momentums for the transaction to be processed.
 
 ``` powershell
-./znn-cli htlc.timeLocked -k Bob
+./znn-cli htlc.get [hash id]
 ./znn-cli balance -k Bob
 ```
 
 Bob wants to know when Alice unlocks the HTLC containing the 1000 QSR.
 
-> For the sake of this tutorial we disable the auto unlock feature.
-
 ``` powershell
-./znn-cli htlc.monitor [hash id] false -k Bob
+./znn-cli htlc.monitor [hash id] -k Bob
 ```
 
-Bob notifies Alice for her to inspect the HTLC.
+Bob notifies Alice by giving her the hash id of the HTLC for her to inspect.
 
 ``` powershell
-./znn-cli htlc.hashLocked -k Alice
+./znn-cli htlc.get [hash id]
 ```
 
 Alice inspects the HTLC and agrees to the conditions and unlocks the HTLC.

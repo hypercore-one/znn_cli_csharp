@@ -198,20 +198,11 @@ namespace ZenonCli
                     case Htlc.Get hg:
                         await ProcessAsync(hg);
                         break;
-                    case Htlc.GetByTimeLocked hgt:
-                        await ProcessAsync(hgt);
-                        break;
-                    case Htlc.GetByHashLocked hgh:
-                        await ProcessAsync(hgh);
-                        break;
                     case Htlc.Create hc:
                         await ProcessAsync(hc);
                         break;
                     case Htlc.Reclaim hr:
                         await ProcessAsync(hr);
-                        break;
-                    case Htlc.ReclaimAll hra:
-                        await ProcessAsync(hra);
                         break;
                     case Htlc.Unlock hu:
                         await ProcessAsync(hu);
@@ -221,9 +212,6 @@ namespace ZenonCli
                         break;
                     case Htlc.Monitor hm:
                         await ProcessAsync(hm);
-                        break;
-                    case Htlc.MonitorAll hma:
-                        await ProcessAsync(hma);
                         break;
 
                     case Wallet.List wl:
@@ -1611,112 +1599,6 @@ namespace ZenonCli
             WriteInfo("Done");
         }
 
-        static async Task ProcessAsync(Htlc.GetByTimeLocked options)
-        {
-            var currentTime = DateTimeOffset.Now.ToUnixTimeSeconds();
-            var address = options.Address == null 
-                ? Znn.Instance.DefaultKeyPair.Address
-                : Address.Parse(options.Address);
-
-            if (!options.PageIndex.HasValue)
-                options.PageIndex = 0;
-
-            if (!options.PageSize.HasValue)
-                options.PageSize = 25;
-
-            if (options.PageIndex < 0)
-            {
-                WriteError($"PageIndex must be at least 0");
-                return;
-            }
-
-            if (options.PageSize < 1 || options.PageSize > Constants.RpcMaxPageSize)
-            {
-                WriteError($"PageSize must be at least 1 and at most {Constants.RpcMaxPageSize}");
-                return;
-            }
-
-            var result = await Znn.Instance.Embedded.Htlc
-                .GetHtlcInfosByTimeLockedAddress(address, options.PageIndex.Value, options.PageSize.Value);
-
-            if (result == null || result.Count == 0)
-            {
-                WriteInfo("No time locked htlc entries found");
-                return;
-            }
-
-            foreach (var htlc in result.List)
-            {
-                var token = await Znn.Instance.Embedded.Token.GetByZts(htlc.TokenStandard);
-
-                WriteInfo($"Htlc id {htlc.Id} with amount {FormatAmount(htlc.Amount, token.Decimals)} {token.Symbol}");
-                if (htlc.ExpirationTime > currentTime)
-                {
-                    WriteInfo($"   Can be reclaimed in {FormatDuration(htlc.ExpirationTime - currentTime)} by {htlc.TimeLocked}");
-                    WriteInfo($"   Can be unlocked by {htlc.HashLocked} with hashlock {BytesUtils.ToHexString(htlc.HashLock)} hashtype {htlc.HashType}");
-                }
-                else
-                {
-                    WriteInfo($"   Can be reclaimed now by {htlc.TimeLocked}");
-                }
-            }
-
-            WriteInfo("Done");
-        }
-
-        static async Task ProcessAsync(Htlc.GetByHashLocked options)
-        {
-            var currentTime = DateTimeOffset.Now.ToUnixTimeSeconds();
-            var address = options.Address == null
-                ? Znn.Instance.DefaultKeyPair.Address
-                : Address.Parse(options.Address);
-
-            if (!options.PageIndex.HasValue)
-                options.PageIndex = 0;
-
-            if (!options.PageSize.HasValue)
-                options.PageSize = 25;
-
-            if (options.PageIndex < 0)
-            {
-                WriteError($"PageIndex must be at least 0");
-                return;
-            }
-
-            if (options.PageSize < 1 || options.PageSize > Constants.RpcMaxPageSize)
-            {
-                WriteError($"PageSize must be at least 1 and at most {Constants.RpcMaxPageSize}");
-                return;
-            }
-
-            var result = await Znn.Instance.Embedded.Htlc
-                .GetHtlcInfosByHashLockedAddress(address, options.PageIndex.Value, options.PageSize.Value);
-
-            if (result == null || result.Count == 0)
-            {
-                WriteInfo("No hash locked htlc entries found");
-                return;
-            }
-
-            foreach (var htlc in result.List)
-            {
-                var token = await Znn.Instance.Embedded.Token.GetByZts(htlc.TokenStandard);
-
-                WriteInfo($"Htlc id {htlc.Id} with amount {FormatAmount(htlc.Amount, token.Decimals)} {token.Symbol}");
-                if (htlc.ExpirationTime > currentTime)
-                {
-                    WriteInfo($"   Can be reclaimed in {FormatDuration(htlc.ExpirationTime - currentTime)} by {htlc.TimeLocked}");
-                    WriteInfo($"   Can be unlocked by {htlc.HashLocked} with hashlock {BytesUtils.ToHexString(htlc.HashLock)} hashtype {htlc.HashType}");
-                }
-                else
-                {
-                    WriteInfo($"   Can be reclaimed now by {htlc.TimeLocked}");
-                }
-            }
-
-            WriteInfo("Done");
-        }
-
         static async Task ProcessAsync(Htlc.Create options)
         {
             var address = Znn.Instance.DefaultKeyPair.Address;
@@ -1828,6 +1710,9 @@ namespace ZenonCli
 
             var expirationTime = currentTime + options.ExpirationTime;
 
+            var block = Znn.Instance.Embedded.Htlc
+                .CreateHtlc(tokenStandard, amount, hashLocked, expirationTime, options.HashType.Value, keyMaxSize, hashLock.Bytes);
+
             if (options.HashLock != null)
             {
                 WriteInfo($"Creating htlc with amount {FormatAmount(amount, token!.Decimals)} {token.Symbol}");
@@ -1839,11 +1724,9 @@ namespace ZenonCli
             WriteInfo($"   Can be reclaimed in {FormatDuration(expirationTime - currentTime)} by {address}");
             WriteInfo($"   Can be unlocked by {hashLocked} with hashlock {BytesUtils.ToHexString(hashLock.Bytes)} hashtype {options.HashType}");
 
-            var block = Znn.Instance.Embedded.Htlc
-                .CreateHtlc(tokenStandard, amount, hashLocked, expirationTime, options.HashType.Value, keyMaxSize, hashLock.Bytes);
-
             await Znn.Instance.Send(block);
 
+            WriteInfo($"Successfully created htlc with id {block.Hash}");
             WriteInfo("Done");
         }
 
@@ -1894,48 +1777,6 @@ namespace ZenonCli
 
             WriteInfo("Done");
             WriteInfo($"Use receiveAll to collect your htlc amount after 2 momentums");
-        }
-
-        static async Task ProcessAsync(Htlc.ReclaimAll options)
-        {
-            var currentTime = DateTimeOffset.Now.ToUnixTimeSeconds();
-            var address = Znn.Instance.DefaultKeyPair.Address;
-            
-            int count = 0;
-
-            var htlcList = await Znn.Instance.Embedded.Htlc
-                .GetHtlcInfosByTimeLockedAddress(address);
-
-            if (htlcList.List != null &&
-                htlcList.List.Length != 0)
-            {
-                foreach (var htlc in htlcList.List)
-                {
-                    if (htlc.ExpirationTime <= currentTime)
-                    {
-                        WriteInfo($"Reclaiming htlc id {htlc.Id} now...");
-
-                        await Znn.Instance.Send(Znn.Instance.Embedded.Htlc.ReclaimHtlc(htlc.Id));
-
-                        count += 1;
-                    }
-                }
-            }
-            else
-            {
-                WriteInfo("No time locked htlc entries found");
-                return;
-            }
-
-            if (count != 0)
-            {
-                WriteInfo("Done");
-                WriteInfo($"Use receiveAll to collect your {count} htlc amount(s) after 2 momentums");
-            }
-            else
-            {
-                WriteInfo("No expired htlc\'s were found.");
-            }
         }
 
         static async Task ProcessAsync(Htlc.Unlock options)
@@ -2110,36 +1951,13 @@ namespace ZenonCli
                 return;
             }
 
-            while (await MonitorAsync(address!, new HtlcInfo[] { htlc }, options.Unlock) != true)
+            while (await MonitorAsync(address!, new HtlcInfo[] { htlc }) != true)
             {
                 await Task.Delay(TimeSpan.FromSeconds(10));
             }
         }
 
-        static async Task ProcessAsync(Htlc.MonitorAll options)
-        {
-            var address = Znn.Instance.DefaultKeyPair.Address;
-
-            var timeLockedHtlcs = await Znn.Instance.Embedded.Htlc.GetHtlcInfosByTimeLockedAddress(address);
-            var hashLockedHtlcs = await Znn.Instance.Embedded.Htlc.GetHtlcInfosByHashLockedAddress(address);
-
-            if ((timeLockedHtlcs.List == null || timeLockedHtlcs.List.Length == 0) && 
-                (hashLockedHtlcs.List == null || hashLockedHtlcs.List.Length == 0))
-            {
-                WriteInfo($"There are no htlc's to monitor for {address}");
-            }
-            else
-            {
-                var htlcs = timeLockedHtlcs.List!.Concat(hashLockedHtlcs.List!).ToArray();
-
-                while (await MonitorAsync(address, htlcs, options.Unlock) != true)
-                {
-                    await Task.Delay(TimeSpan.FromSeconds(10));
-                }
-            }
-        }
-
-        static async Task<bool> MonitorAsync(Address address, HtlcInfo[] htlcs, bool unlock = true)
+        static async Task<bool> MonitorAsync(Address address, HtlcInfo[] htlcs)
         {
             foreach (var htlc in htlcs)
             {
@@ -2226,8 +2044,7 @@ namespace ZenonCli
                     if (f == null)
                         continue;
 
-                    // If UnlockHtlc, display preimage and if unlock = true,
-                    // unlock any associated htlc that are hashLocked to current address
+                    // If UnlockHtlc, display preimage that are hashLocked to current address
                     foreach (var htlc in htlcList.ToArray())
                     {
                         if (String.Equals(f.Name, "UnlockHtlc", StringComparison.OrdinalIgnoreCase))
@@ -2252,32 +2069,6 @@ namespace ZenonCli
                                 var preimage = (byte[])args[1];
 
                                 WriteInfo($"Htlc id {htlc.Id} unlocked with preimage: {BytesUtils.ToHexString(preimage)}");
-
-                                if (unlock)
-                                {
-                                    var unlockedHashLock = htlc.HashLock;
-                                    HtlcInfoList hashLockedHtlcs = await Znn.Instance.Embedded.Htlc
-                                        .GetHtlcInfosByHashLockedAddress(address);
-
-                                    if (hashLockedHtlcs.List != null &&
-                                        hashLockedHtlcs.List.Length != 0)
-                                    {
-                                        await Task.Run(async () =>
-                                        {
-                                            foreach (var lockedHtlc in hashLockedHtlcs.List)
-                                            {
-                                                if (lockedHtlc.HashLock.SequenceEqual(unlockedHashLock))
-                                                {
-                                                    var token = await Znn.Instance.Embedded.Token.GetByZts(lockedHtlc.TokenStandard);
-
-                                                    WriteInfo($"Unlocking htlc id {lockedHtlc.Id} with amount {FormatAmount(lockedHtlc.Amount, token.Decimals)} {token.Symbol}");
-
-                                                    await Znn.Instance.Send(Znn.Instance.Embedded.Htlc.UnlockHtlc(lockedHtlc.Id, preimage));
-                                                }
-                                            }
-                                        });
-                                    }
-                                }
 
                                 htlcList.Remove(htlc);
                             }
