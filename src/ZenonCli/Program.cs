@@ -25,10 +25,6 @@ namespace ZenonCli
         public const int HashTypeSha3256 = 0;
         public const int HashTypeSha2256 = 1;
 
-        public const int PreimageDefaultLength = 32;
-        public const int PreimageMinLength = 1;
-        public const int PreimageMaxLength = 255;
-
         private static Type[] LoadVerbs()
         {
             return Assembly.GetExecutingAssembly().GetTypes()
@@ -591,12 +587,12 @@ namespace ZenonCli
 
             if (!options.KeySize.HasValue)
             {
-                options.KeySize = PreimageDefaultLength;
+                options.KeySize = Constants.HtlcPreimageDefaultLength;
             }
 
-            if (options.KeySize > PreimageMaxLength || options.KeySize < PreimageMinLength)
+            if (options.KeySize > Constants.HtlcPreimageMaxLength || options.KeySize < Constants.HtlcPreimageMinLength)
             {
-                WriteError($"Invalid key size. Preimage size must be {PreimageMaxLength} bytes or less.");
+                WriteError($"Invalid key size. Preimage size must be {Constants.HtlcPreimageMaxLength} bytes or less.");
                 return;
             }
 
@@ -1603,7 +1599,7 @@ namespace ZenonCli
         {
             var address = Znn.Instance.DefaultKeyPair.Address;
             var hashLocked = Address.Parse(options.HashLockedAddress);
-            var keyMaxSize = PreimageMaxLength;
+            var keyMaxSize = Constants.HtlcPreimageMaxLength;
 
             if (!options.HashType.HasValue)
             {
