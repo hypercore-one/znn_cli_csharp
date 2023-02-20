@@ -2089,9 +2089,6 @@ namespace ZenonCli
                     {
                         if (String.Equals(f.Name, "Unlock", StringComparison.OrdinalIgnoreCase))
                         {
-                            if (block.Address != htlc.HashLocked)
-                                continue;
-
                             var args = f.Decode(block.Data);
                             
                             if (args.Length != 2)
@@ -2121,9 +2118,6 @@ namespace ZenonCli
                     {
                         if (String.Equals(f.Name, "Reclaim", StringComparison.OrdinalIgnoreCase))
                         {
-                            if (block!.Address != htlc.TimeLocked)
-                                continue;
-
                             var args = f.Decode(block.Data);
 
                             if (args.Length != 1)
