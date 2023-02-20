@@ -209,6 +209,15 @@ namespace ZenonCli
                     case Htlc.Monitor hm:
                         await ProcessAsync(hm);
                         break;
+                    case Htlc.GetProxyUnlockStatus hgpus:
+                        await ProcessAsync(hgpus);
+                        break;
+                    case Htlc.AllowProxyUnlock hapu:
+                        await ProcessAsync(hapu);
+                        break;
+                    case Htlc.DenyProxyUnlock hdpu:
+                        await ProcessAsync(hdpu);
+                        break;
 
                     case Wallet.List wl:
                         Process(wl);
@@ -592,8 +601,13 @@ namespace ZenonCli
 
             if (options.KeySize > Constants.HtlcPreimageMaxLength || options.KeySize < Constants.HtlcPreimageMinLength)
             {
-                WriteError($"Invalid key size. Preimage size must be {Constants.HtlcPreimageMaxLength} bytes or less.");
+                WriteInfo($"Invalid key size. Preimage size must be {Constants.HtlcPreimageMaxLength} bytes or less.");
                 return;
+            }
+
+            if (options.KeySize < Constants.HtlcPreimageDefaultLength)
+            {
+                WriteWarning($"Key size is less than {Constants.HtlcPreimageDefaultLength} and may be insecure.");
             }
 
             var preimage = Helper.GeneratePreimage(options.KeySize.Value);
@@ -1707,7 +1721,7 @@ namespace ZenonCli
             var expirationTime = currentTime + options.ExpirationTime;
 
             var block = Znn.Instance.Embedded.Htlc
-                .CreateHtlc(tokenStandard, amount, hashLocked, expirationTime, options.HashType.Value, keyMaxSize, hashLock.Bytes);
+                .Create(tokenStandard, amount, hashLocked, expirationTime, options.HashType.Value, keyMaxSize, hashLock.Bytes);
 
             if (options.HashLock != null)
             {
@@ -1722,7 +1736,7 @@ namespace ZenonCli
 
             await Znn.Instance.Send(block);
 
-            WriteInfo($"Successfully created htlc with id {block.Hash}");
+            WriteInfo($"Submitted htlc with id {block.Hash}");
             WriteInfo("Done");
         }
 
@@ -1769,7 +1783,7 @@ namespace ZenonCli
 
             WriteInfo($"Reclaiming htlc id {htlc.Id} with amount {FormatAmount(htlc.Amount, token.Decimals)} {token.Symbol}");
 
-            await Znn.Instance.Send(Znn.Instance.Embedded.Htlc.ReclaimHtlc(id));
+            await Znn.Instance.Send(Znn.Instance.Embedded.Htlc.Reclaim(id));
 
             WriteInfo("Done");
             WriteInfo($"Use receiveAll to collect your htlc amount after 2 momentums");
@@ -1802,13 +1816,12 @@ namespace ZenonCli
                 return;
             }
 
-            if (htlc.HashLocked != address)
+            if (!await Znn.Instance.Embedded.Htlc.GetHtlcProxyUnlockStatus(htlc.HashLocked))
             {
                 WriteError($"Cannot unlock htlc. Permission denied");
                 return;
             }
-
-            if (htlc.ExpirationTime <= currentTime)
+            else if (htlc.ExpirationTime <= currentTime)
             {
                 WriteError($"Cannot unlock htlc. Time lock expired.");
                 return;
@@ -1850,7 +1863,7 @@ namespace ZenonCli
 
             WriteInfo($"Unlocking htlc id {htlc.Id} with amount {FormatAmount(htlc.Amount, token.Decimals)} {token.Symbol}");
 
-            await Znn.Instance.Send(Znn.Instance.Embedded.Htlc.UnlockHtlc(id, preimage));
+            await Znn.Instance.Send(Znn.Instance.Embedded.Htlc.Unlock(id, preimage));
 
             WriteInfo("Done");
             WriteInfo($"Use receiveAll to collect your htlc amount after 2 momentums");
@@ -1953,6 +1966,37 @@ namespace ZenonCli
             }
         }
 
+        static async Task ProcessAsync(Htlc.GetProxyUnlockStatus options)
+        {
+            var address = Address.Parse(options.Address);
+
+            var status = await Znn.Instance.Embedded.Htlc.GetHtlcProxyUnlockStatus(address);
+
+            WriteInfo($"Htlc proxy unlocking is {(status ? "allowed" : "denied")} for {address}");
+
+            WriteInfo("Done");
+        }
+
+        static async Task ProcessAsync(Htlc.AllowProxyUnlock options)
+        {
+            var address = Znn.Instance.DefaultKeyPair.Address;
+
+            await Znn.Instance.Send(Znn.Instance.Embedded.Htlc.AllowProxyUnlock());
+
+            WriteInfo($"Htlc proxy unlocking is allowed for ${address}");
+            WriteInfo("Done");
+        }
+
+        static async Task ProcessAsync(Htlc.DenyProxyUnlock options)
+        {
+            var address = Znn.Instance.DefaultKeyPair.Address;
+
+            await Znn.Instance.Send(Znn.Instance.Embedded.Htlc.DenyProxyUnlock());
+
+            WriteInfo($"Htlc proxy unlocking is denied for ${address}");
+            WriteInfo("Done");
+        }
+
         static async Task<bool> MonitorAsync(Address address, HtlcInfo[] htlcs)
         {
             foreach (var htlc in htlcs)
@@ -1998,7 +2042,7 @@ namespace ZenonCli
                         {
                             try
                             {
-                                await Znn.Instance.Send(Znn.Instance.Embedded.Htlc.ReclaimHtlc(htlc.Id));
+                                await Znn.Instance.Send(Znn.Instance.Embedded.Htlc.Reclaim(htlc.Id));
                                 WriteInfo($"  Reclaiming htlc id {htlc.Id} now...");
                                 htlcList.Remove(htlc);
                             }
@@ -2043,7 +2087,7 @@ namespace ZenonCli
                     // If UnlockHtlc, display preimage that are hashLocked to current address
                     foreach (var htlc in htlcList.ToArray())
                     {
-                        if (String.Equals(f.Name, "UnlockHtlc", StringComparison.OrdinalIgnoreCase))
+                        if (String.Equals(f.Name, "Unlock", StringComparison.OrdinalIgnoreCase))
                         {
                             if (block.Address != htlc.HashLocked)
                                 continue;
@@ -2075,7 +2119,7 @@ namespace ZenonCli
                     // and has been reclaimed by the timeLocked address
                     foreach (var htlc in waitingToBeReclaimed.ToArray())
                     {
-                        if (String.Equals(f.Name, "ReclaimHtlc", StringComparison.OrdinalIgnoreCase))
+                        if (String.Equals(f.Name, "Reclaim", StringComparison.OrdinalIgnoreCase))
                         {
                             if (block!.Address != htlc.TimeLocked)
                                 continue;
@@ -2197,7 +2241,15 @@ namespace ZenonCli
         static void WriteError(string message)
         {
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.Write("Error ");
+            Console.Write("Error! ");
+            Console.ResetColor();
+            Console.WriteLine(message);
+        }
+
+        static void WriteWarning(string message)
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write("Warning! ");
             Console.ResetColor();
             Console.WriteLine(message);
         }

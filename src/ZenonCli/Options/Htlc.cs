@@ -63,5 +63,20 @@ namespace ZenonCli.Options
             [Value(0, Required = true, MetaName = "id", HelpText = "The id of the htlc to monitor.")]
             public string? Id { get; set; }
         }
+
+        [Verb("htlc.getProxyStatus", HelpText = "List htlc proxy unlock status by address")]
+        public class GetProxyUnlockStatus : ConnectionOptions
+        {
+            [Value(0, Required = true, MetaName = "address")]
+            public string? Address { get; set; }
+        }
+
+        [Verb("htlc.allowProxy", HelpText = "Allow htlc proxy unlock")]
+        public class AllowProxyUnlock : KeyStoreAndConnectionOptions
+        { }
+
+        [Verb("htlc.denyProxy", HelpText = "Deny htlc proxy unlock")]
+        public class DenyProxyUnlock : KeyStoreAndConnectionOptions
+        { }
     }
 }
