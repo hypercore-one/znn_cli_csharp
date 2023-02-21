@@ -1583,7 +1583,7 @@ namespace ZenonCli
             HtlcInfo? htlc = null;
             try
             {
-                htlc = await Znn.Instance.Embedded.Htlc.GetHtlcInfoById(id);
+                htlc = await Znn.Instance.Embedded.Htlc.GetById(id);
             }
             catch
             {
@@ -1759,7 +1759,7 @@ namespace ZenonCli
             HtlcInfo? htlc = null;
             try
             {
-                htlc = await Znn.Instance.Embedded.Htlc.GetHtlcInfoById(id);
+                htlc = await Znn.Instance.Embedded.Htlc.GetById(id);
             }
             catch
             {
@@ -1808,7 +1808,7 @@ namespace ZenonCli
             HtlcInfo? htlc = null;
             try
             {
-                htlc = await Znn.Instance.Embedded.Htlc.GetHtlcInfoById(id);
+                htlc = await Znn.Instance.Embedded.Htlc.GetById(id);
             }
             catch
             {
@@ -1816,7 +1816,7 @@ namespace ZenonCli
                 return;
             }
 
-            if (!await Znn.Instance.Embedded.Htlc.GetHtlcProxyUnlockStatus(htlc.HashLocked))
+            if (!await Znn.Instance.Embedded.Htlc.GetProxyUnlockStatus(htlc.HashLocked))
             {
                 WriteError($"Cannot unlock htlc. Permission denied");
                 return;
@@ -1952,7 +1952,7 @@ namespace ZenonCli
 
             var id = Hash.Parse(options.Id);
 
-            var htlc = await Znn.Instance.Embedded.Htlc.GetHtlcInfoById(id);
+            var htlc = await Znn.Instance.Embedded.Htlc.GetById(id);
 
             if (htlc == null)
             {
@@ -1970,7 +1970,7 @@ namespace ZenonCli
         {
             var address = Address.Parse(options.Address);
 
-            var status = await Znn.Instance.Embedded.Htlc.GetHtlcProxyUnlockStatus(address);
+            var status = await Znn.Instance.Embedded.Htlc.GetProxyUnlockStatus(address);
 
             WriteInfo($"Htlc proxy unlocking is {(status ? "allowed" : "denied")} for {address}");
 
