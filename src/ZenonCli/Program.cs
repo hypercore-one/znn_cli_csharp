@@ -1898,7 +1898,7 @@ namespace ZenonCli
                 return;
             }
 
-            if (String.Equals(f.Name, "UnlockHtlc", StringComparison.OrdinalIgnoreCase))
+            if (String.Equals(f.Name, "Unlock", StringComparison.OrdinalIgnoreCase))
             {
                 var args = f.Decode(block.Data);
 
@@ -1910,7 +1910,7 @@ namespace ZenonCli
 
                 WriteInfo($"Unlock htlc id: {args[0]} unlocked by {block.Address} with preimage: {BytesUtils.ToHexString((byte[])args[1])}");
             }
-            else if (String.Equals(f.Name, "ReclaimHtlc", StringComparison.OrdinalIgnoreCase))
+            else if (String.Equals(f.Name, "Reclaim", StringComparison.OrdinalIgnoreCase))
             {
                 var args = f.Decode(block.Data);
 
@@ -1922,7 +1922,7 @@ namespace ZenonCli
 
                 WriteInfo($"Reclaim htlc id: {args[0]} reclaimed by ${block.Address}");
             }
-            else if (String.Equals(f.Name, "CreateHtlc", StringComparison.OrdinalIgnoreCase))
+            else if (String.Equals(f.Name, "Create", StringComparison.OrdinalIgnoreCase))
             {
                 var args = f.Decode(block.Data);
 
