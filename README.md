@@ -1,6 +1,6 @@
 # Zenon Cli for .NET
 
-The Zenon CLI tool is designed to interact with Alphanet - Network of Momentum Phase 0.
+The Zenon CLI tool is designed to interact with Alphanet - Network of Momentum Phase 1.
 
 ## Contributing
 

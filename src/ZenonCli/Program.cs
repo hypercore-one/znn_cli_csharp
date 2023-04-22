@@ -1,424 +1,29 @@
 ﻿using CommandLine;
 using Newtonsoft.Json;
 using System.Collections.Concurrent;
+using System.Numerics;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using Zenon;
+using Zenon.Abi;
+using Zenon.Crypto;
+using Zenon.Embedded;
+using Zenon.Model.Embedded;
 using Zenon.Model.NoM;
 using Zenon.Model.Primitives;
+using Zenon.Utils;
 using Zenon.Wallet;
+using ZenonCli.Options;
+using Token = ZenonCli.Options.Token;
+using Spork = ZenonCli.Options.Spork;
 
 namespace ZenonCli
 {
     class Program
     {
-        #region Options
-
-        interface IFlags
-        {
-            [Option('v', "verbose", Required = false, HelpText = "Prints detailed information about the action that it performs")]
-            public bool Verbose { get; set; }
-        }
-
-        interface IKeyStoreOptions
-        {
-            [Option('p', "passphrase", HelpText = "Use this passphrase for the keyStore or enter it manually in a secure way")]
-            public string? Passphrase { get; set; }
-
-            [Option('k', "keyStore", HelpText = "Select the local keyStore\n(defaults to \"available keyStore if only one is present\")")]
-            public string? KeyStore { get; set; }
-
-            [Option('i', "index", Default = 0, HelpText = "Address index")]
-            public int Index { get; set; }
-        }
-
-        interface IConnectionOptions : IFlags
-        {
-            [Option('n', "chainId", Default = Constants.ChainId, HelpText = "Specify the chain idendtifier to use")]
-            public int ChainId { get; set; }
-
-            [Option('u', "url", Required = false, Default = "ws://127.0.0.1:35998", HelpText = "Provide a websocket znnd connection URL with a port")]
-            public string? Url { get; set; }
-        }
-
-        public abstract class KeyStoreOptions : IKeyStoreOptions
-        {
-            public string? Passphrase { get; set; }
-            public string? KeyStore { get; set; }
-            public int Index { get; set; }
-        }
-
-        public abstract class ConnectionOptions : IConnectionOptions
-        {
-            public bool Verbose { get; set; }
-            public string? Url { get; set; }
-            public int ChainId { get; set; }
-        }
-
-        public abstract class KeyStoreAndConnectionOptions : KeyStoreOptions, IConnectionOptions
-        {
-            public bool Verbose { get; set; }
-            public string? Url { get; set; }
-            public int ChainId { get; set; }
-        }
-
-        public class General
-        {
-            [Verb("version", HelpText = "Display version information.")]
-            public class Version : ConnectionOptions
-            { }
-
-            [Verb("send", HelpText = "Send tokens to an address.")]
-            public class Send : KeyStoreAndConnectionOptions
-            {
-                [Value(0, Required = true, MetaName = "toAddress")]
-                public string? ToAddress { get; set; }
-
-                [Value(1, Required = true, MetaName = "amount")]
-                public long Amount { get; set; }
-
-                [Value(2, Default = "ZNN", MetaName = "tokenStandard", MetaValue = "[ZNN/QSR/ZTS]")]
-                public string? TokenStandard { get; set; }
-
-                [Value(3, MetaName = "message")]
-                public string? Message { get; set; }
-            }
-
-            [Verb("receive", HelpText = "Receive a specified unreceived transaction by blockHash.")]
-            public class Receive : KeyStoreAndConnectionOptions
-            {
-                [Value(0, MetaName = "blockHash", Required = true)]
-                public string? BlockHash { get; set; }
-            }
-
-            [Verb("receiveAll", HelpText = "Receives all unreceived transactions.")]
-            public class ReceiveAll : KeyStoreAndConnectionOptions
-            { }
-
-            [Verb("unreceived", HelpText = "List unreceived transactions.")]
-            public class Unreceived : KeyStoreAndConnectionOptions
-            { }
-
-            [Verb("autoreceive", HelpText = "Automaticly receive transactions.")]
-            public class Autoreceive : KeyStoreAndConnectionOptions
-            { }
-
-            [Verb("unconfirmed", HelpText = "List unconfirmed transactions.")]
-            public class Unconfirmed : KeyStoreAndConnectionOptions
-            { }
-
-            [Verb("balance", HelpText = "List account balance.")]
-            public class Balance : KeyStoreAndConnectionOptions
-            { }
-
-            [Verb("frontierMomentum", HelpText = "List frontier momentum.")]
-            public class FrontierMomentum : KeyStoreAndConnectionOptions
-            { }
-        }
-
-        public class Plasma
-        {
-            [Verb("plasma.list", HelpText = "List plasma fusion entries.")]
-            public class List : KeyStoreAndConnectionOptions
-            {
-                [Value(0, Default = 0, MetaName = "pageIndex")]
-                public int? PageIndex { get; set; }
-
-                [Value(1, Default = 25, MetaName = "PageSize")]
-                public int? PageSize { get; set; }
-            }
-
-            [Verb("plasma.get")]
-            public class Get : KeyStoreAndConnectionOptions
-            { }
-
-            [Verb("plasma.fuse", HelpText = "Fuse QSR to an address to generate plasma.")]
-            public class Fuse : KeyStoreAndConnectionOptions
-            {
-                [Value(0, Required = true, MetaName = "toAddress")]
-                public string? ToAddress { get; set; }
-
-                [Value(1, Required = true, MetaName = "amount")]
-                public long Amount { get; set; }
-            }
-
-            [Verb("plasma.cancel", HelpText = "")]
-            public class Cancel : KeyStoreAndConnectionOptions
-            {
-                [Value(0, Required = true, MetaName = "id")]
-                public string? Id { get; set; }
-            }
-        }
-
-        public class Sentinel
-        {
-            [Verb("sentinel.list", HelpText = "List all sentinels")]
-            public class List : KeyStoreAndConnectionOptions
-            {
-            }
-
-            [Verb("sentinel.register", HelpText = "Register a sentinel")]
-            public class Register : KeyStoreAndConnectionOptions
-            {
-            }
-
-            [Verb("sentinel.revoke", HelpText = "Revoke a sentinel")]
-            public class Revoke : KeyStoreAndConnectionOptions
-            {
-            }
-
-            [Verb("sentinel.collect", HelpText = "Collect sentinel rewards")]
-            public class Collect : KeyStoreAndConnectionOptions
-            {
-            }
-
-            [Verb("sentinel.withdrawQsr", HelpText = "")]
-            public class WithdrawQsr : KeyStoreAndConnectionOptions
-            {
-            }
-        }
-
-        public class Stake
-        {
-            [Verb("stake.list", HelpText = "List all stakes")]
-            public class List : KeyStoreAndConnectionOptions
-            {
-                [Value(0, Default = 0, MetaName = "pageIndex")]
-                public int? PageIndex { get; set; }
-
-                [Value(1, Default = 25, MetaName = "PageSize")]
-                public int? PageSize { get; set; }
-            }
-
-            [Verb("stake.register", HelpText = "Register stake")]
-            public class Register : KeyStoreAndConnectionOptions
-            {
-                [Value(0, Required = true, MetaName = "amount")]
-                public long Amount { get; set; }
-
-                [Value(1, Required = true, MetaName = "duration", HelpText = "Duration in months")]
-                public long Duration { get; set; }
-            }
-
-            [Verb("stake.revoke", HelpText = "Revoke stake")]
-            public class Revoke : KeyStoreAndConnectionOptions
-            {
-                [Value(0, Required = true, MetaName = "id")]
-                public string? Id { get; set; }
-            }
-
-            [Verb("stake.collect", HelpText = "Collect staking rewards")]
-            public class Collect : KeyStoreAndConnectionOptions
-            {
-            }
-        }
-
-        public class Pillar
-        {
-            [Verb("pillar.list", HelpText = "List all pillars")]
-            public class List : KeyStoreAndConnectionOptions
-            { }
-
-            [Verb("pillar.register", HelpText = "Register pillar")]
-            public class Register : KeyStoreAndConnectionOptions
-            {
-                [Value(0, Required = true, MetaName = "name")]
-                public string? Name { get; set; }
-
-                [Value(1, Required = true, MetaName = "producerAddress")]
-                public string? ProducerAddress { get; set; }
-
-                [Value(2, Required = true, MetaName = "rewardAddress")]
-                public string? RewardAddress { get; set; }
-
-                [Value(3, Required = true, MetaName = "giveBlockRewardPercentage")]
-                public int GiveBlockRewardPercentage { get; set; }
-
-                [Value(4, Required = true, MetaName = "giveDelegateRewardPercentage")]
-                public int GiveDelegateRewardPercentage { get; set; }
-            }
-
-            [Verb("pillar.revoke", HelpText = "Revoke pillar")]
-            public class Revoke : KeyStoreAndConnectionOptions
-            {
-                [Value(0, Required = true, MetaName = "name")]
-                public string? Name { get; set; }
-            }
-
-            [Verb("pillar.delegate", HelpText = "Delegate to pillar")]
-            public class Delegate : KeyStoreAndConnectionOptions
-            {
-                [Value(0, Required = true, MetaName = "name")]
-                public string? Name { get; set; }
-            }
-
-            [Verb("pillar.undelegate", HelpText = "Undelegate pillar")]
-            public class Undelegate : KeyStoreAndConnectionOptions
-            {
-            }
-
-            [Verb("pillar.collect", HelpText = "Collect pillar rewards")]
-            public class Collect : KeyStoreAndConnectionOptions
-            {
-            }
-
-            [Verb("pillar.withdrawQsr", HelpText = "")]
-            public class WithdrawQsr : KeyStoreAndConnectionOptions
-            {
-            }
-        }
-
-        public class Token
-        {
-            [Verb("token.list", HelpText = "List all tokens")]
-            public class List : KeyStoreAndConnectionOptions
-            {
-                [Value(0, Default = 0, MetaName = "pageIndex")]
-                public int? PageIndex { get; set; }
-
-                [Value(1, Default = 25, MetaName = "PageSize")]
-                public int? PageSize { get; set; }
-            }
-
-            [Verb("token.getByStandard", HelpText = "List tokens by standard")]
-            public class GetByStandard : KeyStoreAndConnectionOptions
-            {
-                [Value(0, Required = true, MetaName = "tokenStandard")]
-                public string? TokenStandard { get; set; }
-            }
-
-            [Verb("token.getByOwner", HelpText = "List tokens by owner")]
-            public class GetByOwner : KeyStoreAndConnectionOptions
-            {
-                [Value(0, Required = true, MetaName = "ownerAddress")]
-                public string? OwnerAddress { get; set; }
-            }
-
-            [Verb("token.issue", HelpText = "Issue token")]
-            public class Issue : KeyStoreAndConnectionOptions
-            {
-                [Value(0, Required = true, MetaName = "name")]
-                public string? Name { get; set; }
-
-                [Value(1, Required = true, MetaName = "symbol")]
-                public string? Symbol { get; set; }
-
-                [Value(2, Required = true, MetaName = "domain")]
-                public string? Domain { get; set; }
-
-                [Value(3, Required = true, MetaName = "totalSupply")]
-                public long TotalSupply { get; set; }
-
-                [Value(4, Required = true, MetaName = "maxSupply")]
-                public long MaxSupply { get; set; }
-
-                [Value(5, Required = true, MetaName = "decimals")]
-                public int Decimals { get; set; }
-
-                [Value(6, Required = true, MetaName = "isMintable")]
-                public string? IsMintable { get; set; }
-
-                [Value(7, Required = true, MetaName = "isBurnable")]
-                public string? IsBurnable { get; set; }
-
-                [Value(8, Required = true, MetaName = "isUtility")]
-                public string? IsUtility { get; set; }
-            }
-
-            [Verb("token.mint", HelpText = "Undelegate pillar")]
-            public class Mint : KeyStoreAndConnectionOptions
-            {
-                [Value(0, Required = true, MetaName = "tokenStandard")]
-                public string? TokenStandard { get; set; }
-
-                [Value(1, Required = true, MetaName = "amount")]
-                public long Amount { get; set; }
-
-                [Value(2, Required = true, MetaName = "receiveAddress")]
-                public string? ReceiveAddress { get; set; }
-            }
-
-            [Verb("token.burn", HelpText = "Collect pillar rewards")]
-            public class Burn : KeyStoreAndConnectionOptions
-            {
-                [Value(0, Required = true, MetaName = "tokenStandard")]
-                public string? TokenStandard { get; set; }
-
-                [Value(1, Required = true, MetaName = "amount")]
-                public long Amount { get; set; }
-            }
-
-            [Verb("token.transferOwnership", HelpText = "")]
-            public class TransferOwnership : KeyStoreAndConnectionOptions
-            {
-                [Value(0, Required = true, MetaName = "tokenStandard")]
-                public string? TokenStandard { get; set; }
-
-                [Value(1, Required = true, MetaName = "newOwnerAddress")]
-                public string? NewOwnerAddress { get; set; }
-            }
-
-            [Verb("token.disableMint", HelpText = "")]
-            public class DisableMint : KeyStoreAndConnectionOptions
-            {
-                [Value(0, Required = true, MetaName = "tokenStandard")]
-                public string? TokenStandard { get; set; }
-            }
-        }
-
-        public class Wallet
-        {
-            [Verb("wallet.list", HelpText = "List all wallets")]
-            public class List
-            { }
-
-            [Verb("wallet.createNew", HelpText = "Create a new wallet")]
-            public class CreateNew
-            {
-                [Value(0, MetaName = "passphrase", Required = true)]
-                public string? Passphrase { get; set; }
-
-                [Value(1, MetaName = "keyStoreName")]
-                public string? KeyStoreName { get; set; }
-            }
-
-            [Verb("wallet.createFromMnemonic", HelpText = "Create a new wallet from a mnemonic")]
-            public class CreateFromMnemonic
-            {
-                [Value(0, MetaName = "mnemonic", MetaValue = "\"mnemonic\"", Required = true)]
-                public string? Mnemonic { get; set; }
-
-                [Value(1, MetaName = "passphrase", Required = true)]
-                public string? Passphrase { get; set; }
-
-                [Value(2, MetaName = "keyStoreName")]
-                public string? KeyStoreName { get; set; }
-            }
-
-            [Verb("wallet.dumpMnemonic", HelpText = "Dump the mnemonic of a wallet")]
-            public class DumpMnemonic : KeyStoreOptions
-            { }
-
-            [Verb("wallet.deriveAddresses", HelpText = "Derive one or more addresses of a wallet")]
-            public class DeriveAddresses : KeyStoreOptions
-            {
-                [Value(0, MetaName = "start", Required = true)]
-                public int Start { get; set; }
-
-                [Value(1, MetaName = "end", Required = true)]
-                public int End { get; set; }
-            }
-
-            [Verb("wallet.export", HelpText = "Export wallet")]
-            public class Export : KeyStoreOptions
-            {
-                [Value(0, MetaName = "filePath", Required = true)]
-                public string? FilePath { get; set; }
-            }
-        }
-
-        #endregion
+        public const int HashTypeSha3256 = 0;
+        public const int HashTypeSha2256 = 1;
 
         private static Type[] LoadVerbs()
         {
@@ -482,6 +87,9 @@ namespace ZenonCli
                         break;
                     case General.FrontierMomentum gfm:
                         await ProcessAsync(gfm);
+                        break;
+                    case General.CreateHash gch:
+                        Process(gch);
                         break;
 
                     case Plasma.List pl:
@@ -571,6 +179,44 @@ namespace ZenonCli
                         break;
                     case Token.DisableMint td:
                         await ProcessAsync(td);
+                        break;
+
+                    case Spork.List sl:
+                        await ProcessAsync(sl);
+                        break;
+                    case Spork.Create sc:
+                        await ProcessAsync(sc);
+                        break;
+                    case Spork.Activate sa:
+                        await ProcessAsync(sa);
+                        break;
+
+                    case Htlc.Get hg:
+                        await ProcessAsync(hg);
+                        break;
+                    case Htlc.Create hc:
+                        await ProcessAsync(hc);
+                        break;
+                    case Htlc.Reclaim hr:
+                        await ProcessAsync(hr);
+                        break;
+                    case Htlc.Unlock hu:
+                        await ProcessAsync(hu);
+                        break;
+                    case Htlc.Inspect hi:
+                        await ProcessAsync(hi);
+                        break;
+                    case Htlc.Monitor hm:
+                        await ProcessAsync(hm);
+                        break;
+                    case Htlc.GetProxyUnlockStatus hgpus:
+                        await ProcessAsync(hgpus);
+                        break;
+                    case Htlc.AllowProxyUnlock hapu:
+                        await ProcessAsync(hapu);
+                        break;
+                    case Htlc.DenyProxyUnlock hdpu:
+                        await ProcessAsync(hdpu);
                         break;
 
                     case Wallet.List wl:
@@ -670,12 +316,14 @@ namespace ZenonCli
 
         static async Task StartConnectionAsync(IConnectionOptions options)
         {
-            Znn.Instance.ChainIdentifier = options.ChainId;
-
             if (options.Verbose)
                 ((Zenon.Client.WsClient)Znn.Instance.Client.Value).TraceSourceLevels = System.Diagnostics.SourceLevels.Verbose;
 
             await Znn.Instance.Client.Value.StartAsync(new Uri(options.Url!), false);
+
+            var momentum = await Znn.Instance.Ledger.GetFrontierMomentum();
+
+            Znn.Instance.ChainIdentifier = momentum.ChainIdentifier;
         }
 
         static async Task StopConnectionAsync(IConnectionOptions options)
@@ -931,6 +579,54 @@ namespace ZenonCli
             WriteInfo($"Momentum hash: {currentFrontierMomentum.Hash}");
             WriteInfo($"Momentum previousHash: {currentFrontierMomentum.PreviousHash}");
             WriteInfo($"Momentum timestamp: {currentFrontierMomentum.Timestamp}");
+        }
+
+        static void Process(General.CreateHash options)
+        {
+            if (!options.HashType.HasValue)
+            {
+                options.HashType = HashTypeSha3256;
+            }
+
+            if (options.HashType != HashTypeSha3256 && options.HashType != HashTypeSha2256)
+            {
+                WriteError($"Invalid hash type. Hash type {options.HashType} is not supported.");
+                return;
+            }
+
+            if (!options.KeySize.HasValue)
+            {
+                options.KeySize = Constants.HtlcPreimageDefaultLength;
+            }
+
+            if (options.KeySize > Constants.HtlcPreimageMaxLength || options.KeySize < Constants.HtlcPreimageMinLength)
+            {
+                WriteInfo($"Invalid key size. Preimage size must be {Constants.HtlcPreimageMaxLength} bytes or less.");
+                return;
+            }
+
+            if (options.KeySize < Constants.HtlcPreimageDefaultLength)
+            {
+                WriteWarning($"Key size is less than {Constants.HtlcPreimageDefaultLength} and may be insecure.");
+            }
+
+            var preimage = Helper.GeneratePreimage(options.KeySize.Value);
+            WriteInfo($"Preimage: {BytesUtils.ToHexString(preimage)}");
+
+            byte[]? digest = null;
+
+            switch (options.HashType)
+            {
+                case HashTypeSha2256:
+                    digest = Helper.ComputeSha256Hash(preimage);
+                    WriteInfo($"SHA-256 Hash: {BytesUtils.ToHexString(digest)}");
+                    break;
+
+                default:
+                    digest = Crypto.Digest(preimage);
+                    WriteInfo($"SHA3-256 Hash: {BytesUtils.ToHexString(digest)}");
+                    break;
+            }
         }
 
         #endregion
@@ -1776,6 +1472,689 @@ namespace ZenonCli
 
         #endregion
 
+        #region Spork
+
+        static async Task ProcessAsync(Spork.List options)
+        {
+            if (!options.PageIndex.HasValue)
+                options.PageIndex = 0;
+
+            if (!options.PageSize.HasValue)
+                options.PageSize = 25;
+
+            if (options.PageIndex < 0)
+            {
+                WriteError($"PageIndex must be at least 0");
+                return;
+            }
+
+            if (options.PageSize < 1 || options.PageSize > Constants.RpcMaxPageSize)
+            {
+                WriteError($"PageSize must be at least 1 and at most {Constants.RpcMaxPageSize}");
+                return;
+            }
+
+            var result = await Znn.Instance.Embedded.Spork
+                .GetAll(options.PageIndex.Value, options.PageSize.Value);
+
+            if (result == null || result.Count == 0)
+            {
+                WriteInfo("No sporks found");
+                return;
+            }
+
+            WriteInfo("Sporks:");
+
+            foreach (var spork in result.List)
+            {
+                WriteInfo($"Name: {spork.Name}");
+                WriteInfo($"  Description: {spork.Description}");
+                WriteInfo($"  Activated: {spork.Activated}");
+                if (spork.Activated)
+                    WriteInfo($"  EnforcementHeight: {spork.EnforcementHeight}");
+                WriteInfo($"  Hash: {spork.Id}");
+            }
+        }
+
+        static async Task ProcessAsync(Spork.Create options)
+        {
+            var name = options.Name!;
+            var description = options.Description!;
+
+            if (name.Length < Constants.SporkNameMinLength ||
+                name.Length > Constants.SporkNameMaxLength)
+            {
+                WriteInfo($"Spork name must be {Constants.SporkNameMinLength} to {Constants.SporkNameMaxLength} characters in length");
+                return;
+            }
+
+            if (String.IsNullOrEmpty(description))
+            {
+                WriteInfo($"Spork description cannot be empty");
+                return;
+            }
+
+            if (description.Length > Constants.SporkDescriptionMaxLength)
+            {
+                WriteInfo($"Spork description cannot exceed {Constants.SporkDescriptionMaxLength} characters in length");
+                return;
+            }
+
+            WriteInfo("Creating spork...");
+            await Znn.Instance.Send(Znn.Instance.Embedded.Spork.CreateSpork(name, description));
+            WriteInfo("Done");
+        }
+
+        static async Task ProcessAsync(Spork.Activate options)
+        {
+            Hash id;
+            try
+            {
+                id = Hash.Parse(options.Id);
+            }
+            catch
+            {
+                WriteError($"The spork id is not a valid hash");
+                return;
+            }
+
+            WriteInfo("Activating spork...");
+            await Znn.Instance.Send(Znn.Instance.Embedded.Spork.ActivateSpork(id));
+            WriteInfo("Done");
+        }
+
+        #endregion
+
+        #region Htlc
+
+        static async Task ProcessAsync(Htlc.Get options)
+        {
+            Hash id;
+            try
+            {
+                id = Hash.Parse(options.Id);
+            }
+            catch
+            {
+                WriteError($"The htlc id is not a valid hash");
+                return;
+            }
+
+            HtlcInfo? htlc = null;
+            try
+            {
+                htlc = await Znn.Instance.Embedded.Htlc.GetById(id);
+            }
+            catch
+            {
+                WriteError($"The htlc id {id} does not exist");
+                return;
+            }
+
+            var token = await Znn.Instance.Embedded.Token.GetByZts(htlc.TokenStandard);
+
+            var currentTime = DateTimeOffset.Now.ToUnixTimeSeconds();
+
+            WriteInfo($"Htlc id {htlc.Id} with amount {FormatAmount(htlc.Amount, token.Decimals)} {token.Symbol}");
+            if (htlc.ExpirationTime > currentTime)
+            {
+                WriteInfo($"   Can be reclaimed in {FormatDuration(htlc.ExpirationTime - currentTime)} by {htlc.TimeLocked}");
+                WriteInfo($"   Can be unlocked by {htlc.HashLocked} with hashlock {BytesUtils.ToHexString(htlc.HashLock)} hashtype {htlc.HashType}");
+            }
+            else
+            {
+                WriteInfo($"   Can be reclaimed now by {htlc.TimeLocked}");
+            }
+
+            WriteInfo("Done");
+        }
+
+        static async Task ProcessAsync(Htlc.Create options)
+        {
+            var address = Znn.Instance.DefaultKeyPair.Address;
+            var hashLocked = Address.Parse(options.HashLockedAddress);
+            var keyMaxSize = Constants.HtlcPreimageMaxLength;
+
+            if (!options.HashType.HasValue)
+            {
+                options.HashType = HashTypeSha3256;
+            }
+
+            if (options.HashType != HashTypeSha3256 && options.HashType != HashTypeSha2256)
+            {
+                WriteError($"Invalid hash type. Hash type {options.HashType} is not supported.");
+                return;
+            }
+
+            TokenStandard tokenStandard;
+            if (String.Equals(options.TokenStandard, "ZNN", StringComparison.OrdinalIgnoreCase))
+            {
+                tokenStandard = TokenStandard.ZnnZts;
+            }
+            else if (String.Equals(options.TokenStandard, "QSR", StringComparison.OrdinalIgnoreCase))
+            {
+                tokenStandard = TokenStandard.QsrZts;
+            }
+            else
+            {
+                tokenStandard = TokenStandard.Parse(options.TokenStandard);
+            }
+
+            if (options.Amount <= 0)
+            {
+                WriteError("Amount must be greater than 0");
+                return;
+            }
+
+            var info =
+                await Znn.Instance.Ledger.GetAccountInfoByAddress(address);
+
+            bool ok = true;
+            bool found = false;
+            long amount = 0;
+            Zenon.Model.NoM.Token? token = null;
+
+            foreach (var item in info.BalanceInfoList)
+            {
+                if (item.Token.TokenStandard == tokenStandard)
+                {
+                    amount = options.Amount * item.Token.DecimalsExponent;
+                    token = item.Token;
+
+                    if (item.Balance < amount)
+                    {
+                        WriteError($"You only have {FormatAmount(item.Balance.Value, item.Token.Decimals)} {item.Token.Symbol} tokens");
+                        ok = false;
+                        break;
+                    }
+                    found = true;
+                }
+            }
+
+            if (!ok) return;
+            if (!found)
+            {
+                WriteError($"You only have {FormatAmount(0, 0)} {tokenStandard} tokens");
+                return;
+            }
+
+            Hash? hashLock = null;
+            byte[]? preimage = null;
+
+            if (options.HashLock != null)
+            {
+                try
+                {
+                    hashLock = Hash.Parse(options.HashLock);
+                }
+                catch
+                {
+                    WriteError($"The hashLock is not a valid hash.");
+                    return;
+                }
+            }
+            else
+            {
+                preimage = Helper.GeneratePreimage();
+                switch (options.HashType)
+                {
+                    case HashTypeSha2256:
+                        hashLock = Hash.FromBytes(Helper.ComputeSha256Hash(preimage));
+                        break;
+
+                    default:
+                        hashLock = Hash.Digest(preimage);
+                        break;
+                }
+            }
+
+            if (options.ExpirationTime < Constants.HtlcTimelockMinSec ||
+                options.ExpirationTime > Constants.HtlcTimelockMaxSec)
+            {
+                WriteError($"The expirationTime (seconds) must be at least {Constants.HtlcTimelockMinSec} and at most {Constants.HtlcTimelockMaxSec}.");
+                return;
+            }
+            
+            Momentum currentFrontierMomentum = await Znn.Instance.Ledger.GetFrontierMomentum();
+            long currentTime = currentFrontierMomentum.Timestamp;
+
+            var expirationTime = currentTime + options.ExpirationTime;
+
+            var block = Znn.Instance.Embedded.Htlc
+                .Create(tokenStandard, amount, hashLocked, expirationTime, options.HashType.Value, keyMaxSize, hashLock.Bytes);
+
+            if (options.HashLock != null)
+            {
+                WriteInfo($"Creating htlc with amount {FormatAmount(amount, token!.Decimals)} {token.Symbol}");
+            }
+            else
+            {
+                WriteInfo($"Creating htlc with amount {FormatAmount(amount, token!.Decimals)} {token.Symbol} using preimage {BytesUtils.ToHexString(preimage)}");
+            }
+            WriteInfo($"   Can be reclaimed in {FormatDuration(expirationTime - currentTime)} by {address}");
+            WriteInfo($"   Can be unlocked by {hashLocked} with hashlock {BytesUtils.ToHexString(hashLock.Bytes)} hashtype {options.HashType}");
+
+            await Znn.Instance.Send(block);
+
+            WriteInfo($"Submitted htlc with id {block.Hash}");
+            WriteInfo("Done");
+        }
+
+        static async Task ProcessAsync(Htlc.Reclaim options)
+        {
+            var currentTime = DateTimeOffset.Now.ToUnixTimeSeconds();
+            var address = Znn.Instance.DefaultKeyPair.Address;
+
+            Hash id;
+            try
+            {
+                id = Hash.Parse(options.Id);
+            }
+            catch
+            {
+                WriteError($"The htlc id is not a valid hash");
+                return;
+            }
+
+            HtlcInfo? htlc = null;
+            try
+            {
+                htlc = await Znn.Instance.Embedded.Htlc.GetById(id);
+            }
+            catch
+            {
+                WriteError($"The htlc id {id} does not exist");
+                return;
+            }
+
+            if (htlc.ExpirationTime > currentTime)
+            {
+                WriteError($"Cannot reclaim htlc. Try again in {FormatDuration(htlc.ExpirationTime - currentTime)}.");
+                return;
+            }
+
+            if (htlc.TimeLocked != address)
+            {
+                WriteError("Cannot reclaim htlc. Permission denied");
+                return;
+            }
+
+            var token = await Znn.Instance.Embedded.Token.GetByZts(htlc.TokenStandard);
+
+            WriteInfo($"Reclaiming htlc id {htlc.Id} with amount {FormatAmount(htlc.Amount, token.Decimals)} {token.Symbol}");
+
+            await Znn.Instance.Send(Znn.Instance.Embedded.Htlc.Reclaim(id));
+
+            WriteInfo("Done");
+            WriteInfo($"Use receiveAll to collect your htlc amount after 2 momentums");
+        }
+
+        static async Task ProcessAsync(Htlc.Unlock options)
+        {
+            var currentTime = DateTimeOffset.Now.ToUnixTimeSeconds();
+            var address = Znn.Instance.DefaultKeyPair.Address;
+
+            Hash id;
+            try
+            {
+                id = Hash.Parse(options.Id);
+            }
+            catch
+            {
+                WriteError($"The htlc id is not a valid hash");
+                return;
+            }
+
+            HtlcInfo? htlc = null;
+            try
+            {
+                htlc = await Znn.Instance.Embedded.Htlc.GetById(id);
+            }
+            catch
+            {
+                WriteError($"The htlc id {id} does not exist");
+                return;
+            }
+
+            if (!await Znn.Instance.Embedded.Htlc.GetProxyUnlockStatus(htlc.HashLocked))
+            {
+                WriteError($"Cannot unlock htlc. Permission denied");
+                return;
+            }
+            else if (htlc.ExpirationTime <= currentTime)
+            {
+                WriteError($"Cannot unlock htlc. Time lock expired.");
+                return;
+            }
+
+            if (options.Preimage == null)
+            {
+                WriteInfo("Insert preimage:");
+                options.Preimage = ReadPassword();
+            }
+
+            if (String.IsNullOrEmpty(options.Preimage))
+            {
+                WriteError("Cannot unlock htlc. Invalid preimage");
+                return;
+            }
+
+            byte[] preimage = BytesUtils.FromHexString(options.Preimage);
+            Hash? preimageCheck = null;
+
+            switch (htlc.HashType)
+            {
+                case HashTypeSha2256:
+                    preimageCheck = Hash.FromBytes(Helper.ComputeSha256Hash(preimage));
+                    break;
+
+                default:
+                    preimageCheck = Hash.Digest(preimage);
+                    break;
+            }
+
+            if (preimageCheck != Hash.FromBytes(htlc.HashLock))
+            {
+                WriteError("Cannot unlock htlc. Preimage does not match the hashlock");
+                return;
+            }
+
+            var token = await Znn.Instance.Embedded.Token.GetByZts(htlc.TokenStandard);
+
+            WriteInfo($"Unlocking htlc id {htlc.Id} with amount {FormatAmount(htlc.Amount, token.Decimals)} {token.Symbol}");
+
+            await Znn.Instance.Send(Znn.Instance.Embedded.Htlc.Unlock(id, preimage));
+
+            WriteInfo("Done");
+            WriteInfo($"Use receiveAll to collect your htlc amount after 2 momentums");
+        }
+
+        static async Task ProcessAsync(Htlc.Inspect options)
+        {
+            var hash = Hash.Parse(options.BlockHash);
+            var block = await Znn.Instance.Ledger.GetAccountBlockByHash(hash);
+
+            if (block == null)
+            {
+                WriteError($"The account block {hash} does not exist");
+                return;
+            }
+
+            if (block.PairedAccountBlock == null ||
+                block.BlockType != BlockTypeEnum.UserSend)
+            {
+                WriteError($"The account block was not send by a user.");
+                return;
+            }
+
+            var f = Definitions.Htlc.Entries
+                .Where(x => AbiFunction.ExtractSignature(x.EncodeSignature()).SequenceEqual(AbiFunction.ExtractSignature(block.Data)))
+                .Select(x => new AbiFunction(x.Name, x.Inputs))
+                .FirstOrDefault();
+
+            if (f == null)
+            {
+                WriteError($"The account block contains invalid data.");
+                return;
+            }
+
+            if (String.Equals(f.Name, "UnlockHtlc", StringComparison.OrdinalIgnoreCase))
+            {
+                var args = f.Decode(block.Data);
+
+                if (args.Length != 2)
+                {
+                    WriteError($"The account block has an invalid unlock argument length");
+                    return;
+                }
+
+                WriteInfo($"Unlock htlc id: {args[0]} unlocked by {block.Address} with preimage: {BytesUtils.ToHexString((byte[])args[1])}");
+            }
+            else if (String.Equals(f.Name, "ReclaimHtlc", StringComparison.OrdinalIgnoreCase))
+            {
+                var args = f.Decode(block.Data);
+
+                if (args.Length != 1)
+                {
+                    WriteError($"The account block has an invalid reclaim argument length");
+                    return;
+                }
+
+                WriteInfo($"Reclaim htlc id: {args[0]} reclaimed by ${block.Address}");
+            }
+            else if (String.Equals(f.Name, "CreateHtlc", StringComparison.OrdinalIgnoreCase))
+            {
+                var args = f.Decode(block.Data);
+
+                if (args.Length != 5)
+                {
+                    WriteError($"The account block has an invalid create argument length");
+                    return;
+                }
+
+                var expirationTime = (long)((BigInteger)args[1]);
+                var hashLock = (byte[])args[4];
+                var amount = block.Amount;
+                var token = block.Token;
+
+                WriteInfo($"Create htlc: {args[0]} {FormatAmount(amount, token.Decimals)} {token.Symbol} {expirationTime} {args[2]} {args[3]} {BytesUtils.ToHexString(hashLock)} created by {block.Address}");
+            }
+            else
+            {
+                WriteError($"The account block contains an unknown function call");
+                return;
+            }
+        }
+
+        static async Task ProcessAsync(Htlc.Monitor options)
+        {
+            var address = Znn.Instance.DefaultKeyPair.Address;
+
+            var id = Hash.Parse(options.Id);
+
+            var htlc = await Znn.Instance.Embedded.Htlc.GetById(id);
+
+            if (htlc == null)
+            {
+                WriteError($"The htlc id {id} does not exist");
+                return;
+            }
+
+            while (await MonitorAsync(address!, new HtlcInfo[] { htlc }) != true)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(10));
+            }
+        }
+
+        static async Task ProcessAsync(Htlc.GetProxyUnlockStatus options)
+        {
+            var address = Address.Parse(options.Address);
+
+            var status = await Znn.Instance.Embedded.Htlc.GetProxyUnlockStatus(address);
+
+            WriteInfo($"Htlc proxy unlocking is {(status ? "allowed" : "denied")} for {address}");
+
+            WriteInfo("Done");
+        }
+
+        static async Task ProcessAsync(Htlc.AllowProxyUnlock options)
+        {
+            var address = Znn.Instance.DefaultKeyPair.Address;
+
+            await Znn.Instance.Send(Znn.Instance.Embedded.Htlc.AllowProxyUnlock());
+
+            WriteInfo($"Htlc proxy unlocking is allowed for ${address}");
+            WriteInfo("Done");
+        }
+
+        static async Task ProcessAsync(Htlc.DenyProxyUnlock options)
+        {
+            var address = Znn.Instance.DefaultKeyPair.Address;
+
+            await Znn.Instance.Send(Znn.Instance.Embedded.Htlc.DenyProxyUnlock());
+
+            WriteInfo($"Htlc proxy unlocking is denied for ${address}");
+            WriteInfo("Done");
+        }
+
+        static async Task<bool> MonitorAsync(Address address, HtlcInfo[] htlcs)
+        {
+            foreach (var htlc in htlcs)
+            {
+                WriteInfo($"Monitoring htlc id {htlc.Id}");
+            }
+
+            var htlcList = htlcs.ToList();
+            var waitingToBeReclaimed = new List<HtlcInfo>();
+            var queue = new List<Hash>();
+
+            WriteInfo("Subscribing for htlc-contract events...");
+            await Znn.Instance.Subscribe.ToAllAccountBlocks((json) =>
+            {
+                // Extract hashes for all new tx that interact with the htlc contract
+                for (var i = 0; i < json.Length; i += 1)
+                {
+                    var tx = json[i];
+                    if (tx.Value<string>("toAddress") != Address.HtlcAddress.ToString())
+                        continue;
+
+                    var hash = Hash.Parse(tx.Value<string>("hash"));
+                    WriteInfo($"Receiving transaction with hash {hash}");
+                    queue.Add(hash);
+                }
+            });
+
+            while (true)
+            {
+                if (htlcList.Count == 0 && waitingToBeReclaimed.Count == 0)
+                {
+                    break;
+                }
+
+                var currentTime = DateTimeOffset.Now.ToUnixTimeSeconds();
+                
+                foreach (var htlc in htlcList.ToArray())
+                {
+                    // Reclaim any expired timeLocked htlc that is being monitored
+                    if (htlc.ExpirationTime <= currentTime)
+                    {
+                        if (htlc.TimeLocked == address)
+                        {
+                            try
+                            {
+                                await Znn.Instance.Send(Znn.Instance.Embedded.Htlc.Reclaim(htlc.Id));
+                                WriteInfo($"  Reclaiming htlc id {htlc.Id} now...");
+                                htlcList.Remove(htlc);
+                            }
+                            catch
+                            {
+                                WriteError($"  Error occurred when reclaiming {htlc.Id}");
+                            }
+                        }
+                        else
+                        {
+                            WriteInfo($"  Waiting for {htlc.TimeLocked} to reclaim...");
+                            waitingToBeReclaimed.Add(htlc);
+                            htlcList.Remove(htlc);
+                        }
+                    }
+                }
+
+                foreach (var hash in queue.ToArray())
+                {
+                    // Identify if htlc tx are either UnlockHtlc or ReclaimHtlc
+                    var block = await Znn.Instance.Ledger.GetAccountBlockByHash(hash);
+
+                    if (block.BlockType != BlockTypeEnum.UserSend)
+                        continue;
+
+                    if (block.PairedAccountBlock == null ||
+                        block.PairedAccountBlock.BlockType != BlockTypeEnum.ContractReceive)
+                        continue;
+
+                    if (block.PairedAccountBlock.DescendantBlocks == null ||
+                        block.PairedAccountBlock.DescendantBlocks.Length == 0)
+                        continue;
+                    
+                    var f = Definitions.Htlc.Entries
+                        .Where(x => AbiFunction.ExtractSignature(x.EncodeSignature()).SequenceEqual(AbiFunction.ExtractSignature(block.Data)))
+                        .Select(x => new AbiFunction(x.Name, x.Inputs))
+                        .FirstOrDefault();
+
+                    if (f == null)
+                        continue;
+
+                    // If UnlockHtlc, display preimage that are hashLocked to current address
+                    foreach (var htlc in htlcList.ToArray())
+                    {
+                        if (String.Equals(f.Name, "Unlock", StringComparison.OrdinalIgnoreCase))
+                        {
+                            var args = f.Decode(block.Data);
+                            
+                            if (args.Length != 2)
+                                continue;
+
+                            if (args[0].ToString() != htlc.Id.ToString())
+                                continue;
+
+                            if (block.PairedAccountBlock.DescendantBlocks.Any(x =>
+                                x.BlockType == BlockTypeEnum.ContractSend &&
+                                x.ToAddress == htlc.HashLocked &&
+                                x.TokenStandard == htlc.TokenStandard &&
+                                x.Amount == htlc.Amount))
+                            {
+                                var preimage = (byte[])args[1];
+
+                                WriteInfo($"Htlc id {htlc.Id} unlocked with preimage: {BytesUtils.ToHexString(preimage)}");
+
+                                htlcList.Remove(htlc);
+                            }
+                        }
+                    }
+
+                    // If ReclaimHtlc, inform user that a monitored, expired htlc
+                    // and has been reclaimed by the timeLocked address
+                    foreach (var htlc in waitingToBeReclaimed.ToArray())
+                    {
+                        if (String.Equals(f.Name, "Reclaim", StringComparison.OrdinalIgnoreCase))
+                        {
+                            var args = f.Decode(block.Data);
+
+                            if (args.Length != 1)
+                                continue;
+
+                            if (args[0].ToString() != htlc.Id.ToString())
+                                continue;
+
+                            if (block.PairedAccountBlock.DescendantBlocks.Any(x =>
+                                x.BlockType == BlockTypeEnum.ContractSend &&
+                                x.ToAddress == htlc.TimeLocked &&
+                                x.TokenStandard == htlc.TokenStandard &&
+                                x.Amount == htlc.Amount))
+                            {
+                                WriteInfo($"Htlc id {htlc.Id} reclaimed");
+                                waitingToBeReclaimed.Remove(htlc);
+                            }
+                            else
+                            {
+                                WriteInfo(block.ToString());
+                            }
+                        }
+                    }
+
+                    queue.Remove(hash);
+                }
+
+                await Task.Delay(TimeSpan.FromSeconds(1));
+            }
+
+            WriteInfo("No longer monitoring any htlc's");
+
+            return true;
+        }
+
+        #endregion
+
         #region Wallet
 
         static int Process(Wallet.List options)
@@ -1856,7 +2235,15 @@ namespace ZenonCli
         static void WriteError(string message)
         {
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.Write("Error ");
+            Console.Write("Error! ");
+            Console.ResetColor();
+            Console.WriteLine(message);
+        }
+
+        static void WriteWarning(string message)
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write("Warning! ");
             Console.ResetColor();
             Console.WriteLine(message);
         }
