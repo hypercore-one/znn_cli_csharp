@@ -115,10 +115,10 @@ Open a new [PowerShell administrative shell](https://www.howtogeek.com/742916/ho
 cd $ENV:USERPROFILE/repos
 ```
 
-Create a clone of the **htlc** branch of the [KingGorrin znn-cli-csharp repository](https://github.com/KingGorrin/znn_cli_csharp.git).
+Create a clone of the [KingGorrin znn-cli-csharp repository](https://github.com/KingGorrin/znn_cli_csharp.git).
 
 ``` powershell
-git clone -b htlc https://github.com/KingGorrin/znn_cli_csharp.git
+git clone https://github.com/KingGorrin/znn_cli_csharp.git
 ```
 
 Change directory to the **znn_cli_csharp** directory.
