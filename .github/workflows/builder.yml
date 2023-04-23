@@ -11,7 +11,7 @@ jobs:
     runs-on: windows-latest
     
     env:
-      Project_Path: src/ZenonCli/ZenonCli.csproj
+      PROJECT_PATH: src/ZenonCli/ZenonCli.csproj
 
     steps:
       - name: Checkout
@@ -22,14 +22,17 @@ jobs:
         with:
           dotnet-version: 6.0.x
 
+      - name: Setup Nerdbank Git versioning
+        run: dotnet tool install -g nbgv
+
       - name: Restore dependencies
-        run: dotnet restore $env:Project_Path
+        run: dotnet restore $env:PROJECT_PATH
 
       - name: Build
-        run: dotnet build $env:Project_Path --no-restore 
+        run: dotnet build $env:PROJECT_PATH --no-restore 
 
       - name: Test
-        run: dotnet test $env:Project_Path --no-build --verbosity normal
+        run: dotnet test $env:PROJECT_PATH --no-build --verbosity normal
 
       - name: Package into zip
         run: |
@@ -45,7 +48,7 @@ jobs:
     runs-on: ubuntu-20.04
 
     env:
-      Project_Path: src/ZenonCli/ZenonCli.csproj
+      PROJECT_PATH: ./src/ZenonCli/ZenonCli.csproj
       
     steps:
       - name: Checkout
@@ -55,15 +58,18 @@ jobs:
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: 6.0.x
+          
+      - name: Setup Nerdbank Git versioning
+        run: dotnet tool install -g nbgv
 
       - name: Restore dependencies
-        run: dotnet restore $env:Project_Path
+        run: dotnet restore $env:PROJECT_PATH
 
       - name: Build
-        run: dotnet build $env:Project_Path --no-restore
+        run: dotnet build $env:PROJECT_PATH --no-restore --runtime linux-x64
 
       - name: Test
-        run: dotnet test $env:Project_Path --no-build --verbosity normal
+        run: dotnet test $env:PROJECT_PATH --no-build --verbosity normal
 
       - name: Package zip
         run: |
