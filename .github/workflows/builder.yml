@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with: 
+          fetch-depth: 0
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
@@ -47,13 +49,12 @@ jobs:
   build-linux:
     runs-on: ubuntu-20.04
 
-    env:
-      PROJECT_PATH: ./src/ZenonCli/ZenonCli.csproj
-      
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-
+        with: 
+          fetch-depth: 0
+          
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
@@ -63,13 +64,13 @@ jobs:
         run: nbgv install
 
       - name: Restore dependencies
-        run: dotnet restore $env:PROJECT_PATH
+        run: dotnet restore src/ZenonCli/ZenonCli.csproj
 
       - name: Build
-        run: dotnet build $env:PROJECT_PATH --no-restore --runtime linux-x64
+        run: dotnet build src/ZenonCli/ZenonCli.csproj --no-restore --runtime linux-x64
 
       - name: Test
-        run: dotnet test $env:PROJECT_PATH --no-build --verbosity normal
+        run: dotnet test src/ZenonCli/ZenonCli.csproj --no-build --verbosity normal
 
       - name: Package zip
         run: |
