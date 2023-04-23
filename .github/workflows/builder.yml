@@ -1,0 +1,71 @@
+name: Build and release Zenon CLI for .NET
+
+on:
+  push:
+    branches: main
+
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 6.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore
+
+      - name: Test
+        run: dotnet test --no-build --verbosity normal
+
+      - name: Package into zip
+        run: |
+          Compress-Archive -Path bin\ZenonCli\net6.0\* -DestinationPath .\znn-cli-dotnet-windows-amd64.zip
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-artifacts
+          path: znn-cli-dotnet-windows-amd64.zip
+
+  build-linux:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 6.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore
+
+      - name: Test
+        run: dotnet test --no-build --verbosity normal
+
+      - name: Package zip
+        run: |
+          cd bin/ZenonCli/net6.0/linux-x64
+          zip -r ../../../../znn-cli-dotnet-linux-amd64.zip *
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: linux-artifacts
+          path: znn-cli-dotnet-linux-amd64.zip
