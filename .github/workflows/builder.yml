@@ -5,14 +5,14 @@ on:
     branches: main
 
   workflow_dispatch:
+  
+env:
+  PROJECT_PATH: src/ZenonCli/ZenonCli.csproj
 
 jobs:
   build-windows:
     runs-on: windows-latest
     
-    env:
-      PROJECT_PATH: src/ZenonCli/ZenonCli.csproj
-
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -64,13 +64,13 @@ jobs:
         run: nbgv install
 
       - name: Restore dependencies
-        run: dotnet restore src/ZenonCli/ZenonCli.csproj
+        run: dotnet restore $PROJECT_PATH
 
       - name: Build
-        run: dotnet build src/ZenonCli/ZenonCli.csproj --no-restore --runtime linux-x64
+        run: dotnet build $PROJECT_PATH --no-restore --runtime linux-x64 --no-self-contained
 
       - name: Test
-        run: dotnet test src/ZenonCli/ZenonCli.csproj --no-build --verbosity normal
+        run: dotnet test $PROJECT_PATH --no-build --verbosity normal
 
       - name: Package zip
         run: |
