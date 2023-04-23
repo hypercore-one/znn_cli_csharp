@@ -23,7 +23,7 @@ jobs:
           dotnet-version: 6.0.x
 
       - name: Setup Nerdbank Git versioning
-        run: dotnet tool install -g nbgv
+        run: nbgv install
 
       - name: Restore dependencies
         run: dotnet restore $env:PROJECT_PATH
@@ -60,7 +60,7 @@ jobs:
           dotnet-version: 6.0.x
           
       - name: Setup Nerdbank Git versioning
-        run: dotnet tool install -g nbgv
+        run: nbgv install
 
       - name: Restore dependencies
         run: dotnet restore $env:PROJECT_PATH
