@@ -64,7 +64,7 @@ jobs:
         run: nbgv install
 
       - name: Restore dependencies
-        run: dotnet restore $PROJECT_PATH
+        run: dotnet restore $PROJECT_PATH --runtime linux-x64
 
       - name: Build
         run: dotnet build $PROJECT_PATH --no-restore --runtime linux-x64 --no-self-contained
