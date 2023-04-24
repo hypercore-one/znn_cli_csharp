@@ -56,13 +56,13 @@ jobs:
       - name: Setup Nerdbank Git versioning
         run: nbgv install
       - name: Restore
-        run: dotnet restore $env:PROJECT_PATH --runtime linux-x64
+        run: dotnet restore $PROJECT_PATH --runtime linux-x64
       - name: Build
-        run: dotnet build $env:PROJECT_PATH --configuration Release --runtime linux-x64 --no-self-contained --no-restore
+        run: dotnet build $PROJECT_PATH --configuration Release --runtime linux-x64 --no-self-contained --no-restore
       - name: Test
-        run: dotnet test $env:PROJECT_PATH --no-restore --no-build --verbosity normal
+        run: dotnet test $PROJECT_PATH --no-restore --no-build --verbosity normal
       - name: Publish
-        run: dotnet publish $env:PROJECT_PATH --configuration Release --runtime linux-x64 --no-self-contained --no-restore --no-build
+        run: dotnet publish $PROJECT_PATH --configuration Release --runtime linux-x64 --no-self-contained --no-restore --no-build
       - name: Package zip
         run: |
           cd bin/ZenonCli/release/net6.0/linux-x64/publish
