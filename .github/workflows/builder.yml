@@ -10,6 +10,40 @@ env:
   PROJECT_PATH: src/ZenonCli/ZenonCli.csproj
 
 jobs:
+  build-macos:
+    runs-on: macos-12
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with: 
+          fetch-depth: 0
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 6.0.x
+      - name: Install Nerdbank Git versioning
+        run: dotnet tool install -g nbgv
+      - name: Setup Nerdbank Git versioning
+        run: nbgv install
+      - name: Restore
+        run: dotnet restore $PROJECT_PATH --runtime osx-x64
+      - name: Build
+        run: dotnet build $PROJECT_PATH --configuration Release --runtime osx-x64 --no-self-contained --no-restore
+      - name: Test
+        run: dotnet test $PROJECT_PATH --no-restore --no-build --verbosity normal
+      - name: Publish
+        run: dotnet publish $PROJECT_PATH --configuration Release --runtime osx-x64 --no-self-contained --no-restore --no-build
+      - name: Package into zip
+        run: |
+          cd bin/ZenonCli/release/net6.0/osx-x64/publish
+          zip -r ../../../../../../znn-cli-dotnet-macos-universal.zip *
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: macos-artifacts
+          path: znn-cli-dotnet-macos-universal.zip
+
   build-windows:
     runs-on: windows-latest
     
@@ -63,7 +97,7 @@ jobs:
         run: dotnet test $PROJECT_PATH --no-restore --no-build --verbosity normal
       - name: Publish
         run: dotnet publish $PROJECT_PATH --configuration Release --runtime linux-x64 --no-self-contained --no-restore --no-build
-      - name: Package zip
+      - name: Package into zip
         run: |
           cd bin/ZenonCli/release/net6.0/linux-x64/publish
           zip -r ../../../../../../znn-cli-dotnet-linux-amd64.zip *
@@ -74,7 +108,7 @@ jobs:
           path: znn-cli-dotnet-linux-amd64.zip
           
   make-release:
-    needs: [build-windows, build-linux]
+    needs: [build-windows, build-linux, build-macos]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -109,6 +143,10 @@ jobs:
           echo "EOFMARKER" >> ${GITHUB_ENV}
       - name: Prepare releases directory
         run: mkdir releases
+      - name: Download macOS artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: macos-artifacts
       - name: Download Windows artifacts
         uses: actions/download-artifact@v3
         with:
@@ -119,6 +157,7 @@ jobs:
           name: linux-artifacts
       - name: Prepare releases
         run: |
+          cp znn-cli-dotnet-macos-universal.zip releases/
           cp znn-cli-dotnet-windows-amd64.zip releases/
           cp znn-cli-dotnet-linux-amd64.zip releases/
       - name: Generate checksums
