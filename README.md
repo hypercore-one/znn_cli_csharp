@@ -9,11 +9,11 @@ A .NET based command-line interface (CLI) for interacting with Zenon Alphanet - 
 ## Dependencies
 
 - [CommandLine](https://github.com/commandlineparser/commandline)
-- [Zenon .NET SDK](https://github.com/KingGorrin/znn_sdk_csharp)
+- [Zenon SDK for .NET](https://github.com/KingGorrin/znn_sdk_csharp)
 
 ## Installation
 
-Download and extract the [latest version](./releases).
+Download and extract the [latest version](../../releases).
 
 ## Contributing
 
