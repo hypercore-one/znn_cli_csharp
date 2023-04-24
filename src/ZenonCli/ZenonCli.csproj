@@ -9,7 +9,7 @@
     <RepositoryUrl>https://github.com/KingGorrin/znn_cli_csharp</RepositoryUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <AssemblyName>znn-cli</AssemblyName>
-    <Description>The Zenon CLI tool is designed to interact with Alphanet - Network of Momentum Phase 1.</Description>
+    <Description>A .NET based command-line interface (CLI) for interacting with Zenon Alphanet - Network of Momentum Phase 1</Description>
     <Copyright>2022-2023</Copyright>
   </PropertyGroup>
 
