@@ -3,11 +3,14 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
+    <PublishSingleFile>true</PublishSingleFile>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RepositoryUrl>https://github.com/KingGorrin/znn_cli_csharp</RepositoryUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <AssemblyName>znn-cli</AssemblyName>
+    <Description>The Zenon CLI tool is designed to interact with Alphanet - Network of Momentum Phase 1.</Description>
+    <Copyright>2022-2023</Copyright>
   </PropertyGroup>
 
   <ItemGroup>

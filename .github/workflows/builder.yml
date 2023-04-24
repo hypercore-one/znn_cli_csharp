@@ -24,15 +24,17 @@ jobs:
           dotnet-version: 6.0.x
       - name: Setup Nerdbank Git versioning
         run: nbgv install
-      - name: Restore dependencies
-        run: dotnet restore $env:PROJECT_PATH
+      - name: Restore
+        run: dotnet restore $env:PROJECT_PATH --runtime win-x64
       - name: Build
-        run: dotnet build $env:PROJECT_PATH --no-restore 
+        run: dotnet build $env:PROJECT_PATH --configuration Release --runtime win-x64 --no-self-contained --no-restore
       - name: Test
-        run: dotnet test $env:PROJECT_PATH --no-build --verbosity normal
+        run: dotnet test $env:PROJECT_PATH --no-restore --no-build --verbosity normal
+      - name: Publish
+        run: dotnet publish $env:PROJECT_PATH --configuration Release --runtime win-x64 --no-self-contained --no-restore --no-build
       - name: Package into zip
         run: |
-          Compress-Archive -Path bin\ZenonCli\net6.0\* -DestinationPath .\znn-cli-dotnet-windows-amd64.zip
+          Compress-Archive -Path bin\ZenonCli\release\net6.0\win-x64\publish\*.exe -DestinationPath .\znn-cli-dotnet-windows-amd64.zip
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
@@ -53,16 +55,18 @@ jobs:
           dotnet-version: 6.0.x
       - name: Setup Nerdbank Git versioning
         run: nbgv install
-      - name: Restore dependencies
-        run: dotnet restore $PROJECT_PATH --runtime linux-x64
+      - name: Restore
+        run: dotnet restore $env:PROJECT_PATH --runtime wilinuxn-x64
       - name: Build
-        run: dotnet build $PROJECT_PATH --no-restore --runtime linux-x64 --no-self-contained
+        run: dotnet build $env:PROJECT_PATH --configuration Release --runtime linux-x64 --no-self-contained --no-restore
       - name: Test
-        run: dotnet test $PROJECT_PATH --no-build --verbosity normal
+        run: dotnet test $env:PROJECT_PATH --no-restore --no-build --verbosity normal
+      - name: Publish
+        run: dotnet publish $env:PROJECT_PATH --configuration Release --runtime linux-x64 --no-self-contained --no-restore --no-build
       - name: Package zip
         run: |
-          cd bin/ZenonCli/net6.0/linux-x64
-          zip -r ../../../../znn-cli-dotnet-linux-amd64.zip *
+          cd bin/ZenonCli/release/net6.0/linux-x64/publish
+          zip -r ../../../../znn-cli-dotnet-linux-amd64.zip *.exe
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
