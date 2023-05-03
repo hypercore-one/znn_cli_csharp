@@ -238,20 +238,12 @@ namespace ZenonCli
                     case Bridge.Info bi:
                         await ProcessAsync(bi);
                         break;
-                    case Bridge.OrchestratorInfo boi:
-                        await ProcessAsync(boi);
-                        break;
+                    
                     case Bridge.SecurityInfo bsi:
                         await ProcessAsync(bsi);
                         break;
                     case Bridge.TimeChallengesInfo btci:
                         await ProcessAsync(btci);
-                        break;
-                    case Bridge.NetworkInfo bni:
-                        await ProcessAsync(bni);
-                        break;
-                    case Bridge.SetNetwork bsn:
-                        await ProcessAsync(bsn);
                         break;
                     case Bridge.NominateGuardians bng:
                         await ProcessAsync(bng);
@@ -261,6 +253,75 @@ namespace ZenonCli
                         break;
                     case Bridge.ChangeAdministrator bca:
                         await ProcessAsync(bca);
+                        break;
+                    case Bridge.Emercency be:
+                        await ProcessAsync(be);
+                        break;
+                    case Bridge.SetMetadata bsm:
+                        await ProcessAsync(bsm);
+                        break;
+                    case Bridge.SetRedeemDelay bsrd:
+                        await ProcessAsync(bsrd);
+                        break;
+                    case Bridge.Unhalt bh:
+                        await ProcessAsync(bh);
+                        break;
+                    case Bridge.Halt buh:
+                        await ProcessAsync(buh);
+                        break;
+                    case Bridge.Orchestrator.Info boi:
+                        await ProcessAsync(boi);
+                        break;
+                    case Bridge.Orchestrator.Set bos:
+                        await ProcessAsync(bos);
+                        break;
+                    case Bridge.Network.List bnl:
+                        await ProcessAsync(bnl);
+                        break;
+                    case Bridge.Network.Get bng:
+                        await ProcessAsync(bng);
+                        break;
+                    case Bridge.Network.Set bns:
+                        await ProcessAsync(bns);
+                        break;
+                    case Bridge.Network.Remove bnr:
+                        await ProcessAsync(bnr);
+                        break;
+                    case Bridge.Network.SetMetadata bnsm:
+                        await ProcessAsync(bnsm);
+                        break;
+                    case Bridge.Wrap.List bwtl:
+                        await ProcessAsync(bwtl);
+                        break;
+                    case Bridge.Wrap.ListByAddress bwtla:
+                        await ProcessAsync(bwtla);
+                        break;
+                    case Bridge.Wrap.ListUnsigned bwtlu:
+                        await ProcessAsync(bwtlu);
+                        break;
+                    case Bridge.Wrap.Get bwtg:
+                        await ProcessAsync(bwtg);
+                        break;
+                    case Bridge.Wrap.Update bwtu:
+                        await ProcessAsync(bwtu);
+                        break;
+                    case Bridge.Wrap.Token bwt:
+                        await ProcessAsync(bwt);
+                        break;
+                    case Bridge.Unwrap.List buwtl:
+                        await ProcessAsync(buwtl);
+                        break;
+                    case Bridge.Unwrap.ListByAddress buwtla:
+                        await ProcessAsync(buwtla);
+                        break;
+                    case Bridge.Unwrap.Get buwtg:
+                        await ProcessAsync(buwtg);
+                        break;
+                    case Bridge.Unwrap.Token buwt:
+                        await ProcessAsync(buwt);
+                        break;
+                    case Bridge.Unwrap.Revoke buwr:
+                        await ProcessAsync(buwr);
                         break;
 
                     case Wallet.List wl:
@@ -2244,13 +2305,13 @@ namespace ZenonCli
         {
             if (options.Guardians != null && options.Guardians!.Count() == 0)
             {
-                WriteInfo($"No guardians specified");
+                WriteInfo($"No liquidity guardians specified");
                 return;
             }
 
             var guardians = options.Guardians!.Select(x => Address.Parse(x)).ToArray();
 
-            WriteInfo("Nominating guardians...");
+            WriteInfo("Nominating liquidity guardians...");
             await Znn.Instance.Send(Znn.Instance.Embedded.Liquidity.NominateGuardians(guardians));
             WriteInfo("Done");
         }
@@ -2259,7 +2320,7 @@ namespace ZenonCli
         {
             var admin = Address.Parse(options.Administrator!);
 
-            WriteInfo("Proposing administrator...");
+            WriteInfo("Proposing liquidity administrator...");
             await Znn.Instance.Send(Znn.Instance.Embedded.Liquidity.ProposeAdministrator(admin));
             WriteInfo("Done");
         }
@@ -2268,8 +2329,15 @@ namespace ZenonCli
         {
             var admin = Address.Parse(options.Administrator!);
 
-            WriteInfo("Changing administrator...");
+            WriteInfo("Changing liquidity administrator...");
             await Znn.Instance.Send(Znn.Instance.Embedded.Liquidity.ChangeAdministrator(admin));
+            WriteInfo("Done");
+        }
+
+        static async Task ProcessAsync(Liquidity.Emercency options)
+        {
+            WriteInfo("Putting liquidity contract in emercency mode...");
+            await Znn.Instance.Send(Znn.Instance.Embedded.Liquidity.Emergency());
             WriteInfo("Done");
         }
 
@@ -2291,18 +2359,6 @@ namespace ZenonCli
             WriteInfo($"   Unhalt duration in momentums: {info.UnhaltDurationInMomentums}");
             WriteInfo($"   TSS nonce: {info.TssNonce}");
             WriteInfo($"   Metadata: {info.Metadata}");
-        }
-
-        static async Task ProcessAsync(Bridge.OrchestratorInfo options)
-        {
-            var info = await Znn.Instance.Embedded.Bridge.GetOrchestratorInfo();
-
-            WriteInfo($"Orchestrator info:");
-            WriteInfo($"   Window size: {info.WindowSize}");
-            WriteInfo($"   Key generation threshold: {info.KeyGenThreshold}");
-            WriteInfo($"   Confirmations to finality: {info.ConfirmationsToFinality}");
-            WriteInfo($"   Estimated momentum time: {info.EstimatedMomentumTime}");
-            WriteInfo($"   Allow key generation height: {info.AllowKeyGenHeight}");
         }
 
         static async Task ProcessAsync(Bridge.SecurityInfo options)
@@ -2364,34 +2420,143 @@ namespace ZenonCli
             }
         }
 
-        static async Task ProcessAsync(Bridge.NetworkInfo options)
+        static async Task ProcessAsync(Bridge.NominateGuardians options)
         {
-            var info = await Znn.Instance.Embedded.Bridge.GetNetworkInfo(
-                options.NetworkClass!.Value, 
-                options.ChainId!.Value);
-
-            if (info == null || info.NetworkClass == 0 && info.ChainId == 0)
+            if (options.Guardians != null && options.Guardians!.Count() == 0)
             {
-                WriteError("The network does not exist");
+                WriteInfo($"No bridge guardians specified");
                 return;
             }
 
-            WriteInfo($"Network info:");
-            WriteInfo($"   NetworkClass: {info.NetworkClass}");
-            WriteInfo($"   ChainId: {info.ChainId}");
-            WriteInfo($"   Name: {info.Name}");
-            WriteInfo($"   ContractAddress: {info.ContractAddress}");
-            WriteInfo($"   Metadata: {info.Metadata}");
+            var guardians = options.Guardians!.Select(x => Address.Parse(x)).ToArray();
 
-            if (info.TokenPairs == null || info.TokenPairs.Length == 0)
+            WriteInfo("Nominating bridge guardians...");
+            await Znn.Instance.Send(Znn.Instance.Embedded.Bridge.NominateGuardians(guardians));
+            WriteInfo("Done");
+        }
+
+        static async Task ProcessAsync(Bridge.ProposeAdministrator options)
+        {
+            var admin = Address.Parse(options.Administrator!);
+
+            WriteInfo("Proposing bridge administrator...");
+            await Znn.Instance.Send(Znn.Instance.Embedded.Bridge.ProposeAdministrator(admin));
+            WriteInfo("Done");
+        }
+
+        static async Task ProcessAsync(Bridge.ChangeAdministrator options)
+        {
+            var admin = Address.Parse(options.Administrator!);
+
+            WriteInfo("Changing bridge administrator...");
+            await Znn.Instance.Send(Znn.Instance.Embedded.Bridge.ChangeAdministrator(admin));
+            WriteInfo("Done");
+        }
+
+        static async Task ProcessAsync(Bridge.Emercency options)
+        {
+            WriteInfo("Putting bridge contract in emercency mode...");
+            await Znn.Instance.Send(Znn.Instance.Embedded.Bridge.Emergency());
+            WriteInfo("Done");
+        }
+
+        static async Task ProcessAsync(Bridge.SetMetadata options)
+        {
+            WriteInfo("Setting bridge metadata...");
+            await Znn.Instance.Send(Znn.Instance.Embedded.Bridge.SetBridgeMetadata(options.Metadata!));
+            WriteInfo("Done");
+        }
+
+        static async Task ProcessAsync(Bridge.SetRedeemDelay options)
+        {
+            WriteInfo("Setting bridge redeem delay...");
+            await Znn.Instance.Send(Znn.Instance.Embedded.Bridge.SetRedeemDelay(options.RedeemDelay!.Value));
+            WriteInfo("Done");
+        }
+
+        static async Task ProcessAsync(Bridge.Halt options)
+        {
+            WriteInfo("Halting bridge...");
+            await Znn.Instance.Send(Znn.Instance.Embedded.Bridge.Halt(options.Signature!));
+            WriteInfo("Done");
+        }
+
+        static async Task ProcessAsync(Bridge.Unhalt options)
+        {
+            WriteInfo("Unhalting bridge...");
+            await Znn.Instance.Send(Znn.Instance.Embedded.Bridge.Unhalt());
+            WriteInfo("Done");
+        }
+
+        static async Task ProcessAsync(Bridge.Orchestrator.Info options)
+        {
+            var info = await Znn.Instance.Embedded.Bridge.GetOrchestratorInfo();
+
+            WriteInfo($"Orchestrator info:");
+            WriteInfo($"   Window size: {info.WindowSize}");
+            WriteInfo($"   Key generation threshold: {info.KeyGenThreshold}");
+            WriteInfo($"   Confirmations to finality: {info.ConfirmationsToFinality}");
+            WriteInfo($"   Estimated momentum time: {info.EstimatedMomentumTime}");
+            WriteInfo($"   Allow key generation height: {info.AllowKeyGenHeight}");
+        }
+
+        static async Task ProcessAsync(Bridge.Orchestrator.Set options)
+        {
+            WriteInfo("Setting orchestrator information...");
+            await Znn.Instance.Send(Znn.Instance.Embedded.Bridge.SetOrchestratorInfo(options.WindowSize!.Value, 
+                options.KeyGenThreshold!.Value, 
+                options.ConfirmationsToFinality!.Value, 
+                options.EstimatedMomentumTime!.Value));
+            WriteInfo("Done");
+        }
+
+        static async Task ProcessAsync(Bridge.Network.List options)
+        {
+            var networkList = await Znn.Instance.Embedded.Bridge.GetAllNetworks();
+
+            if (networkList == null || networkList.Count == 0)
             {
-                WriteInfo($"   Token pairs: none");
+                WriteInfo("No bridge networks found");
+                return;
+            }
+
+            foreach (var network in networkList.List)
+            {
+                Write(network);
+            }
+        }
+
+        static async Task ProcessAsync(Bridge.Network.Get options)
+        {
+            var network = await Znn.Instance.Embedded.Bridge.GetNetworkInfo(
+                options.NetworkClass!.Value, 
+                options.ChainId!.Value);
+
+            if (network == null || network.NetworkClass == 0 && network.ChainId == 0)
+            {
+                WriteError("The bridge network does not exist");
+                return;
+            }
+
+            Write(network);
+        }
+
+        static void Write(BridgeNetworkInfo network)
+        {
+            WriteInfo($"Bridge network {network.Name} (class {network.NetworkClass}, chain id {network.ChainId})");
+            WriteInfo($"   Contract address {network.ContractAddress}");
+            WriteInfo($"   Metadata {network.Metadata}");
+
+            if (network.TokenPairs == null || network.TokenPairs.Length == 0)
+            {
+                WriteInfo($"   No token pairs");
+                WriteInfo("");
             }
             else
             {
-                WriteInfo($"   Token pairs: ");
+                WriteInfo($"   Token pairs");
 
-                foreach (var tokenPair in info.TokenPairs)
+                foreach (var tokenPair in network.TokenPairs)
                 {
                     WriteInfo($"      Token standard: {tokenPair.TokenStandard}");
                     WriteInfo($"      Token address: {tokenPair.TokenAddress}");
@@ -2407,7 +2572,7 @@ namespace ZenonCli
             }
         }
 
-        static async Task ProcessAsync(Bridge.SetNetwork options)
+        static async Task ProcessAsync(Bridge.Network.Set options)
         {
             var networkClass = options.NetworkClass!.Value;
             var chainId = options.ChainId!.Value;
@@ -2416,64 +2581,132 @@ namespace ZenonCli
 
             if (networkClass == 0)
             {
-                WriteInfo($"Network class cannot be zero");
+                WriteInfo($"The bridge network class cannot be zero");
                 return;
             }
 
             if (chainId == 0)
             {
-                WriteInfo($"Network chain id cannot be zero");
+                WriteInfo($"The bridge network chain id cannot be zero");
                 return;
             }
 
             if (String.IsNullOrEmpty(name))
             {
-                WriteInfo($"Network name cannot be empty");
+                WriteInfo($"The bridge network name cannot be empty");
                 return;
             }
 
             if (String.IsNullOrEmpty(contractAddress))
             {
-                WriteInfo($"Network contract address cannot be empty");
+                WriteInfo($"The bridge network contract address cannot be empty");
                 return;
             }
 
-            WriteInfo("Setting network...");
+            WriteInfo("Setting bridge network...");
             await Znn.Instance.Send(Znn.Instance.Embedded.Bridge.SetNetwork(networkClass, chainId, name, contractAddress, options.Metadata));
             WriteInfo("Done");
         }
 
-        static async Task ProcessAsync(Bridge.NominateGuardians options)
+        static async Task ProcessAsync(Bridge.Network.Remove options)
         {
-            if (options.Guardians != null && options.Guardians!.Count() == 0)
+            var networkClass = options.NetworkClass!.Value;
+            var chainId = options.ChainId!.Value;
+
+            if (networkClass == 0)
             {
-                WriteInfo($"No guardians specified");
+                WriteInfo($"The bridge network class cannot be zero");
                 return;
             }
 
-            var guardians = options.Guardians!.Select(x => Address.Parse(x)).ToArray();
+            if (chainId == 0)
+            {
+                WriteInfo($"The bridge network chain id cannot be zero");
+                return;
+            }
 
-            WriteInfo("Nominating guardians...");
-            await Znn.Instance.Send(Znn.Instance.Embedded.Bridge.NominateGuardians(guardians));
+
+            WriteInfo("Removing bridge network...");
+            await Znn.Instance.Send(Znn.Instance.Embedded.Bridge.RemoveNetwork(networkClass, chainId));
             WriteInfo("Done");
         }
 
-        static async Task ProcessAsync(Bridge.ProposeAdministrator options)
+        static async Task ProcessAsync(Bridge.Network.SetMetadata options)
         {
-            var admin = Address.Parse(options.Administrator!);
+            var networkClass = options.NetworkClass!.Value;
+            var chainId = options.ChainId!.Value;
 
-            WriteInfo("Proposing administrator...");
-            await Znn.Instance.Send(Znn.Instance.Embedded.Bridge.ProposeAdministrator(admin));
+            if (networkClass == 0)
+            {
+                WriteInfo($"The bridge network class cannot be zero");
+                return;
+            }
+
+            if (chainId == 0)
+            {
+                WriteInfo($"The bridge network chain id cannot be zero");
+                return;
+            }
+
+            WriteInfo("Setting bridge network metadata...");
+            await Znn.Instance.Send(Znn.Instance.Embedded.Bridge.SetNetworkMetadata(networkClass, chainId, options.Metadata!));
             WriteInfo("Done");
         }
 
-        static async Task ProcessAsync(Bridge.ChangeAdministrator options)
-        {
-            var admin = Address.Parse(options.Administrator!);
 
-            WriteInfo("Changing administrator...");
-            await Znn.Instance.Send(Znn.Instance.Embedded.Bridge.ChangeAdministrator(admin));
-            WriteInfo("Done");
+        static async Task ProcessAsync(Bridge.Wrap.List options)
+        {
+            throw new NotImplementedException();
+        }
+
+        static async Task ProcessAsync(Bridge.Wrap.ListByAddress options)
+        {
+            throw new NotImplementedException();
+        }
+
+        static async Task ProcessAsync(Bridge.Wrap.ListUnsigned options)
+        {
+            throw new NotImplementedException();
+        }
+
+        static async Task ProcessAsync(Bridge.Wrap.Get options)
+        {
+            throw new NotImplementedException();
+        }
+
+        static async Task ProcessAsync(Bridge.Wrap.Update options)
+        {
+            throw new NotImplementedException();
+        }
+
+        static async Task ProcessAsync(Bridge.Wrap.Token options)
+        {
+            throw new NotImplementedException();
+        }
+
+        static async Task ProcessAsync(Bridge.Unwrap.List options)
+        {
+            throw new NotImplementedException();
+        }
+
+        static async Task ProcessAsync(Bridge.Unwrap.ListByAddress options)
+        {
+            throw new NotImplementedException();
+        }
+
+        static async Task ProcessAsync(Bridge.Unwrap.Get options)
+        {
+            throw new NotImplementedException();
+        }
+
+        static async Task ProcessAsync(Bridge.Unwrap.Token options)
+        {
+            throw new NotImplementedException();
+        }
+
+        static async Task ProcessAsync(Bridge.Unwrap.Revoke options)
+        {
+            throw new NotImplementedException();
         }
 
         #endregion
