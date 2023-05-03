@@ -219,6 +219,50 @@ namespace ZenonCli
                         await ProcessAsync(hdpu);
                         break;
 
+                    case Liquidity.Info li:
+                        await ProcessAsync(li);
+                        break;
+                    case Liquidity.Collect lc:
+                        await ProcessAsync(lc);
+                        break;
+                    case Liquidity.NominateGuardians lng:
+                        await ProcessAsync(lng);
+                        break;
+                    case Liquidity.ProposeAdministrator lpa:
+                        await ProcessAsync(lpa);
+                        break;
+                    case Liquidity.ChangeAdministrator lca:
+                        await ProcessAsync(lca);
+                        break;
+
+                    case Bridge.Info bi:
+                        await ProcessAsync(bi);
+                        break;
+                    case Bridge.OrchestratorInfo boi:
+                        await ProcessAsync(boi);
+                        break;
+                    case Bridge.SecurityInfo bsi:
+                        await ProcessAsync(bsi);
+                        break;
+                    case Bridge.TimeChallengesInfo btci:
+                        await ProcessAsync(btci);
+                        break;
+                    case Bridge.NetworkInfo bni:
+                        await ProcessAsync(bni);
+                        break;
+                    case Bridge.SetNetwork bsn:
+                        await ProcessAsync(bsn);
+                        break;
+                    case Bridge.NominateGuardians bng:
+                        await ProcessAsync(bng);
+                        break;
+                    case Bridge.ProposeAdministrator bpa:
+                        await ProcessAsync(bpa);
+                        break;
+                    case Bridge.ChangeAdministrator bca:
+                        await ProcessAsync(bca);
+                        break;
+
                     case Wallet.List wl:
                         Process(wl);
                         break;
@@ -1159,10 +1203,10 @@ namespace ZenonCli
                     WriteInfo(String.Format("   {0} has {1} decimals, {2}, {3}, and {4}",
                         token.TokenStandard == TokenStandard.ZnnZts ? token.Name : token.Name,
                         token.Decimals,
-                        token.IsMintable ? " is mintable" : " is not mintable",
+                        token.IsMintable ? "is mintable" : "is not mintable",
                         token.IsBurnable ? "can be burned" : "cannot be burned",
-                        token.IsUtility ? " is a utility coin" : " is not a utility coin"));
-                    WriteInfo($"   The total supply is {FormatAmount(token.TotalSupply, token.Decimals)} and the maximum supply is ${FormatAmount(token.MaxSupply, token.Decimals)}");
+                        token.IsUtility ? "is a utility coin" : "is not a utility coin"));
+                    WriteInfo($"   The total supply is {FormatAmount(token.TotalSupply, token.Decimals)} and the maximum supply is {FormatAmount(token.MaxSupply, token.Decimals)}");
                 }
                 else
                 {
@@ -1173,7 +1217,7 @@ namespace ZenonCli
                         token.Decimals,
                         token.IsMintable ? "can be minted" : "cannot be minted",
                         token.IsBurnable ? "can be burned" : "cannot be burned",
-                        token.IsUtility ? " is a utility token" : " is not a utility token"));
+                        token.IsUtility ? "is a utility token" : "is not a utility token"));
                 }
                 WriteInfo($"   Domain `{token.Domain}`");
             }
@@ -1201,7 +1245,8 @@ namespace ZenonCli
             WriteInfo($"{type} {token.Name} with symbol {token.Symbol} and standard {token.TokenStandard}");
             WriteInfo($"   Created by {token.Owner}");
             WriteInfo($"   The total supply is {FormatAmount(token.TotalSupply, token.Decimals)} and a maximum supply is {FormatAmount(token.MaxSupply, token.Decimals)}");
-            WriteInfo(String.Format("   The token has {0} decimals {1} and {2}",
+            WriteInfo(String.Format("   The {0} has {1} decimals {2} and {3}",
+                type,
                 token.Decimals,
                 token.IsMintable ? "can be minted" : "cannot be minted",
                 token.IsBurnable ? "can be burned" : "cannot be burned"));
@@ -1228,7 +1273,8 @@ namespace ZenonCli
                 WriteInfo($"{type} {token.Name} with symbol {token.Symbol} and standard {token.TokenStandard}");
                 WriteInfo($"   Created by {token.Owner}");
                 WriteInfo($"   The total supply is {FormatAmount(token.TotalSupply, token.Decimals)} and a maximum supply is {FormatAmount(token.MaxSupply, token.Decimals)}");
-                WriteInfo(String.Format("   The token has {0} decimals {1} and {2}",
+                WriteInfo(String.Format("   The {0} has {1} decimals {2} and {3}",
+                    type,
                     token.Decimals,
                     token.IsMintable ? "can be minted" : "cannot be minted",
                     token.IsBurnable ? "can be burned" : "cannot be burned"));
@@ -2155,6 +2201,283 @@ namespace ZenonCli
 
         #endregion
 
+        #region Liquidity
+
+        static async Task ProcessAsync(Liquidity.Info options)
+        {
+            var info = await Znn.Instance.Embedded.Liquidity.GetLiquidityInfo();
+
+            WriteInfo($"Liquidity info:");
+            WriteInfo($"   Admnistrator: {info.Administrator}");
+            WriteInfo($"   ZNN reward: {info.ZnnReward}");
+            WriteInfo($"   QSR reward: {info.QsrReward}");
+            WriteInfo($"   Is halted: {info.IsHalted}");
+            WriteInfo($"   Tokens:");
+
+            foreach (var tokenTuple in info.TokenTuples)
+            {
+                var token = await Znn.Instance.Embedded.Token.GetByZts(tokenTuple.TokenStandard);
+
+                var type = "Token";
+
+                if (token.TokenStandard == TokenStandard.QsrZts ||
+                    token.TokenStandard == TokenStandard.ZnnZts)
+                {
+                    type = "Coin";
+                }
+
+                WriteInfo($"      {type} {token.Name} with symbol {token.Symbol} and standard {token.TokenStandard}");
+                WriteInfo($"        ZNN % {tokenTuple.ZnnPercentage} QSR % {tokenTuple.QsrPercentage} minimum amount {FormatAmount(tokenTuple.MinAmount, token.Decimals)}");
+                WriteInfo("");
+            }
+        }
+
+        static async Task ProcessAsync(Liquidity.Collect options)
+        {
+            await Znn.Instance.Send(Znn.Instance.Embedded.Liquidity.CollectReward());
+
+            WriteInfo("Done");
+            WriteInfo($"Use receiveAll to collect your Liquidity reward(s) after 1 momentum");
+        }
+
+        static async Task ProcessAsync(Liquidity.NominateGuardians options)
+        {
+            if (options.Guardians != null && options.Guardians!.Count() == 0)
+            {
+                WriteInfo($"No guardians specified");
+                return;
+            }
+
+            var guardians = options.Guardians!.Select(x => Address.Parse(x)).ToArray();
+
+            WriteInfo("Nominating guardians...");
+            await Znn.Instance.Send(Znn.Instance.Embedded.Liquidity.NominateGuardians(guardians));
+            WriteInfo("Done");
+        }
+
+        static async Task ProcessAsync(Liquidity.ProposeAdministrator options)
+        {
+            var admin = Address.Parse(options.Administrator!);
+
+            WriteInfo("Proposing administrator...");
+            await Znn.Instance.Send(Znn.Instance.Embedded.Liquidity.ProposeAdministrator(admin));
+            WriteInfo("Done");
+        }
+
+        static async Task ProcessAsync(Liquidity.ChangeAdministrator options)
+        {
+            var admin = Address.Parse(options.Administrator!);
+
+            WriteInfo("Changing administrator...");
+            await Znn.Instance.Send(Znn.Instance.Embedded.Liquidity.ChangeAdministrator(admin));
+            WriteInfo("Done");
+        }
+
+        #endregion
+
+        #region Bridge
+
+        static async Task ProcessAsync(Bridge.Info options)
+        {
+            var info = await Znn.Instance.Embedded.Bridge.GetBridgeInfo();
+
+            WriteInfo($"Bridge info:");
+            WriteInfo($"   Admnistrator: {info.Administrator}");
+            WriteInfo($"   Compressed TSS ECDSA public key: {info.DecompressedTssECDSAPubKey}");
+            WriteInfo($"   Decompressed TSS ECDSA public key: {info.DecompressedTssECDSAPubKey}");
+            WriteInfo($"   Allow key generation: {info.AllowKeyGen}");
+            WriteInfo($"   Is halted: {info.Halted}");
+            WriteInfo($"   Unhalted at: {info.UnhaltedAt}");
+            WriteInfo($"   Unhalt duration in momentums: {info.UnhaltDurationInMomentums}");
+            WriteInfo($"   TSS nonce: {info.TssNonce}");
+            WriteInfo($"   Metadata: {info.Metadata}");
+        }
+
+        static async Task ProcessAsync(Bridge.OrchestratorInfo options)
+        {
+            var info = await Znn.Instance.Embedded.Bridge.GetOrchestratorInfo();
+
+            WriteInfo($"Orchestrator info:");
+            WriteInfo($"   Window size: {info.WindowSize}");
+            WriteInfo($"   Key generation threshold: {info.KeyGenThreshold}");
+            WriteInfo($"   Confirmations to finality: {info.ConfirmationsToFinality}");
+            WriteInfo($"   Estimated momentum time: {info.EstimatedMomentumTime}");
+            WriteInfo($"   Allow key generation height: {info.AllowKeyGenHeight}");
+        }
+
+        static async Task ProcessAsync(Bridge.SecurityInfo options)
+        {
+            var info = await Znn.Instance.Embedded.Bridge.GetSecurityInfo();
+
+            WriteInfo($"Secutiry info:");
+
+            if (info.Guardians == null || info.Guardians.Length == 0)
+            {
+                WriteInfo($"   Guardians: none");
+            }
+            else
+            {
+                WriteInfo($"   Guardians: ");
+
+                foreach (var guardian in info.Guardians)
+                {
+                    WriteInfo($"      {guardian}");
+                }
+            }
+
+            if (info.GuardiansVotes == null || info.GuardiansVotes.Length == 0)
+            {
+                WriteInfo($"   Guardian votes: none");
+            }
+            else
+            {
+                WriteInfo($"   Guardian votes: ");
+
+                foreach (var guardianVote in info.GuardiansVotes)
+                {
+                    WriteInfo($"      {guardianVote}");
+                }
+            }
+
+            WriteInfo($"   Administrator delay: {info.AdministratorDelay}");
+            WriteInfo($"   Soft delay: {info.SoftDelay}");
+        }
+
+        static async Task ProcessAsync(Bridge.TimeChallengesInfo options)
+        {
+            var list = await Znn.Instance.Embedded.Bridge.GetTimeChallengesInfo();
+
+            if (list == null || list.Count == 0)
+            {
+                WriteInfo("No time challenges found.");
+                return;
+            }
+
+            WriteInfo($"Time challenges:");
+
+            foreach (var info in list.List)
+            {
+                WriteInfo($"   Method: {info.MethodName}");
+                WriteInfo($"   Start height: {info.ChallengeStartHeight}");
+                WriteInfo($"   Params hash: {info.ParamsHash}");
+                WriteInfo("");
+            }
+        }
+
+        static async Task ProcessAsync(Bridge.NetworkInfo options)
+        {
+            var info = await Znn.Instance.Embedded.Bridge.GetNetworkInfo(
+                options.NetworkClass!.Value, 
+                options.ChainId!.Value);
+
+            if (info == null || info.NetworkClass == 0 && info.ChainId == 0)
+            {
+                WriteError("The network does not exist");
+                return;
+            }
+
+            WriteInfo($"Network info:");
+            WriteInfo($"   NetworkClass: {info.NetworkClass}");
+            WriteInfo($"   ChainId: {info.ChainId}");
+            WriteInfo($"   Name: {info.Name}");
+            WriteInfo($"   ContractAddress: {info.ContractAddress}");
+            WriteInfo($"   Metadata: {info.Metadata}");
+
+            if (info.TokenPairs == null || info.TokenPairs.Length == 0)
+            {
+                WriteInfo($"   Token pairs: none");
+            }
+            else
+            {
+                WriteInfo($"   Token pairs: ");
+
+                foreach (var tokenPair in info.TokenPairs)
+                {
+                    WriteInfo($"      Token standard: {tokenPair.TokenStandard}");
+                    WriteInfo($"      Token address: {tokenPair.TokenAddress}");
+                    WriteInfo($"      Bridgeable: {tokenPair.Bridgeable}");
+                    WriteInfo($"      Redeemable: {tokenPair.Redeemable}");
+                    WriteInfo($"      Owned: {tokenPair.Owned}");
+                    WriteInfo($"      MinAmount: {tokenPair.MinAmount}");
+                    WriteInfo($"      Fee %: {tokenPair.FeePercentage}");
+                    WriteInfo($"      Redeem delay: {tokenPair.RedeemDelay}");
+                    WriteInfo($"      Metadata: { tokenPair.Metadata}");
+                    WriteInfo("");
+                }
+            }
+        }
+
+        static async Task ProcessAsync(Bridge.SetNetwork options)
+        {
+            var networkClass = options.NetworkClass!.Value;
+            var chainId = options.ChainId!.Value;
+            var name = options.Name!;
+            var contractAddress = options.ContractAddress!;
+
+            if (networkClass == 0)
+            {
+                WriteInfo($"Network class cannot be zero");
+                return;
+            }
+
+            if (chainId == 0)
+            {
+                WriteInfo($"Network chain id cannot be zero");
+                return;
+            }
+
+            if (String.IsNullOrEmpty(name))
+            {
+                WriteInfo($"Network name cannot be empty");
+                return;
+            }
+
+            if (String.IsNullOrEmpty(contractAddress))
+            {
+                WriteInfo($"Network contract address cannot be empty");
+                return;
+            }
+
+            WriteInfo("Setting network...");
+            await Znn.Instance.Send(Znn.Instance.Embedded.Bridge.SetNetwork(networkClass, chainId, name, contractAddress, options.Metadata));
+            WriteInfo("Done");
+        }
+
+        static async Task ProcessAsync(Bridge.NominateGuardians options)
+        {
+            if (options.Guardians != null && options.Guardians!.Count() == 0)
+            {
+                WriteInfo($"No guardians specified");
+                return;
+            }
+
+            var guardians = options.Guardians!.Select(x => Address.Parse(x)).ToArray();
+
+            WriteInfo("Nominating guardians...");
+            await Znn.Instance.Send(Znn.Instance.Embedded.Bridge.NominateGuardians(guardians));
+            WriteInfo("Done");
+        }
+
+        static async Task ProcessAsync(Bridge.ProposeAdministrator options)
+        {
+            var admin = Address.Parse(options.Administrator!);
+
+            WriteInfo("Proposing administrator...");
+            await Znn.Instance.Send(Znn.Instance.Embedded.Bridge.ProposeAdministrator(admin));
+            WriteInfo("Done");
+        }
+
+        static async Task ProcessAsync(Bridge.ChangeAdministrator options)
+        {
+            var admin = Address.Parse(options.Administrator!);
+
+            WriteInfo("Changing administrator...");
+            await Znn.Instance.Send(Znn.Instance.Embedded.Bridge.ChangeAdministrator(admin));
+            WriteInfo("Done");
+        }
+
+        #endregion
+
         #region Wallet
 
         static int Process(Wallet.List options)
@@ -2291,7 +2614,7 @@ namespace ZenonCli
 
         static string FormatAmount(long amount, long decimals)
         {
-            return (amount / Math.Pow(10, decimals)).ToString($"0." + new String('0', (int)decimals));
+            return (amount / Math.Pow(10, decimals)).ToString("0." + new String('0', (int)decimals));
         }
 
         static string FormatDuration(long seconds)

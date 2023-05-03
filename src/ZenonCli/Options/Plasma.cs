@@ -4,7 +4,7 @@ namespace ZenonCli.Options
 {
     public class Plasma
     {
-        [Verb("plasma.list", HelpText = "List plasma fusion entries.")]
+        [Verb("plasma.list", HelpText = "List plasma fusion entries")]
         public class List : KeyStoreAndConnectionOptions
         {
             [Value(0, Default = 0, MetaName = "pageIndex")]
@@ -18,7 +18,7 @@ namespace ZenonCli.Options
         public class Get : KeyStoreAndConnectionOptions
         { }
 
-        [Verb("plasma.fuse", HelpText = "Fuse QSR to an address to generate plasma.")]
+        [Verb("plasma.fuse", HelpText = "Fuse QSR to an address to generate plasma")]
         public class Fuse : KeyStoreAndConnectionOptions
         {
             [Value(0, Required = true, MetaName = "toAddress")]

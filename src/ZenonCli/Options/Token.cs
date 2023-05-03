@@ -59,7 +59,7 @@ namespace ZenonCli.Options
             public string? IsUtility { get; set; }
         }
 
-        [Verb("token.mint", HelpText = "Undelegate pillar")]
+        [Verb("token.mint", HelpText = "Mint token")]
         public class Mint : KeyStoreAndConnectionOptions
         {
             [Value(0, Required = true, MetaName = "tokenStandard")]
@@ -72,7 +72,7 @@ namespace ZenonCli.Options
             public string? ReceiveAddress { get; set; }
         }
 
-        [Verb("token.burn", HelpText = "Collect pillar rewards")]
+        [Verb("token.burn", HelpText = "Burn token")]
         public class Burn : KeyStoreAndConnectionOptions
         {
             [Value(0, Required = true, MetaName = "tokenStandard")]

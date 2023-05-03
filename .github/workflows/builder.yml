@@ -2,7 +2,9 @@ name: Build and release Zenon CLI for .NET
 
 on:
   push:
-    branches: main
+    branches: 
+      - main
+      - bridge
 
   workflow_dispatch:
   
