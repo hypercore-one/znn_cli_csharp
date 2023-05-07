@@ -8,39 +8,16 @@ namespace ZenonCli.Options
         public class Info : ConnectionOptions
         { }
 
-        [Verb("bridge.securityInfo", HelpText = "Get the security info")]
+        [Verb("bridge.security.info", HelpText = "Get the security info")]
         public class SecurityInfo : ConnectionOptions
-        {
-        }
+        { }
 
-        [Verb("bridge.timeChallengesInfo", HelpText = "Get the time challenges info")]
+        [Verb("bridge.timeChallenges.info", HelpText = "Get the time challenges info")]
         public class TimeChallengesInfo : ConnectionOptions
-        {
-        }
+        { }
 
-        [Verb("bridge.nominate", HelpText = "Nominate bridge guardians. Can only be called by administrator.")]
-        public class NominateGuardians : KeyStoreAndConnectionOptions
-        {
-            [Value(0, MetaName = "guardians", Required = true)]
-            public IEnumerable<string>? Guardians { get; set; }
-        }
-
-        [Verb("bridge.propose", HelpText = "Propose bridge administrator. Can only be called by a guardian if the bridge contract is in emergency mode.")]
-        public class ProposeAdministrator : KeyStoreAndConnectionOptions
-        {
-            [Value(0, MetaName = "admin", Required = true)]
-            public string? Administrator { get; set; }
-        }
-
-        [Verb("bridge.change", HelpText = "Change bridge administrator. Can only be called by administrator.")]
-        public class ChangeAdministrator : KeyStoreAndConnectionOptions
-        {
-            [Value(0, MetaName = "admin", Required = true)]
-            public string? Administrator { get; set; }
-        }
-
-        [Verb("bridge.emercency", HelpText = "Put the bridge contract in emercency mode. Can only be called by administrator.")]
-        public class Emercency : KeyStoreAndConnectionOptions
+        [Verb("bridge.emergency", HelpText = "Put the bridge contract in emergency mode. Can only be called by administrator.")]
+        public class Emergency : KeyStoreAndConnectionOptions
         { }
 
         [Verb("bridge.halt", HelpText = "Halt bridge operations.")]
@@ -66,6 +43,30 @@ namespace ZenonCli.Options
         {
             [Value(0, MetaName = "redeemDelay", Required = true)]
             public long? RedeemDelay { get; set; }
+        }
+
+        public class Admin
+        {
+            [Verb("bridge.admin.nominate", HelpText = "Nominate bridge guardians. Can only be called by administrator.")]
+            public class NominateGuardians : KeyStoreAndConnectionOptions
+            {
+                [Value(0, MetaName = "guardians", Required = true)]
+                public IEnumerable<string>? Guardians { get; set; }
+            }
+
+            [Verb("bridge.admin.propose", HelpText = "Propose bridge administrator. Can only be called by a guardian if the bridge contract is in emergency mode.")]
+            public class ProposeAdministrator : KeyStoreAndConnectionOptions
+            {
+                [Value(0, MetaName = "admin", Required = true)]
+                public string? Administrator { get; set; }
+            }
+
+            [Verb("bridge.admin.change", HelpText = "Change bridge administrator. Can only be called by administrator.")]
+            public class ChangeAdministrator : KeyStoreAndConnectionOptions
+            {
+                [Value(0, MetaName = "admin", Required = true)]
+                public string? Administrator { get; set; }
+            }
         }
 
         public class Wrap

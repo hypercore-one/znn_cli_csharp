@@ -61,6 +61,19 @@ namespace ZenonCli
 
                 switch (obj)
                 {
+                    case Stats.OsInfo soi:
+                        await ProcessAsync(soi);
+                        break;
+                    case Stats.ProcessInfo spi:
+                        await ProcessAsync(spi);
+                        break;
+                    case Stats.NetworkInfo sni:
+                        await ProcessAsync(sni);
+                        break;
+                    case Stats.SyncInfo ssi:
+                        await ProcessAsync(ssi);
+                        break;
+
                     case General.Version gv:
                         await ProcessAsync(gv);
                         break;
@@ -222,39 +235,32 @@ namespace ZenonCli
                     case Liquidity.Info li:
                         await ProcessAsync(li);
                         break;
+                    case Liquidity.SecurityInfo bsi:
+                        await ProcessAsync(bsi);
+                        break;
                     case Liquidity.Collect lc:
                         await ProcessAsync(lc);
                         break;
-                    case Liquidity.NominateGuardians lng:
+                    case Liquidity.Admin.NominateGuardians lng:
                         await ProcessAsync(lng);
                         break;
-                    case Liquidity.ProposeAdministrator lpa:
+                    case Liquidity.Admin.ProposeAdministrator lpa:
                         await ProcessAsync(lpa);
                         break;
-                    case Liquidity.ChangeAdministrator lca:
+                    case Liquidity.Admin.ChangeAdministrator lca:
                         await ProcessAsync(lca);
                         break;
 
                     case Bridge.Info bi:
                         await ProcessAsync(bi);
                         break;
-                    
                     case Bridge.SecurityInfo bsi:
                         await ProcessAsync(bsi);
                         break;
                     case Bridge.TimeChallengesInfo btci:
                         await ProcessAsync(btci);
                         break;
-                    case Bridge.NominateGuardians bng:
-                        await ProcessAsync(bng);
-                        break;
-                    case Bridge.ProposeAdministrator bpa:
-                        await ProcessAsync(bpa);
-                        break;
-                    case Bridge.ChangeAdministrator bca:
-                        await ProcessAsync(bca);
-                        break;
-                    case Bridge.Emercency be:
+                    case Bridge.Emergency be:
                         await ProcessAsync(be);
                         break;
                     case Bridge.SetMetadata bsm:
@@ -268,6 +274,15 @@ namespace ZenonCli
                         break;
                     case Bridge.Halt buh:
                         await ProcessAsync(buh);
+                        break;
+                    case Bridge.Admin.NominateGuardians bng:
+                        await ProcessAsync(bng);
+                        break;
+                    case Bridge.Admin.ProposeAdministrator bpa:
+                        await ProcessAsync(bpa);
+                        break;
+                    case Bridge.Admin.ChangeAdministrator bca:
+                        await ProcessAsync(bca);
                         break;
                     case Bridge.Orchestrator.Info boi:
                         await ProcessAsync(boi);
@@ -445,6 +460,36 @@ namespace ZenonCli
 
             WriteInfo($"Zenon Node {info.version} using Zenon .NET SDK v{Constants.ZnnSdkVersion}");
         }
+
+        #region Stats
+        static async Task ProcessAsync(Stats.OsInfo options)
+        {
+            var info = await Znn.Instance.Stats.OsInfo();
+
+            WriteInfo(JsonConvert.SerializeObject(info, Formatting.Indented));
+        }
+
+        static async Task ProcessAsync(Stats.ProcessInfo options)
+        {
+            var info = await Znn.Instance.Stats.ProcessInfo();
+
+            WriteInfo(JsonConvert.SerializeObject(info, Formatting.Indented));
+        }
+
+        static async Task ProcessAsync(Stats.NetworkInfo options)
+        {
+            var info = await Znn.Instance.Stats.NetworkInfo();
+
+            WriteInfo(JsonConvert.SerializeObject(info, Formatting.Indented));
+        }
+
+        static async Task ProcessAsync(Stats.SyncInfo options)
+        {
+            var info = await Znn.Instance.Stats.SyncInfo();
+
+            WriteInfo(JsonConvert.SerializeObject(info, Formatting.Indented));
+        }
+        #endregion
 
         #region General
 
@@ -2293,6 +2338,44 @@ namespace ZenonCli
             }
         }
 
+        static async Task ProcessAsync(Liquidity.SecurityInfo options)
+        {
+            var info = await Znn.Instance.Embedded.Liquidity.GetSecurityInfo();
+
+            WriteInfo($"Security info:");
+
+            if (info.Guardians == null || info.Guardians.Length == 0)
+            {
+                WriteInfo($"   Guardians: none");
+            }
+            else
+            {
+                WriteInfo($"   Guardians: ");
+
+                foreach (var guardian in info.Guardians)
+                {
+                    WriteInfo($"      {guardian}");
+                }
+            }
+
+            if (info.GuardiansVotes == null || info.GuardiansVotes.Length == 0)
+            {
+                WriteInfo($"   Guardian votes: none");
+            }
+            else
+            {
+                WriteInfo($"   Guardian votes: ");
+
+                foreach (var guardianVote in info.GuardiansVotes)
+                {
+                    WriteInfo($"      {guardianVote}");
+                }
+            }
+
+            WriteInfo($"   Administrator delay: {info.AdministratorDelay}");
+            WriteInfo($"   Soft delay: {info.SoftDelay}");
+        }
+
         static async Task ProcessAsync(Liquidity.Collect options)
         {
             await Znn.Instance.Send(Znn.Instance.Embedded.Liquidity.CollectReward());
@@ -2301,7 +2384,7 @@ namespace ZenonCli
             WriteInfo($"Use receiveAll to collect your Liquidity reward(s) after 1 momentum");
         }
 
-        static async Task ProcessAsync(Liquidity.NominateGuardians options)
+        static async Task ProcessAsync(Liquidity.Admin.NominateGuardians options)
         {
             if (options.Guardians != null && options.Guardians!.Count() == 0)
             {
@@ -2316,7 +2399,7 @@ namespace ZenonCli
             WriteInfo("Done");
         }
 
-        static async Task ProcessAsync(Liquidity.ProposeAdministrator options)
+        static async Task ProcessAsync(Liquidity.Admin.ProposeAdministrator options)
         {
             var admin = Address.Parse(options.Administrator!);
 
@@ -2325,7 +2408,7 @@ namespace ZenonCli
             WriteInfo("Done");
         }
 
-        static async Task ProcessAsync(Liquidity.ChangeAdministrator options)
+        static async Task ProcessAsync(Liquidity.Admin.ChangeAdministrator options)
         {
             var admin = Address.Parse(options.Administrator!);
 
@@ -2334,7 +2417,7 @@ namespace ZenonCli
             WriteInfo("Done");
         }
 
-        static async Task ProcessAsync(Liquidity.Emercency options)
+        static async Task ProcessAsync(Liquidity.Emergency options)
         {
             WriteInfo("Putting liquidity contract in emercency mode...");
             await Znn.Instance.Send(Znn.Instance.Embedded.Liquidity.Emergency());
@@ -2365,7 +2448,7 @@ namespace ZenonCli
         {
             var info = await Znn.Instance.Embedded.Bridge.GetSecurityInfo();
 
-            WriteInfo($"Secutiry info:");
+            WriteInfo($"Security info:");
 
             if (info.Guardians == null || info.Guardians.Length == 0)
             {
@@ -2420,7 +2503,7 @@ namespace ZenonCli
             }
         }
 
-        static async Task ProcessAsync(Bridge.NominateGuardians options)
+        static async Task ProcessAsync(Bridge.Admin.NominateGuardians options)
         {
             if (options.Guardians != null && options.Guardians!.Count() == 0)
             {
@@ -2435,7 +2518,7 @@ namespace ZenonCli
             WriteInfo("Done");
         }
 
-        static async Task ProcessAsync(Bridge.ProposeAdministrator options)
+        static async Task ProcessAsync(Bridge.Admin.ProposeAdministrator options)
         {
             var admin = Address.Parse(options.Administrator!);
 
@@ -2444,7 +2527,7 @@ namespace ZenonCli
             WriteInfo("Done");
         }
 
-        static async Task ProcessAsync(Bridge.ChangeAdministrator options)
+        static async Task ProcessAsync(Bridge.Admin.ChangeAdministrator options)
         {
             var admin = Address.Parse(options.Administrator!);
 
@@ -2453,7 +2536,7 @@ namespace ZenonCli
             WriteInfo("Done");
         }
 
-        static async Task ProcessAsync(Bridge.Emercency options)
+        static async Task ProcessAsync(Bridge.Emergency options)
         {
             WriteInfo("Putting bridge contract in emercency mode...");
             await Znn.Instance.Send(Znn.Instance.Embedded.Bridge.Emergency());
