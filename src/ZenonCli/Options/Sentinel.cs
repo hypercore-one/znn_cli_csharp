@@ -5,7 +5,7 @@ namespace ZenonCli.Options
     public class Sentinel
     {
         [Verb("sentinel.list", HelpText = "List all sentinels")]
-        public class List : KeyStoreAndConnectionOptions
+        public class List : ConnectionOptions
         {
         }
 

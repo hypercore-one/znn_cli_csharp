@@ -5,7 +5,7 @@ namespace ZenonCli.Options
     public class Stake
     {
         [Verb("stake.list", HelpText = "List all stakes")]
-        public class List : KeyStoreAndConnectionOptions
+        public class List : ConnectionOptions
         {
             [Value(0, Default = 0, MetaName = "pageIndex")]
             public int? PageIndex { get; set; }

@@ -5,7 +5,7 @@ namespace ZenonCli.Options
     public class Pillar
     {
         [Verb("pillar.list", HelpText = "List all pillars")]
-        public class List : KeyStoreAndConnectionOptions
+        public class List : ConnectionOptions
         { }
 
         [Verb("pillar.register", HelpText = "Register pillar")]

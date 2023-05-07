@@ -52,7 +52,7 @@ namespace ZenonCli.Options
         { }
 
         [Verb("frontierMomentum", HelpText = "List frontier momentum.")]
-        public class FrontierMomentum : KeyStoreAndConnectionOptions
+        public class FrontierMomentum : ConnectionOptions
         { }
 
         [Verb("createHash", HelpText = "Create hash digests by using the stated algorithm.")]

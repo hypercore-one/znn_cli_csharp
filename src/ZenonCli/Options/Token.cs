@@ -5,7 +5,7 @@ namespace ZenonCli.Options
     public class Token
     {
         [Verb("token.list", HelpText = "List all tokens")]
-        public class List : KeyStoreAndConnectionOptions
+        public class List : ConnectionOptions
         {
             [Value(0, Default = 0, MetaName = "pageIndex")]
             public int? PageIndex { get; set; }
@@ -15,14 +15,14 @@ namespace ZenonCli.Options
         }
 
         [Verb("token.getByStandard", HelpText = "List tokens by standard")]
-        public class GetByStandard : KeyStoreAndConnectionOptions
+        public class GetByStandard : ConnectionOptions
         {
             [Value(0, Required = true, MetaName = "tokenStandard")]
             public string? TokenStandard { get; set; }
         }
 
         [Verb("token.getByOwner", HelpText = "List tokens by owner")]
-        public class GetByOwner : KeyStoreAndConnectionOptions
+        public class GetByOwner : ConnectionOptions
         {
             [Value(0, Required = true, MetaName = "ownerAddress")]
             public string? OwnerAddress { get; set; }
