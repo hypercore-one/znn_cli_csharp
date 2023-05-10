@@ -4,15 +4,15 @@ namespace ZenonCli.Options
 {
     public class Bridge
     {
-        [Verb("bridge.info", HelpText = "Get the bridge info")]
+        [Verb("bridge.info", HelpText = "Get the bridge information")]
         public class Info : ConnectionOptions
         { }
 
-        [Verb("bridge.security.info", HelpText = "Get the security info")]
+        [Verb("bridge.security", HelpText = "Get the bridge security information")]
         public class SecurityInfo : ConnectionOptions
         { }
 
-        [Verb("bridge.timeChallenges.info", HelpText = "Get the time challenges info")]
+        [Verb("bridge.timeChallenges", HelpText = "List all bridge time challenges")]
         public class TimeChallengesInfo : ConnectionOptions
         { }
 
@@ -23,12 +23,20 @@ namespace ZenonCli.Options
         [Verb("bridge.halt", HelpText = "Halt bridge operations.")]
         public class Halt : KeyStoreAndConnectionOptions
         {
-            [Value(0, MetaName = "signature", HelpText = "only non administrators needs a TSS signature with the current tssNonce.")]
+            [Value(0, MetaName = "signature", HelpText = "Only non administrators needs a TSS signature with the current tssNonce.")]
             public string? Signature { get; set; }
         }
 
-        [Verb("bridge.unhalt", HelpText = "Unhalt bridge operations. Can only be called by administrator.")]
+        [Verb("bridge.unhalt", HelpText = "Unhalt bridge operations. Can only be called by the administrator.")]
         public class Unhalt : KeyStoreAndConnectionOptions
+        { }
+
+        [Verb("bridge.enableKeyGen", HelpText = "Enable bridge key generation. Can only be called by the administrator.")]
+        public class EnableKeyGen : KeyStoreAndConnectionOptions
+        { }
+
+        [Verb("bridge.disableKeyGen", HelpText = "Disable bridge key generation. Can only be called by the administrator.")]
+        public class DisableKeyGen : KeyStoreAndConnectionOptions
         { }
 
         [Verb("bridge.setMetadata", HelpText = "Set the bridge metadata.")]
@@ -47,7 +55,7 @@ namespace ZenonCli.Options
 
         public class Admin
         {
-            [Verb("bridge.admin.nominate", HelpText = "Nominate bridge guardians. Can only be called by administrator.")]
+            [Verb("bridge.admin.nominate", HelpText = "Nominate bridge guardians. Can only be called by the administrator.")]
             public class NominateGuardians : KeyStoreAndConnectionOptions
             {
                 [Value(0, MetaName = "guardians", Required = true)]
@@ -61,7 +69,7 @@ namespace ZenonCli.Options
                 public string? Administrator { get; set; }
             }
 
-            [Verb("bridge.admin.change", HelpText = "Change bridge administrator. Can only be called by administrator.")]
+            [Verb("bridge.admin.change", HelpText = "Change bridge administrator. Can only be called by the administrator.")]
             public class ChangeAdministrator : KeyStoreAndConnectionOptions
             {
                 [Value(0, MetaName = "admin", Required = true)]

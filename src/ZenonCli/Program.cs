@@ -235,11 +235,20 @@ namespace ZenonCli
                     case Liquidity.Info li:
                         await ProcessAsync(li);
                         break;
-                    case Liquidity.SecurityInfo bsi:
-                        await ProcessAsync(bsi);
+                    case Liquidity.SecurityInfo lsi:
+                        await ProcessAsync(lsi);
+                        break;
+                    case Liquidity.TimeChallengesInfo ltci:
+                        await ProcessAsync(ltci);
                         break;
                     case Liquidity.Collect lc:
                         await ProcessAsync(lc);
+                        break;
+                    case Liquidity.Halt lh:
+                        await ProcessAsync(lh);
+                        break;
+                    case Liquidity.Unhalt luh:
+                        await ProcessAsync(luh);
                         break;
                     case Liquidity.Admin.NominateGuardians lng:
                         await ProcessAsync(lng);
@@ -274,6 +283,12 @@ namespace ZenonCli
                         break;
                     case Bridge.Halt buh:
                         await ProcessAsync(buh);
+                        break;
+                    case Bridge.EnableKeyGen bekg:
+                        await ProcessAsync(bekg);
+                        break;
+                    case Bridge.DisableKeyGen bdkg:
+                        await ProcessAsync(bdkg);
                         break;
                     case Bridge.Admin.NominateGuardians bng:
                         await ProcessAsync(bng);
@@ -2376,12 +2391,47 @@ namespace ZenonCli
             WriteInfo($"   Soft delay: {info.SoftDelay}");
         }
 
+        static async Task ProcessAsync(Liquidity.TimeChallengesInfo options)
+        {
+            var list = await Znn.Instance.Embedded.Liquidity.GetTimeChallengesInfo();
+
+            if (list == null || list.Count == 0)
+            {
+                WriteInfo("No time challenges found.");
+                return;
+            }
+
+            WriteInfo($"Time challenges:");
+
+            foreach (var info in list.List)
+            {
+                WriteInfo($"   Method: {info.MethodName}");
+                WriteInfo($"   Start height: {info.ChallengeStartHeight}");
+                WriteInfo($"   Params hash: {info.ParamsHash}");
+                WriteInfo("");
+            }
+        }
+
         static async Task ProcessAsync(Liquidity.Collect options)
         {
             await Znn.Instance.Send(Znn.Instance.Embedded.Liquidity.CollectReward());
 
             WriteInfo("Done");
             WriteInfo($"Use receiveAll to collect your Liquidity reward(s) after 1 momentum");
+        }
+
+        static async Task ProcessAsync(Liquidity.Halt options)
+        {
+            WriteInfo("Halting liquidity operations...");
+            await Znn.Instance.Send(Znn.Instance.Embedded.Liquidity.SetIsHalted(true));
+            WriteInfo("Done");
+        }
+
+        static async Task ProcessAsync(Liquidity.Unhalt options)
+        {
+            WriteInfo("Unhalting liquidity operations...");
+            await Znn.Instance.Send(Znn.Instance.Embedded.Liquidity.SetIsHalted(false));
+            WriteInfo("Done");
         }
 
         static async Task ProcessAsync(Liquidity.Admin.NominateGuardians options)
@@ -2559,15 +2609,29 @@ namespace ZenonCli
 
         static async Task ProcessAsync(Bridge.Halt options)
         {
-            WriteInfo("Halting bridge...");
+            WriteInfo("Halting bridge operations...");
             await Znn.Instance.Send(Znn.Instance.Embedded.Bridge.Halt(options.Signature!));
             WriteInfo("Done");
         }
 
         static async Task ProcessAsync(Bridge.Unhalt options)
         {
-            WriteInfo("Unhalting bridge...");
+            WriteInfo("Unhalting bridge operations...");
             await Znn.Instance.Send(Znn.Instance.Embedded.Bridge.Unhalt());
+            WriteInfo("Done");
+        }
+
+        static async Task ProcessAsync(Bridge.EnableKeyGen options)
+        {
+            WriteInfo("Enabeling key generation...");
+            await Znn.Instance.Send(Znn.Instance.Embedded.Bridge.SetAllowKeyGen(true));
+            WriteInfo("Done");
+        }
+
+        static async Task ProcessAsync(Bridge.DisableKeyGen options)
+        {
+            WriteInfo("Disabeling key generation...");
+            await Znn.Instance.Send(Znn.Instance.Embedded.Bridge.SetAllowKeyGen(false));
             WriteInfo("Done");
         }
 
