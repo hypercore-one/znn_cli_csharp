@@ -2436,15 +2436,78 @@ namespace ZenonCli
 
         static async Task ProcessAsync(Liquidity.Admin.NominateGuardians options)
         {
-            if (options.Guardians != null && options.Guardians!.Count() == 0)
+            var address = Znn.Instance.DefaultKeyPair.Address;
+
+            Address[] guardians;
+
+            try
+            {
+                guardians = options.Guardians!
+                   .Select(x => Address.Parse(x))
+                   .Distinct()
+                   .OrderBy(x => x.ToString())
+                   .ToArray();
+            }
+            catch
+            {
+                WriteError($"Failed to parse guardian adresses");
+                return;
+            }
+
+            if (guardians.Length == 0) // Min guardians length check?
             {
                 WriteInfo($"No liquidity guardians specified");
                 return;
             }
 
-            var guardians = options.Guardians!.Select(x => Address.Parse(x)).ToArray();
+            var info = await Znn.Instance.Embedded.Bridge
+                .GetBridgeInfo();
 
-            WriteInfo("Nominating liquidity guardians...");
+            if (info.Administrator != address)
+            {
+                WriteError($"Permission denied!");
+                return;
+            }
+
+            var tcList = await Znn.Instance.Embedded.Bridge
+                .GetTimeChallengesInfo();
+
+            var tc = tcList.List
+                .Where(x => x.MethodName == "NominateGuardians")
+                .FirstOrDefault();
+
+            if (tc != null && tc.ParamsHash != Hash.Empty)
+            {
+                var frontierMomentum = await Znn.Instance.Ledger.GetFrontierMomentum();
+                var secInfo = await Znn.Instance.Embedded.Bridge.GetSecurityInfo();
+
+                if (tc.ChallengeStartHeight + secInfo.AdministratorDelay < frontierMomentum.Height)
+                {
+                    WriteError($"Cannot nominate liquidity guardians; wait for time challenge to expire.");
+                    return;
+                }
+
+                var paramsHash = Hash.Digest(Helper.Combine(guardians.Select(x => x.Bytes).ToArray()));
+
+                if (tc.ParamsHash == paramsHash)
+                {
+                    WriteInfo("Committing liquidity guardians...");
+                }
+                else
+                {
+                    WriteWarning("Hash does not match nominated liquidity guardians");
+
+                    if (!Confirm("Are you sure you want to nominate new liquidity guardians?"))
+                        return;
+
+                    WriteInfo("Nominatingliquidity  guardians...");
+                }
+            }
+            else
+            {
+                WriteInfo("Nominating liquidity guardians...");
+            }
+
             await Znn.Instance.Send(Znn.Instance.Embedded.Liquidity.NominateGuardians(guardians));
             WriteInfo("Done");
         }
@@ -2555,15 +2618,78 @@ namespace ZenonCli
 
         static async Task ProcessAsync(Bridge.Admin.NominateGuardians options)
         {
-            if (options.Guardians != null && options.Guardians!.Count() == 0)
+            var address = Znn.Instance.DefaultKeyPair.Address;
+
+            Address[] guardians;
+
+            try
+            {
+                guardians = options.Guardians!
+                   .Select(x => Address.Parse(x))
+                   .Distinct()
+                   .OrderBy(x => x.ToString())
+                   .ToArray();
+            }
+            catch
+            {
+                WriteError($"Failed to parse guardian adresses");
+                return;
+            }
+
+            if (guardians.Length == 0) // Min guardians length check?
             {
                 WriteInfo($"No bridge guardians specified");
                 return;
             }
 
-            var guardians = options.Guardians!.Select(x => Address.Parse(x)).ToArray();
+            var info = await Znn.Instance.Embedded.Bridge
+                .GetBridgeInfo();
 
-            WriteInfo("Nominating bridge guardians...");
+            if (info.Administrator != address)
+            {
+                WriteError($"Permission denied!");
+                return;
+            }
+
+            var tcList = await Znn.Instance.Embedded.Bridge
+                .GetTimeChallengesInfo();
+
+            var tc = tcList.List
+                .Where(x => x.MethodName == "NominateGuardians")
+                .FirstOrDefault();
+
+            if (tc != null && tc.ParamsHash != Hash.Empty)
+            {
+                var frontierMomentum = await Znn.Instance.Ledger.GetFrontierMomentum();
+                var secInfo = await Znn.Instance.Embedded.Bridge.GetSecurityInfo();
+
+                if (tc.ChallengeStartHeight + secInfo.AdministratorDelay < frontierMomentum.Height)
+                {
+                    WriteError($"Cannot nominate bridge guardians; wait for time challenge to expire.");
+                    return;
+                }
+
+                var paramsHash = Hash.Digest(Helper.Combine(guardians.Select(x => x.Bytes).ToArray()));
+
+                if (tc.ParamsHash == paramsHash)
+                {
+                    WriteInfo("Committing bridge guardians...");
+                }
+                else
+                {
+                    WriteWarning("Hash does not match nominated bridge guardians");
+
+                    if (!Confirm("Are you sure you want to nominate new bridge guardians?"))
+                        return;
+
+                    WriteInfo("Nominating bridge guardians...");
+                }
+            }
+            else
+            {
+                WriteInfo("Nominating bridge guardians...");
+            }
+            
             await Znn.Instance.Send(Znn.Instance.Embedded.Bridge.NominateGuardians(guardians));
             WriteInfo("Done");
         }
