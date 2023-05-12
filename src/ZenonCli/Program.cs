@@ -2523,7 +2523,37 @@ namespace ZenonCli
 
         static async Task ProcessAsync(Liquidity.Admin.ChangeAdministrator options)
         {
-            var admin = Address.Parse(options.Administrator!);
+            var address = Znn.Instance.DefaultKeyPair.Address;
+
+            var info = await Znn.Instance.Embedded.Bridge
+                .GetBridgeInfo();
+
+            if (info.Administrator != address)
+            {
+                WriteError($"Permission denied!");
+                return;
+            }
+
+            Address admin;
+
+            try
+            {
+                admin = Address.Parse(options.Administrator!);
+            }
+            catch
+            {
+                WriteError($"Failed to parse address");
+                return;
+            }
+
+            if (address == admin)
+            {
+                WriteInfo("The specified address is already liquidity administrator");
+                return;
+            }
+
+            if (!Confirm($"Are you sure you want to change the liquidity administrator to {admin}"))
+                return;
 
             WriteInfo("Changing liquidity administrator...");
             await Znn.Instance.Send(Znn.Instance.Embedded.Liquidity.ChangeAdministrator(admin));
@@ -2705,7 +2735,37 @@ namespace ZenonCli
 
         static async Task ProcessAsync(Bridge.Admin.ChangeAdministrator options)
         {
-            var admin = Address.Parse(options.Administrator!);
+            var address = Znn.Instance.DefaultKeyPair.Address;
+
+            var info = await Znn.Instance.Embedded.Bridge
+                .GetBridgeInfo();
+
+            if (info.Administrator != address)
+            {
+                WriteError($"Permission denied!");
+                return;
+            }
+
+            Address admin;
+
+            try
+            {
+                admin = Address.Parse(options.Administrator!);
+            }
+            catch
+            {
+                WriteError($"Failed to parse address");
+                return;
+            }
+
+            if (address == admin)
+            {
+                WriteInfo("The specified address is already bridge administrator");
+                return;
+            }
+
+            if (!Confirm($"Are you sure you want to change the bridge administrator to {admin}"))
+                return;
 
             WriteInfo("Changing bridge administrator...");
             await Znn.Instance.Send(Znn.Instance.Embedded.Bridge.ChangeAdministrator(admin));
