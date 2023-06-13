@@ -53,6 +53,13 @@ namespace ZenonCli.Options
             public long? RedeemDelay { get; set; }
         }
 
+        [Verb("bridge.changePubKey", HelpText = "Change bridge TSS ECDSA public key. Can only be called by the administrator.")]
+        public class ChangePubKey : KeyStoreAndConnectionOptions
+        {
+            [Value(0, MetaName = "pubKey", Required = true)]
+            public string? PubKey { get; set; }
+        }
+
         public class Admin
         {
             [Verb("bridge.admin.nominate", HelpText = "Nominate bridge guardians. Can only be called by the administrator.")]
