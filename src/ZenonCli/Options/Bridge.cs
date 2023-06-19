@@ -39,14 +39,14 @@ namespace ZenonCli.Options
         public class DisableKeyGen : KeyStoreAndConnectionOptions
         { }
 
-        [Verb("bridge.setMetadata", HelpText = "Set the bridge metadata.")]
+        [Verb("bridge.setMetadata", HelpText = "Set the bridge metadata. Can only be called by the administrator.")]
         public class SetMetadata : KeyStoreAndConnectionOptions
         {
             [Value(0, MetaName = "metadata")]
             public string? Metadata { get; set; }
         }
 
-        [Verb("bridge.setRedeemDelay", HelpText = "Set the bridge redeem delay in momentums.")]
+        [Verb("bridge.setRedeemDelay", HelpText = "Set the bridge redeem delay in momentums. Can only be called by the administrator.")]
         public class SetRedeemDelay : KeyStoreAndConnectionOptions
         {
             [Value(0, MetaName = "redeemDelay", Required = true)]
