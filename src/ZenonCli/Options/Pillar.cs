@@ -51,7 +51,14 @@ namespace ZenonCli.Options
         {
         }
 
-        [Verb("pillar.withdrawQsr", HelpText = "")]
+        [Verb("pillar.depositQsr", HelpText = "Deposit QSR to the pillar contract")]
+        public class DepositQsr : KeyStoreAndConnectionOptions
+        {
+            [Value(0, Required = true, MetaName = "amount")]
+            public long Amount { get; set; }
+        }
+
+        [Verb("pillar.withdrawQsr", HelpText = "Withdraw deposited QSR from the pillar contract")]
         public class WithdrawQsr : KeyStoreAndConnectionOptions
         {
         }
