@@ -836,40 +836,31 @@ namespace ZenonCli
 
         static async Task ProcessAsync(Sentinel.DepositQsr options)
         {
-            long amount = 0;
             var tokenStandard = TokenStandard.QsrZts;
+
             var address = Znn.Instance.DefaultKeyPair.Address;
 
-            var info = await Znn.Instance.Ledger
+            var account = await Znn.Instance.Ledger
                 .GetAccountInfoByAddress(address);
 
-            bool ok = true;
-            bool found = false;
+            var balance = account.BalanceInfoList
+                .FirstOrDefault(x => x.Token.TokenStandard == tokenStandard);
 
-            foreach (var item in info.BalanceInfoList)
-            {
-                if (item.Token.TokenStandard == tokenStandard)
-                {
-                    amount = options.Amount * item.Token.DecimalsExponent;
-
-                    if (item.Balance < amount)
-                    {
-                        WriteError($"You only have {FormatAmount(item.Balance.Value, item.Token.Decimals)} {item.Token.Symbol} tokens");
-                        ok = false;
-                        break;
-                    }
-                    found = true;
-                }
-            }
-
-            if (!ok) return;
-            if (!found)
+            if (balance == null)
             {
                 WriteError($"You only have {FormatAmount(0, 0)} {tokenStandard} tokens");
                 return;
             }
 
-            WriteInfo($"Depositing {FormatAmount(amount, Constants.QsrDecimals)} QSR ...");
+            var amount = options.Amount * balance.Token.DecimalsExponent;
+
+            if (balance.Balance < amount)
+            {
+                WriteError($"You only have {FormatAmount(balance.Balance.Value, balance.Token.Decimals)} {balance.Token.Symbol} tokens");
+                return;
+            }
+
+            WriteInfo($"Depositing {FormatAmount(amount, balance.Token.Decimals)} {balance.Token.Symbol} ...");
 
             await Znn.Instance.Send(Znn.Instance.Embedded.Sentinel.DepositQsr(amount));
 
@@ -1162,40 +1153,31 @@ namespace ZenonCli
 
         static async Task ProcessAsync(Pillar.DepositQsr options)
         {
-            long amount = 0;
             var tokenStandard = TokenStandard.QsrZts;
+
             var address = Znn.Instance.DefaultKeyPair.Address;
 
-            var info = await Znn.Instance.Ledger
+            var account = await Znn.Instance.Ledger
                 .GetAccountInfoByAddress(address);
 
-            bool ok = true;
-            bool found = false;
+            var balance = account.BalanceInfoList
+                .FirstOrDefault(x => x.Token.TokenStandard == tokenStandard);
 
-            foreach (var item in info.BalanceInfoList)
-            {
-                if (item.Token.TokenStandard == tokenStandard)
-                {
-                    amount = options.Amount * item.Token.DecimalsExponent;
-
-                    if (item.Balance < amount)
-                    {
-                        WriteError($"You only have {FormatAmount(item.Balance.Value, item.Token.Decimals)} {item.Token.Symbol} tokens");
-                        ok = false;
-                        break;
-                    }
-                    found = true;
-                }
-            }
-
-            if (!ok) return;
-            if (!found)
+            if (balance == null)
             {
                 WriteError($"You only have {FormatAmount(0, 0)} {tokenStandard} tokens");
                 return;
             }
 
-            WriteInfo($"Depositing {FormatAmount(amount, Constants.QsrDecimals)} QSR ...");
+            var amount  = options.Amount * balance.Token.DecimalsExponent;
+
+            if (balance.Balance < amount)
+            {
+                WriteError($"You only have {FormatAmount(balance.Balance.Value, balance.Token.Decimals)} {balance.Token.Symbol} tokens");
+                return;
+            }
+
+            WriteInfo($"Depositing {FormatAmount(amount, balance.Token.Decimals)} {balance.Token.Symbol} ...");
 
             await Znn.Instance.Send(Znn.Instance.Embedded.Pillar.DepositQsr(amount));
 
