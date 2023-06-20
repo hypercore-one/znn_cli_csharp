@@ -837,8 +837,13 @@ namespace ZenonCli
         static async Task ProcessAsync(Sentinel.DepositQsr options)
         {
             var tokenStandard = TokenStandard.QsrZts;
-
             var address = Znn.Instance.DefaultKeyPair.Address;
+
+            if (options.Amount <= 0)
+            {
+                WriteError($"The amount must be positive");
+                return;
+            }
 
             var account = await Znn.Instance.Ledger
                 .GetAccountInfoByAddress(address);
@@ -1154,8 +1159,13 @@ namespace ZenonCli
         static async Task ProcessAsync(Pillar.DepositQsr options)
         {
             var tokenStandard = TokenStandard.QsrZts;
-
             var address = Znn.Instance.DefaultKeyPair.Address;
+
+            if (options.Amount <= 0)
+            {
+                WriteError($"The amount must be positive");
+                return;
+            }
 
             var account = await Znn.Instance.Ledger
                 .GetAccountInfoByAddress(address);
