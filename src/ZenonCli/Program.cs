@@ -528,9 +528,14 @@ namespace ZenonCli
         static async Task ProcessAsync(General.Send options)
         {
             var newAddress = Address.Parse(options.ToAddress);
-            TokenStandard tokenStandard;
-            long amount = 0;
 
+            if (options.Amount <= 0)
+            {
+                WriteError($"The amount must be positive");
+                return;
+            }
+
+            TokenStandard tokenStandard;
             if (String.Equals(options.TokenStandard, "ZNN", StringComparison.OrdinalIgnoreCase))
             {
                 tokenStandard = TokenStandard.ZnnZts;
@@ -544,32 +549,23 @@ namespace ZenonCli
                 tokenStandard = TokenStandard.Parse(options.TokenStandard);
             }
 
-            var info =
-                await Znn.Instance.Ledger.GetAccountInfoByAddress(Znn.Instance.DefaultKeyPair.Address);
+            var account = await Znn.Instance.Ledger
+                .GetAccountInfoByAddress(Znn.Instance.DefaultKeyPair.Address);
 
-            bool ok = true;
-            bool found = false;
+            var balance = account.BalanceInfoList
+                .FirstOrDefault(x => x.Token.TokenStandard == tokenStandard);
 
-            foreach (var item in info.BalanceInfoList)
-            {
-                if (item.Token.TokenStandard == tokenStandard)
-                {
-                    amount = options.Amount * item.Token.DecimalsExponent;
-
-                    if (item.Balance < amount)
-                    {
-                        WriteError($"You only have {FormatAmount(item.Balance.Value, item.Token.Decimals)} {item.Token.Symbol} tokens");
-                        ok = false;
-                        break;
-                    }
-                    found = true;
-                }
-            }
-
-            if (!ok) return;
-            if (!found)
+            if (balance == null)
             {
                 WriteError($"You only have {FormatAmount(0, 0)} {tokenStandard} tokens");
+                return;
+            }
+
+            var amount = options.Amount * balance.Token.DecimalsExponent;
+
+            if (balance.Balance < amount)
+            {
+                WriteError($"You only have {FormatAmount(balance.Balance.Value, balance.Token.Decimals)} {balance.Token.Symbol} tokens");
                 return;
             }
 
