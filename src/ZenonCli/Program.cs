@@ -2419,7 +2419,8 @@ namespace ZenonCli
 
         static async Task ProcessAsync(Liquidity.Info options)
         {
-            var info = await Znn.Instance.Embedded.Liquidity.GetLiquidityInfo();
+            var info = await Znn.Instance.Embedded.Liquidity
+                .GetLiquidityInfo();
 
             WriteInfo($"Liquidity info:");
             WriteInfo($"   Admnistrator: {info.Administrator}");
@@ -2517,8 +2518,8 @@ namespace ZenonCli
         {
             var address = Znn.Instance.DefaultKeyPair.Address;
 
-            var info = await Znn.Instance.Embedded.Bridge
-                .GetBridgeInfo();
+            var info = await Znn.Instance.Embedded.Liquidity
+                .GetLiquidityInfo();
 
             if (info.Administrator != address)
             {
@@ -2535,8 +2536,8 @@ namespace ZenonCli
         {
             var address = Znn.Instance.DefaultKeyPair.Address;
 
-            var info = await Znn.Instance.Embedded.Bridge
-                .GetBridgeInfo();
+            var info = await Znn.Instance.Embedded.Liquidity
+                .GetLiquidityInfo();
 
             if (info.Administrator != address)
             {
@@ -2575,8 +2576,8 @@ namespace ZenonCli
                 return;
             }
 
-            var info = await Znn.Instance.Embedded.Bridge
-                .GetBridgeInfo();
+            var info = await Znn.Instance.Embedded.Liquidity
+                .GetLiquidityInfo();
 
             if (info.Administrator != address)
             {
@@ -2584,7 +2585,7 @@ namespace ZenonCli
                 return;
             }
 
-            var tcList = await Znn.Instance.Embedded.Bridge
+            var tcList = await Znn.Instance.Embedded.Liquidity
                 .GetTimeChallengesInfo();
 
             var tc = tcList.List
@@ -2594,7 +2595,7 @@ namespace ZenonCli
             if (tc != null && tc.ParamsHash != Hash.Empty)
             {
                 var frontierMomentum = await Znn.Instance.Ledger.GetFrontierMomentum();
-                var secInfo = await Znn.Instance.Embedded.Bridge.GetSecurityInfo();
+                var secInfo = await Znn.Instance.Embedded.Liquidity.GetSecurityInfo();
 
                 if (tc.ChallengeStartHeight + secInfo.AdministratorDelay > frontierMomentum.Height)
                 {
@@ -2640,8 +2641,8 @@ namespace ZenonCli
         {
             var address = Znn.Instance.DefaultKeyPair.Address;
 
-            var info = await Znn.Instance.Embedded.Bridge
-                .GetBridgeInfo();
+            var info = await Znn.Instance.Embedded.Liquidity
+                .GetLiquidityInfo();
 
             if (info.Administrator != address)
             {
@@ -2679,8 +2680,8 @@ namespace ZenonCli
         {
             var address = Znn.Instance.DefaultKeyPair.Address;
 
-            var info = await Znn.Instance.Embedded.Bridge
-                .GetBridgeInfo();
+            var info = await Znn.Instance.Embedded.Liquidity
+                .GetLiquidityInfo();
 
             if (info.Administrator != address)
             {
@@ -2960,6 +2961,17 @@ namespace ZenonCli
 
         static async Task ProcessAsync(Bridge.Emergency options)
         {
+            var address = Znn.Instance.DefaultKeyPair.Address;
+
+            var info = await Znn.Instance.Embedded.Bridge
+                .GetBridgeInfo();
+
+            if (info.Administrator != address)
+            {
+                WriteError($"Permission denied!");
+                return;
+            }
+
             WriteInfo("Putting bridge contract in emercency mode...");
             await Znn.Instance.Send(Znn.Instance.Embedded.Bridge.Emergency());
             WriteInfo("Done");
@@ -2986,6 +2998,17 @@ namespace ZenonCli
 
         static async Task ProcessAsync(Bridge.SetRedeemDelay options)
         {
+            var address = Znn.Instance.DefaultKeyPair.Address;
+
+            var info = await Znn.Instance.Embedded.Bridge
+                .GetBridgeInfo();
+
+            if (info.Administrator != address)
+            {
+                WriteError($"Permission denied!");
+                return;
+            }
+
             WriteInfo("Setting bridge redeem delay...");
             await Znn.Instance.Send(Znn.Instance.Embedded.Bridge.SetRedeemDelay(options.RedeemDelay!.Value));
             WriteInfo("Done");
@@ -3080,6 +3103,17 @@ namespace ZenonCli
 
         static async Task ProcessAsync(Bridge.Orchestrator.Set options)
         {
+            var address = Znn.Instance.DefaultKeyPair.Address;
+
+            var info = await Znn.Instance.Embedded.Bridge
+                .GetBridgeInfo();
+
+            if (info.Administrator != address)
+            {
+                WriteError($"Permission denied!");
+                return;
+            }
+
             WriteInfo("Setting orchestrator information...");
             await Znn.Instance.Send(Znn.Instance.Embedded.Bridge.SetOrchestratorInfo(options.WindowSize!.Value, 
                 options.KeyGenThreshold!.Value, 
@@ -3152,6 +3186,8 @@ namespace ZenonCli
 
         static async Task ProcessAsync(Bridge.Network.Set options)
         {
+            var address = Znn.Instance.DefaultKeyPair.Address;
+
             var networkClass = options.NetworkClass!.Value;
             var chainId = options.ChainId!.Value;
             var name = options.Name!;
@@ -3181,6 +3217,15 @@ namespace ZenonCli
                 return;
             }
 
+            var info = await Znn.Instance.Embedded.Bridge
+                .GetBridgeInfo();
+
+            if (info.Administrator != address)
+            {
+                WriteError($"Permission denied!");
+                return;
+            }
+
             WriteInfo("Setting bridge network...");
             await Znn.Instance.Send(Znn.Instance.Embedded.Bridge.SetNetwork(networkClass, chainId, name, contractAddress, options.Metadata));
             WriteInfo("Done");
@@ -3188,6 +3233,8 @@ namespace ZenonCli
 
         static async Task ProcessAsync(Bridge.Network.Remove options)
         {
+            var address = Znn.Instance.DefaultKeyPair.Address;
+
             var networkClass = options.NetworkClass!.Value;
             var chainId = options.ChainId!.Value;
 
@@ -3203,6 +3250,14 @@ namespace ZenonCli
                 return;
             }
 
+            var info = await Znn.Instance.Embedded.Bridge
+                .GetBridgeInfo();
+
+            if (info.Administrator != address)
+            {
+                WriteError($"Permission denied!");
+                return;
+            }
 
             WriteInfo("Removing bridge network...");
             await Znn.Instance.Send(Znn.Instance.Embedded.Bridge.RemoveNetwork(networkClass, chainId));
@@ -3211,6 +3266,8 @@ namespace ZenonCli
 
         static async Task ProcessAsync(Bridge.Network.SetMetadata options)
         {
+            var address = Znn.Instance.DefaultKeyPair.Address;
+
             var networkClass = options.NetworkClass!.Value;
             var chainId = options.ChainId!.Value;
 
@@ -3223,6 +3280,15 @@ namespace ZenonCli
             if (chainId == 0)
             {
                 WriteInfo($"The bridge network chain id cannot be zero");
+                return;
+            }
+
+            var info = await Znn.Instance.Embedded.Bridge
+                .GetBridgeInfo();
+
+            if (info.Administrator != address)
+            {
+                WriteError($"Permission denied!");
                 return;
             }
 
