@@ -117,6 +117,9 @@ namespace ZenonCli
                     case Sentinel.Collect sec:
                         await ProcessAsync(sec);
                         break;
+                    case Sentinel.DepositQsr sedq:
+                        await ProcessAsync(sedq);
+                        break;
                     case Sentinel.WithdrawQsr sewq:
                         await ProcessAsync(sewq);
                         break;
@@ -151,6 +154,9 @@ namespace ZenonCli
                         break;
                     case Pillar.Collect pc:
                         await ProcessAsync(pc);
+                        break;
+                    case Pillar.DepositQsr pd:
+                        await ProcessAsync(pd);
                         break;
                     case Pillar.WithdrawQsr pw:
                         await ProcessAsync(pw);
@@ -828,6 +834,44 @@ namespace ZenonCli
             WriteInfo($"Use receiveAll to collect your Sentinel reward(s) after 1 momentum");
         }
 
+        static async Task ProcessAsync(Sentinel.DepositQsr options)
+        {
+            var tokenStandard = TokenStandard.QsrZts;
+            var address = Znn.Instance.DefaultKeyPair.Address;
+
+            if (options.Amount <= 0)
+            {
+                WriteError($"The amount must be positive");
+                return;
+            }
+
+            var account = await Znn.Instance.Ledger
+                .GetAccountInfoByAddress(address);
+
+            var balance = account.BalanceInfoList
+                .FirstOrDefault(x => x.Token.TokenStandard == tokenStandard);
+
+            if (balance == null)
+            {
+                WriteError($"You only have {FormatAmount(0, 0)} {tokenStandard} tokens");
+                return;
+            }
+
+            var amount = options.Amount * balance.Token.DecimalsExponent;
+
+            if (balance.Balance < amount)
+            {
+                WriteError($"You only have {FormatAmount(balance.Balance.Value, balance.Token.Decimals)} {balance.Token.Symbol} tokens");
+                return;
+            }
+
+            WriteInfo($"Depositing {FormatAmount(amount, balance.Token.Decimals)} {balance.Token.Symbol} ...");
+
+            await Znn.Instance.Send(Znn.Instance.Embedded.Sentinel.DepositQsr(amount));
+
+            WriteInfo("Done");
+        }
+
         static async Task ProcessAsync(Sentinel.WithdrawQsr options)
         {
             var address = Znn.Instance.DefaultKeyPair.Address;
@@ -1110,6 +1154,44 @@ namespace ZenonCli
 
             WriteInfo("Done");
             WriteInfo($"Use receiveAll to collect your Pillar reward(s) after 1 momentum");
+        }
+
+        static async Task ProcessAsync(Pillar.DepositQsr options)
+        {
+            var tokenStandard = TokenStandard.QsrZts;
+            var address = Znn.Instance.DefaultKeyPair.Address;
+
+            if (options.Amount <= 0)
+            {
+                WriteError($"The amount must be positive");
+                return;
+            }
+
+            var account = await Znn.Instance.Ledger
+                .GetAccountInfoByAddress(address);
+
+            var balance = account.BalanceInfoList
+                .FirstOrDefault(x => x.Token.TokenStandard == tokenStandard);
+
+            if (balance == null)
+            {
+                WriteError($"You only have {FormatAmount(0, 0)} {tokenStandard} tokens");
+                return;
+            }
+
+            var amount  = options.Amount * balance.Token.DecimalsExponent;
+
+            if (balance.Balance < amount)
+            {
+                WriteError($"You only have {FormatAmount(balance.Balance.Value, balance.Token.Decimals)} {balance.Token.Symbol} tokens");
+                return;
+            }
+
+            WriteInfo($"Depositing {FormatAmount(amount, balance.Token.Decimals)} {balance.Token.Symbol} ...");
+
+            await Znn.Instance.Send(Znn.Instance.Embedded.Pillar.DepositQsr(amount));
+
+            WriteInfo("Done");
         }
 
         static async Task ProcessAsync(Pillar.WithdrawQsr options)

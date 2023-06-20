@@ -24,7 +24,14 @@ namespace ZenonCli.Options
         {
         }
 
-        [Verb("sentinel.withdrawQsr", HelpText = "")]
+        [Verb("sentinel.depositQsr", HelpText = "Deposit QSR to the sentinel contract")]
+        public class DepositQsr : KeyStoreAndConnectionOptions
+        {
+            [Value(0, Required = true, MetaName = "amount")]
+            public long Amount { get; set; }
+        }
+
+        [Verb("sentinel.withdrawQsr", HelpText = "Withdraw deposited QSR from the sentinel contract")]
         public class WithdrawQsr : KeyStoreAndConnectionOptions
         {
         }
