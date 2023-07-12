@@ -108,13 +108,23 @@ namespace ZenonCli.Commands
         protected async Task ConnectAsync(IConnectionOptions options)
         {
             if (options.Verbose)
-                ((Zenon.Client.WsClient)Znn.Instance.Client.Value).TraceSourceLevels = System.Diagnostics.SourceLevels.Verbose;
+                ((Zenon.Client.WsClient)Znn.Instance.Client.Value).TraceSourceLevels = 
+                    System.Diagnostics.SourceLevels.Verbose;
 
             await Znn.Instance.Client.Value.StartAsync(new Uri(options.Url!), false);
 
-            var momentum = await Znn.Instance.Ledger.GetFrontierMomentum();
-
-            Znn.Instance.ChainIdentifier = momentum.ChainIdentifier;
+            if (options.Chain != null)
+            {
+                if (!String.Equals(options.Chain, "auto", StringComparison.OrdinalIgnoreCase))
+                {
+                    Znn.Instance.ChainIdentifier = int.Parse(options.Chain);
+                }
+                else
+                {
+                    var momentum = await Znn.Instance.Ledger.GetFrontierMomentum();
+                    Znn.Instance.ChainIdentifier = momentum.ChainIdentifier;
+                }
+            }
         }
 
         protected async Task DisconnectAsync(IConnectionOptions options)
@@ -123,8 +133,6 @@ namespace ZenonCli.Commands
         }
 
         #endregion
-
-        
 
         public Address ParseAddress(string? address, string argumentName = "address")
         {

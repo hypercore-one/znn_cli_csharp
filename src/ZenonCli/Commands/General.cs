@@ -248,9 +248,12 @@ namespace ZenonCli.Commands
         [Verb("balance", HelpText = "List account balance.")]
         public class Balance : ConnectionCommand
         {
+            [Value(0, Required = true, MetaName = "address")]
+            public string? Address { get; set; }
+
             protected override async Task ProcessAsync()
             {
-                var address = Znn.Instance.DefaultKeyPair.Address;
+                var address = ParseAddress(Address);
 
                 var info = await Znn.Instance.Ledger
                     .GetAccountInfoByAddress(address);

@@ -6,5 +6,6 @@ namespace ZenonCli.Commands
     {
         public bool Verbose { get; set; }
         public string? Url { get; set; }
+        public string? Chain { get; set; }
     }
 }
