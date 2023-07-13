@@ -16,7 +16,7 @@ namespace ZenonCli.Commands
 
             protected override async Task ProcessAsync()
             {
-                var address = Znn.Instance.DefaultKeyPair.Address;
+                var address = ZnnClient.DefaultKeyPair.Address;
 
                 var tokenStandard = ParseTokenStandard(this.TokenStandard);
                 if (tokenStandard != Zenon.Model.Primitives.TokenStandard.ZnnZts ||
@@ -26,7 +26,7 @@ namespace ZenonCli.Commands
                     return;
                 }
 
-                var token = await Znn.Instance.Embedded.Token.GetByZts(tokenStandard);
+                var token = await ZnnClient.Embedded.Token.GetByZts(tokenStandard);
                 var amount = this.Amount * token.DecimalsExponent;
 
                 if (amount <= 0)
@@ -35,13 +35,13 @@ namespace ZenonCli.Commands
                     return;
                 }
 
-                if (!await AssertBalanceAsync(Znn.Instance, address, tokenStandard, amount))
+                if (!await AssertBalanceAsync(ZnnClient, address, tokenStandard, amount))
                 {
                     return;
                 }
 
                 WriteInfo($"Donating {FormatAmount(amount, token.Decimals)} ${token.Symbol} to Accelerator-Z ...");
-                await Znn.Instance.Send(Znn.Instance.Embedded.Accelerator.Donate(amount, tokenStandard));
+                await ZnnClient.Send(ZnnClient.Embedded.Accelerator.Donate(amount, tokenStandard));
                 WriteInfo("Done");
             }
         }

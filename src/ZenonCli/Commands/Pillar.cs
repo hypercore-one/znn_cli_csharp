@@ -10,7 +10,7 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                var pillarList = await Znn.Instance.Embedded.Pillar.GetAll();
+                var pillarList = await ZnnClient.Embedded.Pillar.GetAll();
 
                 foreach (var pillar in pillarList.List)
                 {
@@ -41,7 +41,7 @@ namespace ZenonCli.Commands
 
             protected override async Task ProcessAsync()
             {
-                var address = Znn.Instance.DefaultKeyPair.Address;
+                var address = ZnnClient.DefaultKeyPair.Address;
 
                 var producerAddress = ParseAddress(this.ProducerAddress, "producerAddress");
                 if (!await AssertUserAddressAsync(producerAddress, "producerAddress"))
@@ -52,11 +52,11 @@ namespace ZenonCli.Commands
                     return;
                 
                 var balance =
-                    await Znn.Instance.Ledger.GetAccountInfoByAddress(address);
+                    await ZnnClient.Ledger.GetAccountInfoByAddress(address);
                 var qsrAmount =
-                    (await Znn.Instance.Embedded.Pillar.GetQsrRegistrationCost());
+                    (await ZnnClient.Embedded.Pillar.GetQsrRegistrationCost());
                 var depositedQsr =
-                    await Znn.Instance.Embedded.Pillar.GetDepositedQsr(address);
+                    await ZnnClient.Embedded.Pillar.GetDepositedQsr(address);
 
                 if ((balance.Znn < Constants.PillarRegisterZnnAmount ||
                     balance.Qsr < qsrAmount) &&
@@ -75,23 +75,23 @@ namespace ZenonCli.Commands
 
                 var newName = this.Name;
                 var ok =
-                    await Znn.Instance.Embedded.Pillar.CheckNameAvailability(newName);
+                    await ZnnClient.Embedded.Pillar.CheckNameAvailability(newName);
 
                 while (!ok)
                 {
                     newName = Ask("This Pillar name is already reserved. Please choose another name for the Pillar");
-                    ok = await Znn.Instance.Embedded.Pillar.CheckNameAvailability(newName);
+                    ok = await ZnnClient.Embedded.Pillar.CheckNameAvailability(newName);
                 }
 
                 if (depositedQsr < qsrAmount)
                 {
                     WriteInfo($"Depositing {FormatAmount(qsrAmount - depositedQsr, Constants.CoinDecimals)} QSR for the Pillar registration");
-                    await Znn.Instance.Send(Znn.Instance.Embedded.Pillar.DepositQsr(qsrAmount - depositedQsr));
+                    await ZnnClient.Send(ZnnClient.Embedded.Pillar.DepositQsr(qsrAmount - depositedQsr));
                 }
 
                 WriteInfo("Registering Pillar ...");
 
-                await Znn.Instance.Send(Znn.Instance.Embedded.Pillar.Register(
+                await ZnnClient.Send(ZnnClient.Embedded.Pillar.Register(
                     newName,
                     producerAddress,
                     rewardAddress,
@@ -110,7 +110,7 @@ namespace ZenonCli.Commands
 
             protected override async Task ProcessAsync()
             {
-                var pillarList = await Znn.Instance.Embedded.Pillar.GetAll();
+                var pillarList = await ZnnClient.Embedded.Pillar.GetAll();
 
                 var ok = false;
 
@@ -124,7 +124,7 @@ namespace ZenonCli.Commands
                         {
                             WriteInfo($"Revoking Pillar {pillar.Name} ...");
 
-                            await Znn.Instance.Send(Znn.Instance.Embedded.Pillar.Revoke(this.Name));
+                            await ZnnClient.Send(ZnnClient.Embedded.Pillar.Revoke(this.Name));
 
                             WriteInfo($"Use receiveAll to collect back the locked amount of ZNN");
                         }
@@ -156,7 +156,7 @@ namespace ZenonCli.Commands
             {
                 WriteInfo($"Delegating to Pillar {this.Name} ...");
 
-                await Znn.Instance.Send(Znn.Instance.Embedded.Pillar.Delegate(this.Name));
+                await ZnnClient.Send(ZnnClient.Embedded.Pillar.Delegate(this.Name));
 
                 WriteInfo("Done");
             }
@@ -169,7 +169,7 @@ namespace ZenonCli.Commands
             {
                 WriteInfo($"Delegating ...");
 
-                await Znn.Instance.Send(Znn.Instance.Embedded.Pillar.Undelegate());
+                await ZnnClient.Send(ZnnClient.Embedded.Pillar.Undelegate());
 
                 WriteInfo("Done");
             }
@@ -180,7 +180,7 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                await Znn.Instance.Send(Znn.Instance.Embedded.Pillar.CollectReward());
+                await ZnnClient.Send(ZnnClient.Embedded.Pillar.CollectReward());
 
                 WriteInfo("Done");
                 WriteInfo($"Use receiveAll to collect your Pillar reward(s) after 1 momentum");
@@ -192,12 +192,12 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                var address = Znn.Instance.DefaultKeyPair.Address;
+                var address = ZnnClient.DefaultKeyPair.Address;
 
-                var balance = await Znn.Instance.Ledger.GetAccountInfoByAddress(address);
-                var qsrAmount = await Znn.Instance.Embedded.Pillar.GetQsrRegistrationCost();
+                var balance = await ZnnClient.Ledger.GetAccountInfoByAddress(address);
+                var qsrAmount = await ZnnClient.Embedded.Pillar.GetQsrRegistrationCost();
                 var depositedQsr =
-                    await Znn.Instance.Embedded.Pillar.GetDepositedQsr(address);
+                    await ZnnClient.Embedded.Pillar.GetDepositedQsr(address);
 
                 WriteInfo($"You have {depositedQsr} / {qsrAmount} QSR deposited for the Pillar registration");
 
@@ -211,7 +211,7 @@ namespace ZenonCli.Commands
                 if (depositedQsr < qsrAmount)
                 {
                     WriteInfo($"Depositing {FormatAmount(qsrAmount - depositedQsr, Constants.CoinDecimals)} QSR for the Pillar registration");
-                    await Znn.Instance.Send(Znn.Instance.Embedded.Pillar.DepositQsr(qsrAmount - depositedQsr));
+                    await ZnnClient.Send(ZnnClient.Embedded.Pillar.DepositQsr(qsrAmount - depositedQsr));
                 }
                 WriteInfo("Done");
             }
@@ -222,10 +222,10 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                var address = Znn.Instance.DefaultKeyPair.Address;
+                var address = ZnnClient.DefaultKeyPair.Address;
 
                 var depositedQsr =
-                    await Znn.Instance.Embedded.Pillar.GetDepositedQsr(address);
+                    await ZnnClient.Embedded.Pillar.GetDepositedQsr(address);
 
                 if (depositedQsr == 0)
                 {
@@ -235,7 +235,7 @@ namespace ZenonCli.Commands
 
                 WriteInfo($"Withdrawing {FormatAmount(depositedQsr, Constants.CoinDecimals)} QSR ...");
 
-                await Znn.Instance.Send(Znn.Instance.Embedded.Pillar.WithdrawQsr());
+                await ZnnClient.Send(ZnnClient.Embedded.Pillar.WithdrawQsr());
 
                 WriteInfo("Done");
             }

@@ -19,7 +19,7 @@ namespace ZenonCli.Commands
                 if (!await AssertBridgeAdminAsync())
                     return;
 
-                var tcList = await Znn.Instance.Embedded.Bridge
+                var tcList = await ZnnClient.Embedded.Bridge
                     .GetTimeChallengesInfo();
 
                 var tc = tcList.List
@@ -28,8 +28,8 @@ namespace ZenonCli.Commands
 
                 if (tc != null && tc.ParamsHash != Hash.Empty)
                 {
-                    var frontierMomentum = await Znn.Instance.Ledger.GetFrontierMomentum();
-                    var secInfo = await Znn.Instance.Embedded.Bridge.GetSecurityInfo();
+                    var frontierMomentum = await ZnnClient.Ledger.GetFrontierMomentum();
+                    var secInfo = await ZnnClient.Embedded.Bridge.GetSecurityInfo();
 
                     if (tc.ChallengeStartHeight + secInfo.AdministratorDelay > frontierMomentum.Height)
                     {
@@ -62,7 +62,7 @@ namespace ZenonCli.Commands
                 }
 
                 // Use signature value '1' to circumvent the empty string unpack issue.
-                await Znn.Instance.Send(Znn.Instance.Embedded.Bridge.ChangeTssECDSAPubKey(this.PubKey, "1", "1"));
+                await ZnnClient.Send(ZnnClient.Embedded.Bridge.ChangeTssECDSAPubKey(this.PubKey, "1", "1"));
                 WriteInfo("Done");
             }
         }
@@ -75,9 +75,9 @@ namespace ZenonCli.Commands
 
             protected override async Task ProcessAsync()
             {
-                var address = Znn.Instance.DefaultKeyPair.Address;
+                var address = ZnnClient.DefaultKeyPair.Address;
 
-                var info = await Znn.Instance.Embedded.Bridge
+                var info = await ZnnClient.Embedded.Bridge
                     .GetBridgeInfo();
 
                 if (info.Administrator != address && this.Signature == null)
@@ -90,7 +90,7 @@ namespace ZenonCli.Commands
                 var signature = this.Signature ?? "1";
 
                 WriteInfo("Halting bridge operations ...");
-                await Znn.Instance.Send(Znn.Instance.Embedded.Bridge.Halt(signature));
+                await ZnnClient.Send(ZnnClient.Embedded.Bridge.Halt(signature));
                 WriteInfo("Done");
             }
         }

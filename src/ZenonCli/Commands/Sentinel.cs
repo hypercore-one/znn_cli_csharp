@@ -10,8 +10,8 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                var address = Znn.Instance.DefaultKeyPair.Address;
-                var sentinels = await Znn.Instance.Embedded.Sentinel.GetAllActive();
+                var address = ZnnClient.DefaultKeyPair.Address;
+                var sentinels = await ZnnClient.Embedded.Sentinel.GetAllActive();
 
                 bool one = false;
 
@@ -43,12 +43,12 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                var address = Znn.Instance.DefaultKeyPair.Address;
+                var address = ZnnClient.DefaultKeyPair.Address;
 
                 var accountInfo =
-                    await Znn.Instance.Ledger.GetAccountInfoByAddress(address);
+                    await ZnnClient.Ledger.GetAccountInfoByAddress(address);
                 var depositedQsr =
-                    await Znn.Instance.Embedded.Sentinel.GetDepositedQsr(address);
+                    await ZnnClient.Embedded.Sentinel.GetDepositedQsr(address);
 
                 WriteInfo($"You have {depositedQsr} QSR deposited for the Sentinel");
 
@@ -63,10 +63,10 @@ namespace ZenonCli.Commands
 
                 if (depositedQsr < Constants.SentinelRegisterQsrAmount)
                 {
-                    await Znn.Instance.Send(Znn.Instance.Embedded.Sentinel
+                    await ZnnClient.Send(ZnnClient.Embedded.Sentinel
                         .DepositQsr(Constants.SentinelRegisterQsrAmount - depositedQsr));
                 }
-                await Znn.Instance.Send(Znn.Instance.Embedded.Sentinel.Register());
+                await ZnnClient.Send(ZnnClient.Embedded.Sentinel.Register());
                 WriteInfo("Done");
                 WriteInfo($"Check after 2 momentums if the Sentinel was successfully registered using sentinel.list command");
             }
@@ -77,10 +77,10 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                var address = Znn.Instance.DefaultKeyPair.Address;
+                var address = ZnnClient.DefaultKeyPair.Address;
 
                 var entry =
-                    await Znn.Instance.Embedded.Sentinel.GetByOwner(address);
+                    await ZnnClient.Embedded.Sentinel.GetByOwner(address);
 
                 if (entry == null)
                 {
@@ -94,7 +94,7 @@ namespace ZenonCli.Commands
                     return;
                 }
 
-                await Znn.Instance.Send(Znn.Instance.Embedded.Sentinel.Revoke());
+                await ZnnClient.Send(ZnnClient.Embedded.Sentinel.Revoke());
 
                 WriteInfo("Done");
                 WriteInfo($"Use receiveAll to collect back the locked amount of ZNN and QSR");
@@ -106,7 +106,7 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                await Znn.Instance.Send(Znn.Instance.Embedded.Sentinel.CollectReward());
+                await ZnnClient.Send(ZnnClient.Embedded.Sentinel.CollectReward());
 
                 WriteInfo("Done");
                 WriteInfo($"Use receiveAll to collect your Sentinel reward(s) after 1 momentum");
@@ -118,10 +118,10 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                var address = Znn.Instance.DefaultKeyPair.Address;
-                var balance = await Znn.Instance.Ledger.GetAccountInfoByAddress(address);
+                var address = ZnnClient.DefaultKeyPair.Address;
+                var balance = await ZnnClient.Ledger.GetAccountInfoByAddress(address);
                 var depositedQsr =
-                    await Znn.Instance.Embedded.Sentinel.GetDepositedQsr(address);
+                    await ZnnClient.Embedded.Sentinel.GetDepositedQsr(address);
                 WriteInfo("You have {depositedQsr} / {sentinelRegisterQsrAmount} QSR deposited for the Sentinel");
 
                 if (balance.Qsr!.Value < Constants.SentinelRegisterQsrAmount)
@@ -134,7 +134,7 @@ namespace ZenonCli.Commands
                 if (depositedQsr < Constants.SentinelRegisterQsrAmount)
                 {
                     WriteInfo($"Depositing {Constants.SentinelRegisterQsrAmount - depositedQsr} QSR for the Sentinel");
-                    await Znn.Instance.Send(Znn.Instance.Embedded.Sentinel
+                    await ZnnClient.Send(ZnnClient.Embedded.Sentinel
                         .DepositQsr(Constants.SentinelRegisterQsrAmount - depositedQsr));
                 }
                 WriteInfo("Done");
@@ -146,10 +146,10 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                var address = Znn.Instance.DefaultKeyPair.Address;
+                var address = ZnnClient.DefaultKeyPair.Address;
 
                 var depositedQsr =
-                    await Znn.Instance.Embedded.Sentinel.GetDepositedQsr(address);
+                    await ZnnClient.Embedded.Sentinel.GetDepositedQsr(address);
 
                 if (depositedQsr == 0)
                 {
@@ -159,7 +159,7 @@ namespace ZenonCli.Commands
 
                 WriteInfo($"Withdrawing {FormatAmount(depositedQsr, Constants.CoinDecimals)} QSR ...");
 
-                await Znn.Instance.Send(Znn.Instance.Embedded.Sentinel.WithdrawQsr());
+                await ZnnClient.Send(ZnnClient.Embedded.Sentinel.WithdrawQsr());
 
                 WriteInfo("Done");
             }

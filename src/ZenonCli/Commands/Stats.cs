@@ -10,7 +10,7 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                var osInfo = await Znn.Instance.Stats.OsInfo();
+                var osInfo = await ZnnClient.Stats.OsInfo();
 
                 WriteInfo($"os: {osInfo.os}");
                 WriteInfo($"platform: {osInfo.platform}");
@@ -37,7 +37,7 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                var processInfo = await Znn.Instance.Stats.ProcessInfo();
+                var processInfo = await ZnnClient.Stats.ProcessInfo();
 
                 WriteInfo($"version: {processInfo.version}");
                 WriteInfo($"commit: {processInfo.commit}");
@@ -49,7 +49,7 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                var networkInfo = await Znn.Instance.Stats.NetworkInfo();
+                var networkInfo = await ZnnClient.Stats.NetworkInfo();
 
                 WriteInfo($"numPeers: {networkInfo.numPeers}");
                 foreach (var peer in networkInfo.peers)
@@ -66,7 +66,7 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                var syncInfo = await Znn.Instance.Stats.SyncInfo();
+                var syncInfo = await ZnnClient.Stats.SyncInfo();
 
                 WriteInfo($"state: {syncInfo.state}");
                 WriteInfo($"currentHeight: {syncInfo.currentHeight}");

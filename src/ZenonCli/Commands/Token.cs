@@ -36,7 +36,7 @@ namespace ZenonCli.Commands
                     return;
                 }
 
-                var tokenList = await Znn.Instance.Embedded.Token.GetAll(this.PageIndex.Value, this.PageSize.Value);
+                var tokenList = await ZnnClient.Embedded.Token.GetAll(this.PageIndex.Value, this.PageSize.Value);
 
                 foreach (var token in tokenList.List)
                 {
@@ -81,7 +81,7 @@ namespace ZenonCli.Commands
             protected override async Task ProcessAsync()
             {
                 var tokenStandard = ParseTokenStandard(this.TokenStandard);
-                var token = await Znn.Instance.Embedded.Token.GetByZts(tokenStandard);
+                var token = await ZnnClient.Embedded.Token.GetByZts(tokenStandard);
 
                 if (token == null)
                 {
@@ -112,7 +112,7 @@ namespace ZenonCli.Commands
             {
                 var ownerAddress = ParseAddress(this.OwnerAddress, "ownerAddress");
 
-                var tokens = await Znn.Instance.Embedded.Token.GetByOwner(ownerAddress);
+                var tokens = await ZnnClient.Embedded.Token.GetByOwner(ownerAddress);
 
                 foreach (var token in tokens.List)
                 {
@@ -278,8 +278,8 @@ namespace ZenonCli.Commands
 
                 WriteInfo($"Issuing {this.Name} ZTS token ...");
 
-                await Znn.Instance.Send(
-                    Znn.Instance.Embedded.Token.IssueToken(
+                await ZnnClient.Send(
+                    ZnnClient.Embedded.Token.IssueToken(
                         this.Name,
                         this.Symbol,
                         this.Domain,
@@ -311,7 +311,7 @@ namespace ZenonCli.Commands
                 var tokenStandard = ParseTokenStandard(this.TokenStandard);
                 var amount = this.Amount;
                 var mintAddress = ParseAddress(this.ReceiveAddress);
-                var token = await Znn.Instance.Embedded.Token.GetByZts(tokenStandard);
+                var token = await ZnnClient.Embedded.Token.GetByZts(tokenStandard);
 
                 if (token == null)
                 {
@@ -326,8 +326,8 @@ namespace ZenonCli.Commands
 
                 WriteInfo("Minting ZTS token ...");
 
-                await Znn.Instance.Send(
-                    Znn.Instance.Embedded.Token.MintToken(tokenStandard, amount, mintAddress));
+                await ZnnClient.Send(
+                    ZnnClient.Embedded.Token.MintToken(tokenStandard, amount, mintAddress));
 
                 WriteInfo("Done");
             }
@@ -344,12 +344,12 @@ namespace ZenonCli.Commands
 
             protected override async Task ProcessAsync()
             {
-                var address = Znn.Instance.DefaultKeyPair.Address;
+                var address = ZnnClient.DefaultKeyPair.Address;
                 var tokenStandard = ParseTokenStandard(this.TokenStandard);
                 var amount = this.Amount;
 
                 var info =
-                    await Znn.Instance.Ledger.GetAccountInfoByAddress(address);
+                    await ZnnClient.Ledger.GetAccountInfoByAddress(address);
                 var ok = true;
 
                 foreach (var entry in info.BalanceInfoList)
@@ -368,8 +368,8 @@ namespace ZenonCli.Commands
 
                 WriteInfo($"Burning {this.TokenStandard} ZTS token ...");
 
-                await Znn.Instance.Send(
-                    Znn.Instance.Embedded.Token.BurnToken(tokenStandard, amount));
+                await ZnnClient.Send(
+                    ZnnClient.Embedded.Token.BurnToken(tokenStandard, amount));
 
                 WriteInfo("Done");
             }
@@ -388,10 +388,10 @@ namespace ZenonCli.Commands
             {
                 WriteInfo("Transferring ZTS token ownership ...");
 
-                var address = Znn.Instance.DefaultKeyPair.Address;
+                var address = ZnnClient.DefaultKeyPair.Address;
                 var tokenStandard = ParseTokenStandard(this.TokenStandard);
                 var newOwnerAddress = ParseAddress(this.NewOwnerAddress, "newOwnerAddress");
-                var token = await Znn.Instance.Embedded.Token.GetByZts(tokenStandard);
+                var token = await ZnnClient.Embedded.Token.GetByZts(tokenStandard);
 
                 if (token == null)
                 {
@@ -405,7 +405,7 @@ namespace ZenonCli.Commands
                     return;
                 }
 
-                await Znn.Instance.Send(Znn.Instance.Embedded.Token.UpdateToken(
+                await ZnnClient.Send(ZnnClient.Embedded.Token.UpdateToken(
                     tokenStandard, newOwnerAddress, token.IsMintable, token.IsBurnable));
 
                 WriteInfo("Done");
@@ -422,9 +422,9 @@ namespace ZenonCli.Commands
             {
                 WriteInfo("Disabling ZTS token mintable flag ...");
 
-                var address = Znn.Instance.DefaultKeyPair.Address;
+                var address = ZnnClient.DefaultKeyPair.Address;
                 var tokenStandard = ParseTokenStandard(this.TokenStandard);
-                var token = await Znn.Instance.Embedded.Token.GetByZts(tokenStandard);
+                var token = await ZnnClient.Embedded.Token.GetByZts(tokenStandard);
 
                 if (token == null)
                 {
@@ -438,7 +438,7 @@ namespace ZenonCli.Commands
                     return;
                 }
 
-                await Znn.Instance.Send(Znn.Instance.Embedded.Token.UpdateToken(
+                await ZnnClient.Send(ZnnClient.Embedded.Token.UpdateToken(
                     tokenStandard, token.Owner, false, token.IsBurnable));
 
                 WriteInfo("Done");

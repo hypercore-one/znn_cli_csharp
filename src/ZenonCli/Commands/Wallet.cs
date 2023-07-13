@@ -12,7 +12,7 @@ namespace ZenonCli.Commands
             {
                 await Task.Run(() =>
                 {
-                    var stores = Znn.Instance.KeyStoreManager.ListAllKeyStores();
+                    var stores = ZnnClient.KeyStoreManager.ListAllKeyStores();
 
                     if (stores.Length != 0)
                     {
@@ -44,7 +44,7 @@ namespace ZenonCli.Commands
             {
                 await Task.Run(() =>
                 {
-                    var keyStore = Znn.Instance.KeyStoreManager.CreateNew(this.Passphrase, this.KeyStoreName);
+                    var keyStore = ZnnClient.KeyStoreManager.CreateNew(this.Passphrase, this.KeyStoreName);
 
                     WriteInfo($"keyStore successfully created: {Path.GetFileName(keyStore)}");
                 });
@@ -67,7 +67,7 @@ namespace ZenonCli.Commands
             {
                 await Task.Run(() =>
                 {
-                    var keyStore = Znn.Instance.KeyStoreManager
+                    var keyStore = ZnnClient.KeyStoreManager
                         .CreateFromMnemonic(this.Mnemonic, this.Passphrase, this.KeyStoreName);
 
                     WriteInfo($"keyStore successfully from mnemonic: {Path.GetFileName(keyStore)}");
@@ -82,9 +82,9 @@ namespace ZenonCli.Commands
             {
                 await Task.Run(() =>
                 {
-                    WriteInfo($"Mnemonic for keyStore File: {Znn.Instance.DefaultKeyStorePath}");
+                    WriteInfo($"Mnemonic for keyStore File: {ZnnClient.DefaultKeyStorePath}");
 
-                    WriteInfo(Znn.Instance.DefaultKeyStore.Mnemonic);
+                    WriteInfo(ZnnClient.DefaultKeyStore.Mnemonic);
                 });
             }
         }
@@ -102,9 +102,9 @@ namespace ZenonCli.Commands
             {
                 await Task.Run(() =>
                 {
-                    WriteInfo($"Addresses for keyStore File: {Znn.Instance.DefaultKeyStorePath}");
+                    WriteInfo($"Addresses for keyStore File: {ZnnClient.DefaultKeyStorePath}");
 
-                    var addresses = Znn.Instance.DefaultKeyStore.DeriveAddressesByRange(this.Start, this.End);
+                    var addresses = ZnnClient.DefaultKeyStore.DeriveAddressesByRange(this.Start, this.End);
 
                     for (int i = 0; i < this.End - this.Start; i += 1)
                     {
@@ -124,7 +124,7 @@ namespace ZenonCli.Commands
             {
                 await Task.Run(() =>
                 {
-                    File.Copy(Znn.Instance.DefaultKeyStorePath, this.FilePath!);
+                    File.Copy(ZnnClient.DefaultKeyStorePath, this.FilePath!);
 
                     WriteInfo("Done! Check the current directory");
                 });

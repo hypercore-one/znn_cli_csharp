@@ -9,6 +9,13 @@ namespace ZenonCli.Commands
 {
     public abstract class CommandBase : ICommand
     {
+        public CommandBase()
+        {
+            ZnnClient = Znn.Instance;
+        }
+
+        protected Znn ZnnClient { get; }
+
         public async Task ExecuteAsync()
         {
             try
@@ -45,7 +52,7 @@ namespace ZenonCli.Commands
             await Task.Run(() =>
             {
                 var allKeyStores =
-                    Znn.Instance.KeyStoreManager.ListAllKeyStores();
+                    ZnnClient.KeyStoreManager.ListAllKeyStores();
 
                 string? keyStorePath = null;
                 if (allKeyStores == null || allKeyStores.Length == 0)
@@ -89,15 +96,15 @@ namespace ZenonCli.Commands
 
                 try
                 {
-                    Znn.Instance.DefaultKeyStore = Znn.Instance.KeyStoreManager.ReadKeyStore(passphrase, keyStorePath);
-                    Znn.Instance.DefaultKeyStorePath = keyStorePath;
+                    ZnnClient.DefaultKeyStore = ZnnClient.KeyStoreManager.ReadKeyStore(passphrase, keyStorePath);
+                    ZnnClient.DefaultKeyStorePath = keyStorePath;
                 }
                 catch (IncorrectPasswordException)
                 {
                     ThrowError($"Invalid passphrase for keyStore {keyStorePath}");
                 }
 
-                Znn.Instance.DefaultKeyPair = Znn.Instance.DefaultKeyStore.GetKeyPair(index);
+                ZnnClient.DefaultKeyPair = ZnnClient.DefaultKeyStore.GetKeyPair(index);
             });
         }
 
@@ -108,28 +115,28 @@ namespace ZenonCli.Commands
         protected async Task ConnectAsync(IConnectionOptions options)
         {
             if (options.Verbose)
-                ((Zenon.Client.WsClient)Znn.Instance.Client.Value).TraceSourceLevels = 
+                ((Zenon.Client.WsClient)ZnnClient.Client.Value).TraceSourceLevels = 
                     System.Diagnostics.SourceLevels.Verbose;
 
-            await Znn.Instance.Client.Value.StartAsync(new Uri(options.Url!), false);
+            await ZnnClient.Client.Value.StartAsync(new Uri(options.Url!), false);
 
             if (options.Chain != null)
             {
                 if (!String.Equals(options.Chain, "auto", StringComparison.OrdinalIgnoreCase))
                 {
-                    Znn.Instance.ChainIdentifier = int.Parse(options.Chain);
+                    ZnnClient.ChainIdentifier = int.Parse(options.Chain);
                 }
                 else
                 {
-                    var momentum = await Znn.Instance.Ledger.GetFrontierMomentum();
-                    Znn.Instance.ChainIdentifier = momentum.ChainIdentifier;
+                    var momentum = await ZnnClient.Ledger.GetFrontierMomentum();
+                    ZnnClient.ChainIdentifier = momentum.ChainIdentifier;
                 }
             }
         }
 
         protected async Task DisconnectAsync(IConnectionOptions options)
         {
-            await Znn.Instance.Client.Value.StopAsync();
+            await ZnnClient.Client.Value.StopAsync();
         }
 
         #endregion
@@ -235,9 +242,9 @@ namespace ZenonCli.Commands
 
         public async Task<bool> AssertLiquidityGuardianAsync()
         {
-            var address = Znn.Instance.DefaultKeyPair.Address;
+            var address = ZnnClient.DefaultKeyPair.Address;
 
-            var info = await Znn.Instance.Embedded.Liquidity
+            var info = await ZnnClient.Embedded.Liquidity
                 .GetSecurityInfo();
 
             if (!info.Guardians.Any(x => x == address))
@@ -250,9 +257,9 @@ namespace ZenonCli.Commands
 
         public async Task<bool> AssertLiquidityAdminAsync()
         {
-            var address = Znn.Instance.DefaultKeyPair.Address;
+            var address = ZnnClient.DefaultKeyPair.Address;
 
-            var info = await Znn.Instance.Embedded.Liquidity
+            var info = await ZnnClient.Embedded.Liquidity
                 .GetLiquidityInfo();
 
             if (info.Administrator != address)
@@ -265,9 +272,9 @@ namespace ZenonCli.Commands
 
         public async Task<bool> AssertBridgeGuardianAsync()
         {
-            var address = Znn.Instance.DefaultKeyPair.Address;
+            var address = ZnnClient.DefaultKeyPair.Address;
 
-            var info = await Znn.Instance.Embedded.Bridge
+            var info = await ZnnClient.Embedded.Bridge
                 .GetSecurityInfo();
 
             if (!info.Guardians.Any(x => x == address))
@@ -280,9 +287,9 @@ namespace ZenonCli.Commands
 
         public async Task<bool> AssertBridgeAdminAsync()
         {
-            var address = Znn.Instance.DefaultKeyPair.Address;
+            var address = ZnnClient.DefaultKeyPair.Address;
 
-            var info = await Znn.Instance.Embedded.Bridge
+            var info = await ZnnClient.Embedded.Bridge
                 .GetBridgeInfo();
 
             if (info.Administrator != address)
@@ -349,7 +356,7 @@ namespace ZenonCli.Commands
             }
             else
             {
-                var token = await Znn.Instance.Embedded.Token.GetByZts(request.TokenStandard)!;
+                var token = await ZnnClient.Embedded.Token.GetByZts(request.TokenStandard)!;
                 symbol = token.Symbol;
                 decimals = token.Decimals;
             }
@@ -358,7 +365,7 @@ namespace ZenonCli.Commands
             WriteInfo($"   Network class: {request.NetworkClass}");
             WriteInfo($"   Chain id: {request.ChainId}");
             WriteInfo($"   To: {request.ToAddress}");
-            WriteInfo($"   From: {(await Znn.Instance.Ledger.GetAccountBlockByHash(request.Id))?.Address}");
+            WriteInfo($"   From: {(await ZnnClient.Ledger.GetAccountBlockByHash(request.Id))?.Address}");
             WriteInfo($"   Token standard: {request.TokenStandard}");
             WriteInfo($"   Amount: {FormatAmount(request.Amount, decimals)} {symbol}");
             WriteInfo($"   Fee: {FormatAmount(request.Fee, decimals)} {symbol}");
@@ -383,7 +390,7 @@ namespace ZenonCli.Commands
             }
             else
             {
-                var token = await Znn.Instance.Embedded.Token.GetByZts(request.TokenStandard)!;
+                var token = await ZnnClient.Embedded.Token.GetByZts(request.TokenStandard)!;
                 symbol = token.Symbol;
                 decimals = token.Decimals;
             }
@@ -404,7 +411,7 @@ namespace ZenonCli.Commands
 
         protected async Task WriteRedeemAsync(UnwrapTokenRequest request)
         {
-            var token = await Znn.Instance.Embedded.Token.GetByZts(request.TokenStandard)!;
+            var token = await ZnnClient.Embedded.Token.GetByZts(request.TokenStandard)!;
             var decimals = token.Decimals;
 
             WriteInfo($"Redeeming id: {request.TransactionHash}");
