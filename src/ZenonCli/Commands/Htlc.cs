@@ -35,7 +35,7 @@ namespace ZenonCli.Commands
                     return;
                 }
 
-                var token = await ZnnClient.Embedded.Token.GetByZts(htlc.TokenStandard);
+                var token = await GetTokenAsync(htlc.TokenStandard);
 
                 WriteInfo($"Htlc id {htlc.Id} with amount {FormatAmount(htlc.Amount, token.Decimals)} {token.Symbol}");
                 if (htlc.ExpirationTime > currentTime)
@@ -62,7 +62,7 @@ namespace ZenonCli.Commands
             public string? TokenStandard { get; set; }
 
             [Value(2, Required = true, MetaName = "amount")]
-            public long Amount { get; set; }
+            public string? Amount { get; set; }
 
             [Value(3, Required = true, MetaName = "expirationTime", HelpText = "Total hours from now.")]
             public long ExpirationTime { get; set; }
@@ -78,7 +78,6 @@ namespace ZenonCli.Commands
                 var address = ZnnClient.DefaultKeyPair.Address;
                 var hashLocked = ParseAddress(this.HashLockedAddress, "hashLockedAddress");
                 var tokenStandard = ParseTokenStandard(this.TokenStandard);
-                BigInteger amount;
                 var keyMaxSize = Constants.HtlcPreimageMaxLength;
                 Hash hashLock;
                 byte[] preimage = Helper.GeneratePreimage();
@@ -86,15 +85,10 @@ namespace ZenonCli.Commands
                 var htlcTimelockMinHours = 1;
                 var htlcTimelockMaxHours = htlcTimelockMinHours * 24;
 
-                if (hashLocked == Address.EmptyAddress ||
-                    hashLocked.IsEmbedded)
-                {
-                    WriteError("hashLockedAddress must be an user address");
-                    return;
-                }
+                await AssertUserAddressAsync(address, "hashLockedAddress");
 
-                var token = await ZnnClient.Embedded.Token.GetByZts(tokenStandard);
-                amount = this.Amount * token.DecimalsExponent;
+                var token = await GetTokenAsync(tokenStandard);
+                var amount = ParseAmount(Amount, token.Decimals);
 
                 if (amount <= 0)
                 {
@@ -102,17 +96,15 @@ namespace ZenonCli.Commands
                     return;
                 }
 
-                if (!await AssertBalanceAsync(ZnnClient, address, tokenStandard, amount))
-                {
-                    return;
-                }
+                await AssertBalanceAsync(address, tokenStandard, amount);
 
                 if (!this.HashType.HasValue)
                 {
                     this.HashType = Constants.HtlcHashTypeSha3;
                 }
 
-                if (this.HashType != Constants.HtlcHashTypeSha3 && this.HashType != Constants.HtlcHashTypeSha256)
+                if (this.HashType != Constants.HtlcHashTypeSha3 &&
+                    this.HashType != Constants.HtlcHashTypeSha256)
                 {
                     WriteError($"Invalid hash type. Hash type {this.HashType} is not supported.");
                     return;
@@ -120,15 +112,7 @@ namespace ZenonCli.Commands
 
                 if (this.HashLock != null)
                 {
-                    try
-                    {
-                        hashLock = Hash.Parse(this.HashLock);
-                    }
-                    catch
-                    {
-                        WriteError($"hashLock is not a valid hash.");
-                        return;
-                    }
+                    hashLock = ParseHash(this.HashLock);
                 }
                 else
                 {
@@ -190,7 +174,7 @@ namespace ZenonCli.Commands
                 var currentTime = DateTimeOffset.Now.ToUnixTimeSeconds();
 
                 var id = ParseHash(this.Id, "id");
-                
+
                 HtlcInfo htlc;
                 try
                 {
@@ -214,7 +198,7 @@ namespace ZenonCli.Commands
                     return;
                 }
 
-                var token = await ZnnClient.Embedded.Token.GetByZts(htlc.TokenStandard);
+                var token = await GetTokenAsync(htlc.TokenStandard);
 
                 WriteInfo($"Reclaiming htlc id {htlc.Id} with amount {FormatAmount(htlc.Amount, token.Decimals)} {token.Symbol}");
 
@@ -294,7 +278,7 @@ namespace ZenonCli.Commands
                     return;
                 }
 
-                var token = await ZnnClient.Embedded.Token.GetByZts(htlc.TokenStandard);
+                var token = await GetTokenAsync(htlc.TokenStandard);
 
                 WriteInfo($"Unlocking htlc id {htlc.Id} with amount {FormatAmount(htlc.Amount, token.Decimals)} {token.Symbol}");
 

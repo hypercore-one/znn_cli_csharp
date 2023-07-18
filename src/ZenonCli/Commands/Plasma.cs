@@ -23,17 +23,7 @@ namespace ZenonCli.Commands
                 if (!this.PageSize.HasValue)
                     this.PageSize = 25;
 
-                if (this.PageIndex < 0)
-                {
-                    WriteError($"pageIndex must be at least 0");
-                    return;
-                }
-
-                if (this.PageSize < 1 || this.PageSize > Constants.RpcMaxPageSize)
-                {
-                    WriteError($"pageSize must be at least 1 and at most {Constants.RpcMaxPageSize}");
-                    return;
-                }
+                AssertPageRange(PageIndex.Value, PageSize.Value);
 
                 var address = ZnnClient.DefaultKeyPair.Address;
                 var fusionEntryList = await ZnnClient.Embedded.Plasma.GetEntriesByAddress(address,
@@ -78,11 +68,11 @@ namespace ZenonCli.Commands
             public string? ToAddress { get; set; }
 
             [Value(1, Required = true, MetaName = "amount")]
-            public long Amount { get; set; }
+            public string? Amount { get; set; }
 
             protected override async Task ProcessAsync()
             {
-                var beneficiary = ParseAddress(this.ToAddress, "toAddress");
+                var beneficiary = ParseAddress(ToAddress, "toAddress");
 
                 if (beneficiary == Address.EmptyAddress ||
                     beneficiary.IsEmbedded)
@@ -91,11 +81,11 @@ namespace ZenonCli.Commands
                     return;
                 }
 
-                var amount = this.Amount * Constants.OneQsr;
+                var amount = ParseAmount(Amount!, Constants.CoinDecimals);
 
                 if (amount < Constants.FuseMinQsrAmount)
                 {
-                    WriteInfo($"Invalid amount: {FormatAmount(amount, Constants.CoinDecimals)} QSR. Minimum staking amount is {FormatAmount(Constants.FuseMinQsrAmount, Constants.CoinDecimals)}");
+                    WriteError($"Invalid amount {FormatAmount(amount, Constants.CoinDecimals)} QSR. Minimum staking amount is {FormatAmount(Constants.FuseMinQsrAmount, Constants.CoinDecimals)}");
                     return;
                 }
 
@@ -116,7 +106,7 @@ namespace ZenonCli.Commands
             protected override async Task ProcessAsync()
             {
                 var address = ZnnClient.DefaultKeyPair.Address;
-                var id = ParseHash(this.Id, "id");
+                var id = ParseHash(Id, "id");
 
                 int pageIndex = 0;
                 bool found = false;

@@ -44,13 +44,11 @@ namespace ZenonCli.Commands
                 var address = ZnnClient.DefaultKeyPair.Address;
 
                 var producerAddress = ParseAddress(this.ProducerAddress, "producerAddress");
-                if (!await AssertUserAddressAsync(producerAddress, "producerAddress"))
-                    return;
-
                 var rewardAddress = ParseAddress(this.RewardAddress, "rewardAddress");
-                if (!await AssertUserAddressAsync(rewardAddress, "rewardAddress"))
-                    return;
-                
+
+                await AssertUserAddressAsync(producerAddress, "producerAddress");
+                await AssertUserAddressAsync(rewardAddress, "rewardAddress");
+
                 var balance =
                     await ZnnClient.Ledger.GetAccountInfoByAddress(address);
                 var qsrAmount =
@@ -167,7 +165,7 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                WriteInfo($"Delegating ...");
+                WriteInfo($"Undelegating ...");
 
                 await ZnnClient.Send(ZnnClient.Embedded.Pillar.Undelegate());
 

@@ -39,7 +39,7 @@ namespace ZenonCli
                 h.AdditionalNewLineAfterOption = false;
                 h.Heading = $"{ThisAssembly.AssemblyName} v{ThisAssembly.AssemblyVersion}";
                 h.Copyright = "Copyright (c) 2023 Zenon Community";
-                
+
                 return HelpText.DefaultParsingErrorsHandler(result, h);
             }, e => e, verbsIndex: false, maxDisplayWidth: 255);
             Console.WriteLine(helpText);

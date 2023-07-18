@@ -1,7 +1,9 @@
-﻿using System.Numerics;
+﻿using System.Globalization;
+using System.Numerics;
 using Zenon;
 using Zenon.Model.Embedded;
 using Zenon.Model.Primitives;
+using Zenon.Utils;
 using Zenon.Wallet;
 using ZenonCli.Options;
 
@@ -115,7 +117,7 @@ namespace ZenonCli.Commands
         protected async Task ConnectAsync(IConnectionOptions options)
         {
             if (options.Verbose)
-                ((Zenon.Client.WsClient)ZnnClient.Client.Value).TraceSourceLevels = 
+                ((Zenon.Client.WsClient)ZnnClient.Client.Value).TraceSourceLevels =
                     System.Diagnostics.SourceLevels.Verbose;
 
             await ZnnClient.Client.Value.StartAsync(new Uri(options.Url!), false);
@@ -147,11 +149,9 @@ namespace ZenonCli.Commands
             {
                 return Address.Parse(address);
             }
-            catch
+            catch (Exception e)
             {
-                WriteError($"{argumentName} must be a valid address");
-
-                throw;
+                throw new Exception($"{argumentName} must be a valid address", e);
             }
         }
 
@@ -161,11 +161,21 @@ namespace ZenonCli.Commands
             {
                 return Hash.Parse(hash);
             }
-            catch
+            catch (Exception e)
             {
-                WriteError($"{argumentName} is not a valid hash");
+                throw new Exception($"{argumentName} is not a valid hash", e);
+            }
+        }
 
-                throw;
+        protected BigInteger ParseAmount(string value, long decimals, string argumentName = "amount")
+        {
+            try
+            {
+                return AmountUtils.ExtractDecimals(double.Parse(value, NumberStyles.Any), (int)decimals);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"{argumentName} is not a valid number", e);
             }
         }
 
@@ -186,33 +196,42 @@ namespace ZenonCli.Commands
                     return TokenStandard.Parse(zts);
                 }
             }
-            catch
+            catch (Exception e)
             {
-                WriteError($"{argumentName} must be a valid token standard");
-
-                throw;
+                throw new Exception($"{argumentName} must be a valid token standard", e);
             }
         }
 
         #region Assertions
 
-        public async Task<bool> AssertUserAddressAsync(Address address, string argumentName = "address")
+        public void AssertPageRange(int pageIndex, int pageSize)
         {
-            return await Task.Run(() =>
+            if (pageIndex < 0)
+            {
+                throw new Exception($"The page index must be a positive integer");
+            }
+
+            if (pageSize < 1 || pageSize > Constants.RpcMaxPageSize)
+            {
+                throw new Exception($"The page size must be greater than 0 and less than or equal to {Constants.RpcMaxPageSize}");
+            }
+        }
+
+        public async Task AssertUserAddressAsync(Address address, string argumentName = "address")
+        {
+            await Task.Run(() =>
             {
                 if (address == Address.EmptyAddress ||
-                address.IsEmbedded)
+                    address.IsEmbedded)
                 {
-                    WriteError($"{argumentName} is not an user address");
-                    return false;
+                    throw new Exception($"{argumentName} is not an user address");
                 }
-                return true;
             });
         }
 
-        public async Task<bool> AssertBalanceAsync(Znn client, Address address, TokenStandard tokenStandard, BigInteger amount)
+        public async Task AssertBalanceAsync(Address address, TokenStandard tokenStandard, BigInteger amount)
         {
-            var account = await client.Ledger
+            var account = await ZnnClient.Ledger
                 .GetAccountInfoByAddress(address);
 
             var balance = account.BalanceInfoList
@@ -220,27 +239,23 @@ namespace ZenonCli.Commands
 
             if (balance == null)
             {
-                WriteError($"You do not have any {tokenStandard} tokens");
-                return false;
+                throw new Exception($"You do not have any {tokenStandard} tokens");
             }
 
             if (balance.Balance < amount)
             {
                 if (balance.Balance == BigInteger.Zero)
                 {
-                    WriteError($"You do not have any {balance.Token.Symbol} tokens");
+                    throw new Exception($"You do not have any {balance.Token.Symbol} tokens");
                 }
                 else
                 {
-                    WriteError($"You only have {FormatAmount(balance.Balance.Value, balance.Token.Decimals)} {balance.Token.Symbol} tokens");
+                    throw new Exception($"You only have {FormatAmount(balance.Balance.Value, balance.Token.Decimals)} {balance.Token.Symbol} tokens");
                 }
-                return false;
             }
-
-            return true;
         }
 
-        public async Task<bool> AssertLiquidityGuardianAsync()
+        public async Task AssertLiquidityGuardianAsync()
         {
             var address = ZnnClient.DefaultKeyPair.Address;
 
@@ -249,13 +264,11 @@ namespace ZenonCli.Commands
 
             if (!info.Guardians.Any(x => x == address))
             {
-                WriteDenied($"{address} is not a liquidity guardian");
-                return false;
+                throw new Exception($"{address} is not a liquidity guardian");
             }
-            return true;
         }
 
-        public async Task<bool> AssertLiquidityAdminAsync()
+        public async Task AssertLiquidityAdminAsync()
         {
             var address = ZnnClient.DefaultKeyPair.Address;
 
@@ -264,13 +277,11 @@ namespace ZenonCli.Commands
 
             if (info.Administrator != address)
             {
-                WriteDenied($"{address} is not the liquidity administrator");
-                return false;
+                throw new Exception($"{address} is not the liquidity administrator");
             }
-            return true;
         }
 
-        public async Task<bool> AssertBridgeGuardianAsync()
+        public async Task AssertBridgeGuardianAsync()
         {
             var address = ZnnClient.DefaultKeyPair.Address;
 
@@ -279,13 +290,11 @@ namespace ZenonCli.Commands
 
             if (!info.Guardians.Any(x => x == address))
             {
-                WriteDenied($"{address} is not a bridge guardian");
-                return false;
+                throw new Exception($"{address} is not a bridge guardian");
             }
-            return true;
         }
 
-        public async Task<bool> AssertBridgeAdminAsync()
+        public async Task AssertBridgeAdminAsync()
         {
             var address = ZnnClient.DefaultKeyPair.Address;
 
@@ -294,10 +303,25 @@ namespace ZenonCli.Commands
 
             if (info.Administrator != address)
             {
-                WriteDenied($"{address} is not the bridge administrator");
-                return false;
+                throw new Exception($"{address} is not the bridge administrator");
             }
-            return true;
+        }
+
+        #endregion
+
+        #region FormatUtils
+
+        protected async Task<Zenon.Model.NoM.Token> GetTokenAsync(TokenStandard tokenStandard)
+        {
+            try
+            {
+                var token = await ZnnClient.Embedded.Token.GetByZts(tokenStandard);
+                return token!;
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"{tokenStandard} does not exist", e);
+            }
         }
 
         #endregion
@@ -333,7 +357,7 @@ namespace ZenonCli.Commands
                     WriteInfo($"      MinAmount: {tokenPair.MinAmount}");
                     WriteInfo($"      Fee %: {tokenPair.FeePercentage}");
                     WriteInfo($"      Redeem delay: {tokenPair.RedeemDelay}");
-                    WriteInfo($"      Metadata: { tokenPair.Metadata}");
+                    WriteInfo($"      Metadata: {tokenPair.Metadata}");
                     WriteInfo("");
                 }
             }
@@ -356,7 +380,7 @@ namespace ZenonCli.Commands
             }
             else
             {
-                var token = await ZnnClient.Embedded.Token.GetByZts(request.TokenStandard)!;
+                var token = await GetTokenAsync(request.TokenStandard)!;
                 symbol = token.Symbol;
                 decimals = token.Decimals;
             }
@@ -390,7 +414,7 @@ namespace ZenonCli.Commands
             }
             else
             {
-                var token = await ZnnClient.Embedded.Token.GetByZts(request.TokenStandard)!;
+                var token = await GetTokenAsync(request.TokenStandard)!;
                 symbol = token.Symbol;
                 decimals = token.Decimals;
             }
@@ -411,7 +435,7 @@ namespace ZenonCli.Commands
 
         protected async Task WriteRedeemAsync(UnwrapTokenRequest request)
         {
-            var token = await ZnnClient.Embedded.Token.GetByZts(request.TokenStandard)!;
+            var token = await GetTokenAsync(request.TokenStandard)!;
             var decimals = token.Decimals;
 
             WriteInfo($"Redeeming id: {request.TransactionHash}");
@@ -488,7 +512,7 @@ namespace ZenonCli.Commands
 
         public string FormatAmount(BigInteger amount, long decimals)
         {
-            return (amount / BigInteger.Pow(10, (int)decimals)).ToString("0." + new String('0', (int)decimals));
+            return AmountUtils.AddDecimals(amount, (int)decimals);
         }
 
         public string FormatDuration(long seconds)

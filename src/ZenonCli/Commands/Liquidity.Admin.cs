@@ -14,8 +14,7 @@ namespace ZenonCli.Commands
             {
                 protected override async Task ProcessAsync()
                 {
-                    if (!await AssertLiquidityAdminAsync())
-                        return;
+                    await AssertLiquidityAdminAsync();
 
                     WriteInfo("Initializing liquidity emergency mode ...");
                     await ZnnClient.Send(ZnnClient.Embedded.Liquidity.Emergency());
@@ -28,8 +27,7 @@ namespace ZenonCli.Commands
             {
                 protected override async Task ProcessAsync()
                 {
-                    if (!await AssertLiquidityAdminAsync())
-                        return;
+                    await AssertLiquidityAdminAsync();
 
                     WriteInfo("Halting the liquidity ...");
                     await ZnnClient.Send(ZnnClient.Embedded.Liquidity.SetIsHalted(true));
@@ -42,8 +40,7 @@ namespace ZenonCli.Commands
             {
                 protected override async Task ProcessAsync()
                 {
-                    if (!await AssertLiquidityAdminAsync())
-                        return;
+                    await AssertLiquidityAdminAsync();
 
                     WriteInfo("Unhalting the liquidity ...");
                     await ZnnClient.Send(ZnnClient.Embedded.Liquidity.SetIsHalted(false));
@@ -59,14 +56,12 @@ namespace ZenonCli.Commands
 
                 protected override async Task ProcessAsync()
                 {
-                    if (!await AssertLiquidityAdminAsync())
-                        return;
+                    await AssertLiquidityAdminAsync();
 
                     var address = ZnnClient.DefaultKeyPair.Address;
                     var newAdmin = ParseAddress(this.Address);
 
-                    if (!await AssertUserAddressAsync(newAdmin))
-                        return;
+                    await AssertUserAddressAsync(newAdmin);
 
                     if (address == newAdmin)
                     {
@@ -91,8 +86,7 @@ namespace ZenonCli.Commands
 
                 protected override async Task ProcessAsync()
                 {
-                    if (!await AssertLiquidityAdminAsync())
-                        return;
+                    await AssertLiquidityAdminAsync();
 
                     var address = ZnnClient.DefaultKeyPair.Address;
 
@@ -192,11 +186,10 @@ namespace ZenonCli.Commands
 
                 protected override async Task ProcessAsync()
                 {
-                    if (!await AssertLiquidityAdminAsync())
-                        return;
+                    await AssertLiquidityAdminAsync();
 
                     WriteInfo("Setting additional liquidity reward ...");
-                    var block = ZnnClient.Embedded.Liquidity.SetAdditionalReward(this.ZnnReward, this.QsrReward);
+                    var block = ZnnClient.Embedded.Liquidity.SetAdditionalReward(ZnnReward, QsrReward);
                     await ZnnClient.Send(block);
                     WriteInfo("Done");
                 }

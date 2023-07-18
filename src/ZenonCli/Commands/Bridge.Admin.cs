@@ -15,8 +15,7 @@ namespace ZenonCli.Commands
             {
                 protected override async Task ProcessAsync()
                 {
-                    if (!await AssertBridgeAdminAsync())
-                        return;
+                    await AssertBridgeAdminAsync();
 
                     WriteInfo("Initializing bridge emergency mode ...");
                     await ZnnClient.Send(ZnnClient.Embedded.Bridge.Emergency());
@@ -29,8 +28,7 @@ namespace ZenonCli.Commands
             {
                 protected override async Task ProcessAsync()
                 {
-                    if (!await AssertBridgeAdminAsync())
-                        return;
+                    await AssertBridgeAdminAsync();
 
                     WriteInfo("Halting the bridge ...");
                     // Use signature value '1' to circumvent the empty string unpack issue.
@@ -44,8 +42,7 @@ namespace ZenonCli.Commands
             {
                 protected override async Task ProcessAsync()
                 {
-                    if (!await AssertBridgeAdminAsync())
-                        return;
+                    await AssertBridgeAdminAsync();
 
                     WriteInfo("Unhalting the bridge ...");
                     await ZnnClient.Send(ZnnClient.Embedded.Bridge.Unhalt());
@@ -58,8 +55,7 @@ namespace ZenonCli.Commands
             {
                 protected override async Task ProcessAsync()
                 {
-                    if (!await AssertBridgeAdminAsync())
-                        return;
+                    await AssertBridgeAdminAsync();
 
                     WriteInfo("Enabling TSS key generation ...");
                     await ZnnClient.Send(ZnnClient.Embedded.Bridge.SetAllowKeyGen(true));
@@ -72,8 +68,7 @@ namespace ZenonCli.Commands
             {
                 protected override async Task ProcessAsync()
                 {
-                    if (!await AssertBridgeAdminAsync())
-                        return;
+                    await AssertBridgeAdminAsync();
 
                     WriteInfo("Disabling TSS key generation ...");
                     await ZnnClient.Send(ZnnClient.Embedded.Bridge.SetAllowKeyGen(false));
@@ -119,8 +114,7 @@ namespace ZenonCli.Commands
 
                 protected override async Task ProcessAsync()
                 {
-                    if (!await AssertBridgeAdminAsync())
-                        return;
+                    await AssertBridgeAdminAsync();
 
                     var tokenStandard = ParseTokenStandard(TokenStandard);
                     var feePercentage = FeePercentage!.Value * 100;
@@ -176,8 +170,7 @@ namespace ZenonCli.Commands
 
                 protected override async Task ProcessAsync()
                 {
-                    if (!await AssertBridgeAdminAsync())
-                        return;
+                    await AssertBridgeAdminAsync();
 
                     var tokenStandard = ParseTokenStandard(TokenStandard);
 
@@ -202,11 +195,10 @@ namespace ZenonCli.Commands
 
                 protected override async Task ProcessAsync()
                 {
-                    if (!await AssertBridgeAdminAsync())
-                        return;
+                    await AssertBridgeAdminAsync();
 
                     var transactionHash = ParseHash(TransactionHash);
-                    
+
                     WriteInfo("Revoking unwrap request ...");
 
                     var revokeUnwrapRequest =
@@ -225,8 +217,7 @@ namespace ZenonCli.Commands
 
                 protected override async Task ProcessAsync()
                 {
-                    if (!await AssertBridgeAdminAsync())
-                        return;
+                    await AssertBridgeAdminAsync();
 
                     var address = ZnnClient.DefaultKeyPair.Address;
 
@@ -241,7 +232,7 @@ namespace ZenonCli.Commands
                     try
                     {
                         guardians = this.Addresses!
-                            .Select(x => Address.Parse(x))
+                            .Select(x => ParseAddress(x))
                             .Where(x => x != Address.EmptyAddress || x.IsEmbedded)
                             .Distinct()
                             .OrderBy(x => x.ToString())
@@ -311,14 +302,12 @@ namespace ZenonCli.Commands
 
                 protected override async Task ProcessAsync()
                 {
-                    if (!await AssertBridgeAdminAsync())
-                        return;
+                    await AssertBridgeAdminAsync();
 
                     var address = ZnnClient.DefaultKeyPair.Address;
                     var newAdmin = ParseAddress(this.Address);
 
-                    if (!await AssertUserAddressAsync(newAdmin))
-                        return;
+                    await AssertUserAddressAsync(newAdmin);
 
                     if (address == newAdmin)
                     {
@@ -343,8 +332,7 @@ namespace ZenonCli.Commands
 
                 protected override async Task ProcessAsync()
                 {
-                    if (!await AssertBridgeAdminAsync())
-                        return;
+                    await AssertBridgeAdminAsync();
 
                     JsonConvert.DeserializeObject(Metadata!);
 
@@ -371,8 +359,7 @@ namespace ZenonCli.Commands
 
                 protected override async Task ProcessAsync()
                 {
-                    if (!await AssertBridgeAdminAsync())
-                        return;
+                    await AssertBridgeAdminAsync();
 
                     WriteInfo("Setting orchestrator information...");
                     await ZnnClient.Send(ZnnClient.Embedded.Bridge.SetOrchestratorInfo(WindowSize!.Value,
@@ -403,8 +390,7 @@ namespace ZenonCli.Commands
 
                 protected override async Task ProcessAsync()
                 {
-                    if (!await AssertBridgeAdminAsync())
-                        return;
+                    await AssertBridgeAdminAsync();
 
                     var networkClass = NetworkClass!.Value;
                     var chainId = ChainId!.Value;
@@ -423,13 +409,13 @@ namespace ZenonCli.Commands
                         return;
                     }
 
-                    if (String.IsNullOrEmpty(name))
+                    if (string.IsNullOrEmpty(name))
                     {
                         WriteInfo($"The bridge network name cannot be empty");
                         return;
                     }
 
-                    if (String.IsNullOrEmpty(contractAddress))
+                    if (string.IsNullOrEmpty(contractAddress))
                     {
                         WriteInfo($"The bridge network contract address cannot be empty");
                         return;
@@ -455,8 +441,7 @@ namespace ZenonCli.Commands
 
                 protected override async Task ProcessAsync()
                 {
-                    if (!await AssertBridgeAdminAsync())
-                        return;
+                    await AssertBridgeAdminAsync();
 
                     var networkClass = NetworkClass!.Value;
                     var chainId = ChainId!.Value;
@@ -494,8 +479,7 @@ namespace ZenonCli.Commands
 
                 protected override async Task ProcessAsync()
                 {
-                    if (!await AssertBridgeAdminAsync())
-                        return;
+                    await AssertBridgeAdminAsync();
 
                     var networkClass = NetworkClass!.Value;
                     var chainId = ChainId!.Value;
@@ -528,8 +512,7 @@ namespace ZenonCli.Commands
 
                 protected override async Task ProcessAsync()
                 {
-                    if (!await AssertBridgeAdminAsync())
-                        return;
+                    await AssertBridgeAdminAsync();
 
                     WriteInfo("Setting bridge redeem delay...");
                     await ZnnClient.Send(ZnnClient.Embedded.Bridge.SetRedeemDelay(RedeemDelay!.Value));

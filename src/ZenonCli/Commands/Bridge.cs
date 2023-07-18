@@ -131,9 +131,9 @@ namespace ZenonCli.Commands
                 if (this.TokenStandard != null)
                 {
                     var tokenStandard = ParseTokenStandard(this.TokenStandard);
-                    var token = await ZnnClient.Embedded.Token.GetByZts(tokenStandard);
+                    var token = await GetTokenAsync(tokenStandard);
                     var info = await ZnnClient.Embedded.Bridge.GetFeeTokenPair(tokenStandard);
-                    
+
                     WriteInfo($"Fees accumulated for {token.Symbol}: ${FormatAmount(info.AccumulatedFee, token.Decimals)}");
                 }
                 else

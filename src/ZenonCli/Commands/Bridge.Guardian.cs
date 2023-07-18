@@ -1,5 +1,4 @@
 ﻿using CommandLine;
-using Zenon;
 
 namespace ZenonCli.Commands
 {
@@ -7,7 +6,7 @@ namespace ZenonCli.Commands
     {
         public class Guardian
         {
-            [Verb("bridge.guardian.proposeAdmin", 
+            [Verb("bridge.guardian.proposeAdmin",
                 HelpText = "Participate in a vote to elect a new bridge administrator when the bridge is in Emergency mode.")]
             public class ProposeAdministrator : KeyStoreAndConnectionCommand
             {
@@ -16,13 +15,11 @@ namespace ZenonCli.Commands
 
                 protected override async Task ProcessAsync()
                 {
-                    if (!await AssertBridgeGuardianAsync())
-                        return;
+                    await AssertBridgeGuardianAsync();
 
                     var newAdmin = ParseAddress(this.Address);
 
-                    if (!await AssertUserAddressAsync(newAdmin))
-                        return;
+                    await AssertUserAddressAsync(newAdmin);
 
                     var currentAdmin = (await ZnnClient.Embedded.Bridge.GetBridgeInfo()).Administrator;
 

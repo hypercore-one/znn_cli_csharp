@@ -1,6 +1,6 @@
 ﻿using CommandLine;
+using System.Numerics;
 using System.Text.RegularExpressions;
-using Zenon;
 using Zenon.Model.Primitives;
 
 namespace ZenonCli.Commands
@@ -24,49 +24,32 @@ namespace ZenonCli.Commands
                 if (!this.PageSize.HasValue)
                     this.PageSize = 25;
 
-                if (this.PageIndex < 0)
-                {
-                    WriteError($"pageIndex must be at least 0");
-                    return;
-                }
+                AssertPageRange(PageIndex.Value, PageSize.Value);
 
-                if (this.PageSize < 1 || this.PageSize > Constants.RpcMaxPageSize)
-                {
-                    WriteError($"pageSize must be at least 1 and at most {Constants.RpcMaxPageSize}");
-                    return;
-                }
-
-                var tokenList = await ZnnClient.Embedded.Token.GetAll(this.PageIndex.Value, this.PageSize.Value);
+                var tokenList = await ZnnClient.Embedded.Token.GetAll(PageIndex.Value, PageSize.Value);
 
                 foreach (var token in tokenList.List)
                 {
-                    if (token.TokenStandard == TokenStandard.ZnnZts || token.TokenStandard == TokenStandard.QsrZts)
+                    var type = GetTokenType(token.TokenStandard);
+
+                    WriteInfo($"{type} {token.Name} with symbol {token.Symbol} and standard {token.TokenStandard}");
+
+                    if (token.TokenStandard == TokenStandard.ZnnZts ||
+                        token.TokenStandard == TokenStandard.QsrZts)
                     {
-                        WriteInfo(String.Format("{0} with symbol {1} and standard {2}",
-                            token.TokenStandard == TokenStandard.ZnnZts ? token.Name : token.Name,
-                            token.TokenStandard == TokenStandard.ZnnZts ? token.Symbol : token.Symbol,
-                            token.TokenStandard == TokenStandard.ZnnZts ? token.TokenStandard : token.TokenStandard));
-                        WriteInfo(String.Format("   Created by {0}",
-                            token.TokenStandard == TokenStandard.ZnnZts ? token.Owner : token.Owner));
-                        WriteInfo(String.Format("   {0} has {1} decimals, {2}, {3}, and {4}",
-                            token.TokenStandard == TokenStandard.ZnnZts ? token.Name : token.Name,
-                            token.Decimals,
-                            token.IsMintable ? "is mintable" : "is not mintable",
-                            token.IsBurnable ? "can be burned" : "cannot be burned",
-                            token.IsUtility ? "is a utility coin" : "is not a utility coin"));
-                        WriteInfo($"   The total supply is {FormatAmount(token.TotalSupply, token.Decimals)} and the maximum supply is {FormatAmount(token.MaxSupply, token.Decimals)}");
+                        WriteInfo($"   Created by {token.Owner}");
                     }
                     else
                     {
-                        WriteInfo($"Token {token.Name} with symbol {token.Symbol} and standard {token.TokenStandard}");
                         WriteInfo($"   Issued by {token.Owner}");
-                        WriteInfo(String.Format("   {0} has {1} decimals, {2}, {3}, and {4}",
-                            token.Name,
-                            token.Decimals,
-                            token.IsMintable ? "can be minted" : "cannot be minted",
-                            token.IsBurnable ? "can be burned" : "cannot be burned",
-                            token.IsUtility ? "is a utility token" : "is not a utility token"));
                     }
+                    WriteInfo(String.Format("   {0} has {1} decimals, {2}, {3}, and {4}",
+                        token.Name,
+                        token.Decimals,
+                        token.IsMintable ? "is mintable" : "is not mintable",
+                        token.IsBurnable ? "can be burned" : "cannot be burned",
+                        token.IsUtility ? "is a utility token" : "is not a utility token"));
+                    WriteInfo($"   The total supply is {FormatAmount(token.TotalSupply, token.Decimals)} and the maximum supply is {FormatAmount(token.MaxSupply, token.Decimals)}");
                     WriteInfo($"   Domain `{token.Domain}`");
                 }
             }
@@ -80,15 +63,8 @@ namespace ZenonCli.Commands
 
             protected override async Task ProcessAsync()
             {
-                var tokenStandard = ParseTokenStandard(this.TokenStandard);
-                var token = await ZnnClient.Embedded.Token.GetByZts(tokenStandard);
-
-                if (token == null)
-                {
-                    WriteError("The token does not exist");
-                    return;
-                }
-
+                var tokenStandard = ParseTokenStandard(TokenStandard);
+                var token = await GetTokenAsync(tokenStandard);
                 var type = GetTokenType(token.TokenStandard);
 
                 WriteInfo($"{type} {token.Name} with symbol {token.Symbol} and standard {token.TokenStandard}");
@@ -97,7 +73,7 @@ namespace ZenonCli.Commands
                 WriteInfo(String.Format("   The {0} has {1} decimals {2} and {3}",
                     type,
                     token.Decimals,
-                    token.IsMintable ? "can be minted" : "cannot be minted",
+                    token.IsMintable ? "is mintable" : "is not mintable",
                     token.IsBurnable ? "can be burned" : "cannot be burned"));
             }
         }
@@ -110,7 +86,7 @@ namespace ZenonCli.Commands
 
             protected override async Task ProcessAsync()
             {
-                var ownerAddress = ParseAddress(this.OwnerAddress, "ownerAddress");
+                var ownerAddress = ParseAddress(OwnerAddress, "ownerAddress");
 
                 var tokens = await ZnnClient.Embedded.Token.GetByOwner(ownerAddress);
 
@@ -124,7 +100,7 @@ namespace ZenonCli.Commands
                     WriteInfo(String.Format("   The {0} has {1} decimals {2} and {3}",
                         type,
                         token.Decimals,
-                        token.IsMintable ? "can be minted" : "cannot be minted",
+                        token.IsMintable ? "is mintable" : "is not mintable",
                         token.IsBurnable ? "can be burned" : "cannot be burned"));
                 }
             }
@@ -174,18 +150,18 @@ namespace ZenonCli.Commands
                     return;
                 }
 
-                if (String.IsNullOrEmpty(this.Domain) || !Regex.IsMatch(this.Domain, "^([A-Za-z0-9][A-Za-z0-9-]{0,61}[A-Za-z0-9]\\.)+[A-Za-z]{2,}$"))
+                if (string.IsNullOrEmpty(this.Domain) || !Regex.IsMatch(this.Domain, "^([A-Za-z0-9][A-Za-z0-9-]{0,61}[A-Za-z0-9]\\.)+[A-Za-z]{2,}$"))
                 {
                     WriteError("Invalid domain\nExamples of valid domain names:\n    zenon.network\n    www.zenon.network\n    quasar.zenon.network\n    zenon.community\nExamples of invalid domain names:\n    zenon.network/index.html\n    www.zenon.network/quasar");
                     return;
                 }
 
-                if (String.IsNullOrEmpty(this.Name) || this.Name.Length > 40)
+                if (string.IsNullOrEmpty(this.Name) || this.Name.Length > 40)
                 {
                     WriteError($"Invalid ZTS name length (min 1, max 40, current {this.Name!.Length}");
                 }
 
-                if (String.IsNullOrEmpty(this.Symbol) || this.Symbol.Length > 10)
+                if (string.IsNullOrEmpty(this.Symbol) || this.Symbol.Length > 10)
                 {
                     WriteError($"Invalid ZTS symbol length (min 1, max 10, current {this.Symbol!.Length}");
                 }
@@ -196,11 +172,11 @@ namespace ZenonCli.Commands
                 }
 
                 bool mintable;
-                if (this.IsMintable == "0" || String.Equals(this.IsMintable, "false", StringComparison.OrdinalIgnoreCase))
+                if (this.IsMintable == "0" || string.Equals(this.IsMintable, "false", StringComparison.OrdinalIgnoreCase))
                 {
                     mintable = false;
                 }
-                else if (this.IsMintable == "1" || String.Equals(this.IsMintable, "true", StringComparison.OrdinalIgnoreCase))
+                else if (this.IsMintable == "1" || string.Equals(this.IsMintable, "true", StringComparison.OrdinalIgnoreCase))
                 {
                     mintable = true;
                 }
@@ -211,11 +187,11 @@ namespace ZenonCli.Commands
                 }
 
                 bool burnable;
-                if (this.IsBurnable == "0" || String.Equals(this.IsBurnable, "false", StringComparison.OrdinalIgnoreCase))
+                if (this.IsBurnable == "0" || string.Equals(this.IsBurnable, "false", StringComparison.OrdinalIgnoreCase))
                 {
                     burnable = false;
                 }
-                else if (this.IsBurnable == "1" || String.Equals(this.IsBurnable, "true", StringComparison.OrdinalIgnoreCase))
+                else if (this.IsBurnable == "1" || string.Equals(this.IsBurnable, "true", StringComparison.OrdinalIgnoreCase))
                 {
                     burnable = true;
                 }
@@ -226,11 +202,11 @@ namespace ZenonCli.Commands
                 }
 
                 bool utility;
-                if (this.IsUtility == "0" || String.Equals(this.IsUtility, "false", StringComparison.OrdinalIgnoreCase))
+                if (this.IsUtility == "0" || string.Equals(this.IsUtility, "false", StringComparison.OrdinalIgnoreCase))
                 {
                     utility = false;
                 }
-                else if (this.IsUtility == "1" || String.Equals(this.IsUtility, "true", StringComparison.OrdinalIgnoreCase))
+                else if (this.IsUtility == "1" || string.Equals(this.IsUtility, "true", StringComparison.OrdinalIgnoreCase))
                 {
                     utility = true;
                 }
@@ -301,24 +277,19 @@ namespace ZenonCli.Commands
             public string? TokenStandard { get; set; }
 
             [Value(1, Required = true, MetaName = "amount")]
-            public long Amount { get; set; }
+            public string? Amount { get; set; }
 
             [Value(2, Required = true, MetaName = "receiveAddress")]
             public string? ReceiveAddress { get; set; }
 
             protected override async Task ProcessAsync()
             {
-                var tokenStandard = ParseTokenStandard(this.TokenStandard);
-                var amount = this.Amount;
-                var mintAddress = ParseAddress(this.ReceiveAddress);
-                var token = await ZnnClient.Embedded.Token.GetByZts(tokenStandard);
+                var tokenStandard = ParseTokenStandard(TokenStandard);
+                var mintAddress = ParseAddress(ReceiveAddress);
+                var token = await GetTokenAsync(tokenStandard);
+                var amount = BigInteger.Parse(Amount!);
 
-                if (token == null)
-                {
-                    WriteError("The token does not exist");
-                    return;
-                }
-                else if (!token.IsMintable)
+                if (!token.IsMintable)
                 {
                     WriteError("The token is not mintable");
                     return;
@@ -340,33 +311,17 @@ namespace ZenonCli.Commands
             public string? TokenStandard { get; set; }
 
             [Value(1, Required = true, MetaName = "amount")]
-            public long Amount { get; set; }
+            public string? Amount { get; set; }
 
             protected override async Task ProcessAsync()
             {
                 var address = ZnnClient.DefaultKeyPair.Address;
-                var tokenStandard = ParseTokenStandard(this.TokenStandard);
-                var amount = this.Amount;
+                var tokenStandard = ParseTokenStandard(TokenStandard);
+                var amount = BigInteger.Parse(Amount!);
 
-                var info =
-                    await ZnnClient.Ledger.GetAccountInfoByAddress(address);
-                var ok = true;
+                await AssertBalanceAsync(address, tokenStandard, amount);
 
-                foreach (var entry in info.BalanceInfoList)
-                {
-                    if (entry.Token.TokenStandard == tokenStandard &&
-                        entry.Balance < amount)
-                    {
-                        WriteError($"You only have {FormatAmount(entry.Balance.Value, entry.Token.Decimals)} {entry.Token.Symbol} tokens");
-                        ok = false;
-                        break;
-                    }
-                }
-
-                if (!ok)
-                    return;
-
-                WriteInfo($"Burning {this.TokenStandard} ZTS token ...");
+                WriteInfo($"Burning {TokenStandard} ZTS token ...");
 
                 await ZnnClient.Send(
                     ZnnClient.Embedded.Token.BurnToken(tokenStandard, amount));
@@ -391,13 +346,7 @@ namespace ZenonCli.Commands
                 var address = ZnnClient.DefaultKeyPair.Address;
                 var tokenStandard = ParseTokenStandard(this.TokenStandard);
                 var newOwnerAddress = ParseAddress(this.NewOwnerAddress, "newOwnerAddress");
-                var token = await ZnnClient.Embedded.Token.GetByZts(tokenStandard);
-
-                if (token == null)
-                {
-                    WriteError("The token does not exist");
-                    return;
-                }
+                var token = await GetTokenAsync(tokenStandard);
 
                 if (token.Owner != address)
                 {
@@ -423,14 +372,8 @@ namespace ZenonCli.Commands
                 WriteInfo("Disabling ZTS token mintable flag ...");
 
                 var address = ZnnClient.DefaultKeyPair.Address;
-                var tokenStandard = ParseTokenStandard(this.TokenStandard);
-                var token = await ZnnClient.Embedded.Token.GetByZts(tokenStandard);
-
-                if (token == null)
-                {
-                    WriteError("The token does not exist");
-                    return;
-                }
+                var tokenStandard = ParseTokenStandard(TokenStandard);
+                var token = await GetTokenAsync(tokenStandard);
 
                 if (token.Owner != address)
                 {

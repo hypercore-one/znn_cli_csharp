@@ -1,7 +1,6 @@
 ﻿using CommandLine;
 using System.Numerics;
 using Zenon;
-using Zenon.Model.Primitives;
 
 namespace ZenonCli.Commands
 {
@@ -24,15 +23,8 @@ namespace ZenonCli.Commands
 
                 foreach (var tokenTuple in info.TokenTuples)
                 {
-                    var token = await ZnnClient.Embedded.Token.GetByZts(tokenTuple.TokenStandard);
-
-                    var type = "Token";
-
-                    if (token.TokenStandard == TokenStandard.QsrZts ||
-                        token.TokenStandard == TokenStandard.ZnnZts)
-                    {
-                        type = "Coin";
-                    }
+                    var token = await GetTokenAsync(tokenTuple.TokenStandard);
+                    var type = GetTokenType(tokenTuple.TokenStandard);
 
                     WriteInfo($"      {type} {token.Name} with symbol {token.Symbol} and standard {token.TokenStandard}");
                     WriteInfo($"        ZNN % {tokenTuple.ZnnPercentage} QSR % {tokenTuple.QsrPercentage} minimum amount {FormatAmount(tokenTuple.MinAmount, token.Decimals)}");
@@ -116,7 +108,7 @@ namespace ZenonCli.Commands
 
             protected override async Task ProcessAsync()
             {
-                var address = ParseAddress(this.Address);
+                var address = ParseAddress(Address);
                 var list =
                     await ZnnClient.Embedded.Liquidity.GetFrontierRewardByPage(address);
 
@@ -160,7 +152,7 @@ namespace ZenonCli.Commands
 
             protected override async Task ProcessAsync()
             {
-                var address = ParseAddress(this.Address);
+                var address = ParseAddress(Address);
                 var list =
                     await ZnnClient.Embedded.Liquidity.GetLiquidityStakeEntriesByAddress(address);
 
@@ -173,7 +165,7 @@ namespace ZenonCli.Commands
                     foreach (var entry in list.List)
                     {
                         var token =
-                            await ZnnClient.Embedded.Token.GetByZts(entry.TokenStandard);
+                            await GetTokenAsync(entry.TokenStandard);
 
                         var currentTime = Math.Floor((double)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() / 1000));
                         var duration = (entry.ExpirationTime - entry.StartTime) / Constants.StakeTimeUnitSec;
@@ -230,7 +222,7 @@ namespace ZenonCli.Commands
             public long Duration { get; set; }
 
             [Value(1, Required = true, MetaName = "amount")]
-            public long Amount { get; set; }
+            public string? Amount { get; set; }
 
             [Value(2, Default = "ZNN", MetaName = "tokenStandard", MetaValue = "[ZNN/QSR/ZTS]")]
             public string? TokenStandard { get; set; }
@@ -239,10 +231,10 @@ namespace ZenonCli.Commands
             {
                 var address = ZnnClient.DefaultKeyPair.Address;
                 var months = this.Duration;
-                var duration = months * 24 * 60 * 60;
-                var tokenStandard = ParseTokenStandard(this.TokenStandard);
-                var token = await ZnnClient.Embedded.Token.GetByZts(tokenStandard);
-                var amount = this.Amount * token.DecimalsExponent;
+                var duration = months * Constants.StakeTimeUnitSec;
+                var tokenStandard = ParseTokenStandard(TokenStandard);
+                var token = await GetTokenAsync(tokenStandard);
+                var amount = ParseAmount(Amount!, token.Decimals);
 
                 if (duration < Constants.StakeTimeMinSec ||
                     duration > Constants.StakeTimeMaxSec ||
@@ -252,10 +244,7 @@ namespace ZenonCli.Commands
                     return;
                 }
 
-                if (!await AssertBalanceAsync(ZnnClient, address, tokenStandard, amount))
-                {
-                    return;
-                }
+                await AssertBalanceAsync(address, tokenStandard, amount);
 
                 var info = await ZnnClient.Embedded.Liquidity.GetLiquidityInfo();
                 if (info.IsHalted)
@@ -295,7 +284,7 @@ namespace ZenonCli.Commands
 
             protected override async Task ProcessAsync()
             {
-                var id = ParseHash(this.Id);
+                var id = ParseHash(Id, "id");
 
                 var address = ZnnClient.DefaultKeyPair.Address;
                 var list = await ZnnClient.Embedded.Liquidity
@@ -352,9 +341,9 @@ namespace ZenonCli.Commands
                     WriteInfo($"   QSR: {FormatAmount(uncollectedRewards.QsrAmount, Constants.CoinDecimals)}");
                     WriteInfo("");
                     WriteInfo("Collecting rewards ...");
-                    var collectReward =
+                    var block =
                         ZnnClient.Embedded.Liquidity.CollectReward();
-                    await ZnnClient.Send(collectReward);
+                    await ZnnClient.Send(block);
                     WriteInfo("Done");
                 }
                 else

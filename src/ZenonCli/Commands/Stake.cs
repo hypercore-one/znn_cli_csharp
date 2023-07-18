@@ -26,20 +26,10 @@ namespace ZenonCli.Commands
                 if (!this.PageSize.HasValue)
                     this.PageSize = 25;
 
-                if (this.PageIndex < 0)
-                {
-                    WriteError($"pageIndex must be at least 0");
-                    return;
-                }
-
-                if (this.PageSize < 1 || this.PageSize > Constants.RpcMaxPageSize)
-                {
-                    WriteError($"pageSize must be at least 1 and at most {Constants.RpcMaxPageSize}");
-                    return;
-                }
+                AssertPageRange(PageIndex.Value, PageSize.Value);
 
                 var stakeList = await ZnnClient.Embedded.Stake.GetEntriesByAddress(
-                    address, this.PageIndex.Value, this.PageSize.Value);
+                    address, PageIndex.Value, PageSize.Value);
 
                 if (stakeList.Count > 0)
                 {
@@ -70,7 +60,7 @@ namespace ZenonCli.Commands
         public class Register : KeyStoreAndConnectionCommand
         {
             [Value(0, Required = true, MetaName = "amount")]
-            public long Amount { get; set; }
+            public string? Amount { get; set; }
 
             [Value(1, Required = true, MetaName = "duration", HelpText = "Duration in months")]
             public long Duration { get; set; }
@@ -78,18 +68,17 @@ namespace ZenonCli.Commands
             protected override async Task ProcessAsync()
             {
                 var address = ZnnClient.DefaultKeyPair.Address;
-
-                var amount = this.Amount * Constants.OneZnn;
+                var amount = ParseAmount(Amount!, Constants.CoinDecimals);
                 var duration = this.Duration;
 
                 if (duration < 1 || duration > 12)
                 {
-                    WriteInfo($"Invalid duration: ({duration}) {Constants.StakeUnitDurationName}. It must be between 1 and 12");
+                    WriteError($"Invalid duration ({duration}) {Constants.StakeUnitDurationName}. It must be between 1 and 12");
                     return;
                 }
                 if (amount < Constants.StakeMinAmount)
                 {
-                    WriteInfo($"Invalid amount: {FormatAmount(amount, Constants.CoinDecimals)} ZNN. Minimum staking amount is {FormatAmount(Constants.StakeMinAmount, Constants.CoinDecimals)}");
+                    WriteError($"Invalid amount {FormatAmount(amount, Constants.CoinDecimals)} ZNN. Minimum staking amount is {FormatAmount(Constants.StakeMinAmount, Constants.CoinDecimals)}");
                     return;
                 }
 
@@ -121,7 +110,7 @@ namespace ZenonCli.Commands
             {
                 var address = ZnnClient.DefaultKeyPair.Address;
 
-                var hash = ParseHash(this.Id, "id");
+                var hash = ParseHash(Id, "id");
 
                 var currentTime = DateTimeOffset.Now.ToUnixTimeSeconds();
                 int pageIndex = 0;
@@ -159,6 +148,7 @@ namespace ZenonCli.Commands
                 }
 
                 await ZnnClient.Send(ZnnClient.Embedded.Stake.Cancel(hash));
+
                 WriteInfo("Done");
                 WriteInfo($"Use receiveAll to collect your stake amount and uncollected reward(s) after 2 momentums");
             }

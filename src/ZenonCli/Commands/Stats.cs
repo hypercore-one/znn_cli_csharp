@@ -1,5 +1,4 @@
 ﻿using CommandLine;
-using Zenon;
 
 namespace ZenonCli.Commands
 {

@@ -1,6 +1,5 @@
 ﻿using CommandLine;
 using Cryptography.ECDSA;
-using Zenon;
 using Zenon.Model.Primitives;
 using Zenon.Utils;
 
@@ -16,8 +15,7 @@ namespace ZenonCli.Commands
 
             protected override async Task ProcessAsync()
             {
-                if (!await AssertBridgeAdminAsync())
-                    return;
+                await AssertBridgeAdminAsync();
 
                 var tcList = await ZnnClient.Embedded.Bridge
                     .GetTimeChallengesInfo();
@@ -75,19 +73,13 @@ namespace ZenonCli.Commands
 
             protected override async Task ProcessAsync()
             {
-                var address = ZnnClient.DefaultKeyPair.Address;
-
-                var info = await ZnnClient.Embedded.Bridge
-                    .GetBridgeInfo();
-
-                if (info.Administrator != address && this.Signature == null)
+                if (Signature == null)
                 {
-                    WriteError($"Permission denied!");
-                    return;
+                    await AssertBridgeAdminAsync();
                 }
 
                 // Use signature value '1' to circumvent the empty string unpack issue.
-                var signature = this.Signature ?? "1";
+                var signature = Signature ?? "1";
 
                 WriteInfo("Halting bridge operations ...");
                 await ZnnClient.Send(ZnnClient.Embedded.Bridge.Halt(signature));
@@ -101,7 +93,7 @@ namespace ZenonCli.Commands
             [Value(0, MetaName = "id", Required = true)]
             public string? Id { get; set; }
 
-            [Value(0, MetaName = "signature", Required = true, 
+            [Value(0, MetaName = "signature", Required = true,
                 HelpText = "The base64 encoded ECDSA signature used to redeem funds on the destination network.")]
             public string? Signature { get; set; }
 

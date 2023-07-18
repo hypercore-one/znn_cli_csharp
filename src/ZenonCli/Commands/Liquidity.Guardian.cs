@@ -1,5 +1,4 @@
 ﻿using CommandLine;
-using Zenon;
 
 namespace ZenonCli.Commands
 {
@@ -7,7 +6,7 @@ namespace ZenonCli.Commands
     {
         public class Guardian
         {
-            [Verb("liquidity.guardian.proposeAdmin", 
+            [Verb("liquidity.guardian.proposeAdmin",
                 HelpText = "Participate in a vote to elect a new liquidity administrator when the contract is in emergency mode")]
             public class ProposeAdmin : KeyStoreAndConnectionCommand
             {
@@ -16,13 +15,11 @@ namespace ZenonCli.Commands
 
                 protected override async Task ProcessAsync()
                 {
-                    if (!await AssertLiquidityGuardianAsync())
-                        return;
+                    await AssertLiquidityGuardianAsync();
 
-                    var newAdmin = ParseAddress(this.Address);
+                    var newAdmin = ParseAddress(Address);
 
-                    if (!await AssertUserAddressAsync(newAdmin))
-                        return;
+                    await AssertUserAddressAsync(newAdmin);
 
                     var currentAdmin = (await ZnnClient.Embedded.Liquidity.GetLiquidityInfo()).Administrator;
 

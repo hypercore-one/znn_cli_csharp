@@ -1,7 +1,4 @@
 ﻿using CommandLine;
-using Newtonsoft.Json;
-using System.Numerics;
-using Zenon;
 using Zenon.Model.Embedded;
 
 namespace ZenonCli.Commands
@@ -32,8 +29,8 @@ namespace ZenonCli.Commands
                 {
                     var address = ZnnClient.DefaultKeyPair.Address;
                     var tokenStandard = ParseTokenStandard(this.TokenStandard);
-                    var token = await ZnnClient.Embedded.Token.GetByZts(tokenStandard);
-                    var amount = BigInteger.Parse(this.Amount!) * token.DecimalsExponent;
+                    var token = await GetTokenAsync(tokenStandard);
+                    var amount = ParseAmount(this.Amount!, token.Decimals);
 
                     if (amount <= 0)
                     {
@@ -41,10 +38,7 @@ namespace ZenonCli.Commands
                         return;
                     }
 
-                    if (!await AssertBalanceAsync(ZnnClient, address, tokenStandard, amount))
-                    {
-                        return;
-                    }
+                    await AssertBalanceAsync(address, tokenStandard, amount);
 
                     var info =
                         await ZnnClient.Embedded.Bridge.GetNetworkInfo(this.NetworkClass!.Value, this.ChainId!.Value);
@@ -99,13 +93,13 @@ namespace ZenonCli.Commands
             [Verb("bridge.wrap.listByAddress", HelpText = "List all wrap token requests made by EVM address.")]
             public class ListByAddress : ConnectionCommand
             {
-                [Value(0, MetaName = "toAddress", Required = true, HelpText = "The destination address")]
-                public string? ToAddress { get; set; }
+                [Value(0, MetaName = "Address", Required = true, HelpText = "The address")]
+                public string? Address { get; set; }
 
-                [Value(1, MetaName = "networkClass", HelpText = "The class of the destination network")]
+                [Value(1, MetaName = "networkClass", HelpText = "The class of the network")]
                 public int? NetworkClass { get; set; }
 
-                [Value(2, MetaName = "chainId",  HelpText = "The chain identifier of the destination network")]
+                [Value(2, MetaName = "chainId", HelpText = "The chain identifier of the network")]
                 public int? ChainId { get; set; }
 
                 protected override async Task ProcessAsync()
@@ -116,12 +110,12 @@ namespace ZenonCli.Commands
                     {
                         list = await ZnnClient.Embedded.Bridge
                             .GetAllWrapTokenRequestsByToAddressNetworkClassAndChainId(
-                                ToAddress, NetworkClass!.Value, ChainId!.Value);
+                                Address, NetworkClass!.Value, ChainId!.Value);
                     }
                     else
                     {
                         list = await ZnnClient.Embedded.Bridge
-                            .GetAllWrapTokenRequestsByToAddress(ToAddress);
+                            .GetAllWrapTokenRequestsByToAddress(Address);
                     }
 
                     if (list.Count > 0)
@@ -134,7 +128,7 @@ namespace ZenonCli.Commands
                     }
                     else
                     {
-                        WriteInfo($"No wrap requests found for {ToAddress}");
+                        WriteInfo($"No wrap requests found for {Address}");
                     }
                 }
             }

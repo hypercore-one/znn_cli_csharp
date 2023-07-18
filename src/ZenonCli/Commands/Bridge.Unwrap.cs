@@ -1,6 +1,4 @@
 ﻿using CommandLine;
-using Newtonsoft.Json;
-using Zenon;
 using Zenon.Model.Embedded;
 
 namespace ZenonCli.Commands
@@ -58,7 +56,7 @@ namespace ZenonCli.Commands
                     var address = ZnnClient.DefaultKeyPair.Address;
 
                     var redeemAllGlobally = Redeem.HasValue ? Redeem.Value : false;
-                    
+
                     var allUnwrapRequests =
                         await ZnnClient.Embedded.Bridge.GetAllUnwrapTokenRequests();
 
@@ -127,7 +125,7 @@ namespace ZenonCli.Commands
 
                 protected override async Task ProcessAsync()
                 {
-                    var toAddress = ParseAddress(this.ToAddress);
+                    var toAddress = ParseAddress(ToAddress);
 
                     var list = await ZnnClient.Embedded.Bridge
                         .GetAllUnwrapTokenRequestsByToAddress(toAddress.ToString());

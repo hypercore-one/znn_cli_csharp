@@ -22,20 +22,10 @@ namespace ZenonCli.Commands
                 if (!this.PageSize.HasValue)
                     this.PageSize = 25;
 
-                if (this.PageIndex < 0)
-                {
-                    WriteError($"pageIndex must be at least 0");
-                    return;
-                }
-
-                if (this.PageSize < 1 || this.PageSize > Constants.RpcMaxPageSize)
-                {
-                    WriteError($"pageSize must be at least 1 and at most {Constants.RpcMaxPageSize}");
-                    return;
-                }
+                AssertPageRange(PageIndex.Value, PageSize.Value);
 
                 var result = await ZnnClient.Embedded.Spork
-                    .GetAll(this.PageIndex.Value, this.PageSize.Value);
+                    .GetAll(PageIndex.Value, PageSize.Value);
 
                 if (result == null || result.Count == 0)
                 {
@@ -104,7 +94,7 @@ namespace ZenonCli.Commands
 
             protected override async Task ProcessAsync()
             {
-                var id = ParseHash(this.Id, "id");
+                var id = ParseHash(Id, "id");
 
                 WriteInfo("Activating spork ...");
                 await ZnnClient.Send(ZnnClient.Embedded.Spork.ActivateSpork(id));

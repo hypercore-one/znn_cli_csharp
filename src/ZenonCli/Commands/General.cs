@@ -8,7 +8,6 @@ using Zenon.Crypto;
 using Zenon.Model.NoM;
 using Zenon.Model.Primitives;
 using Zenon.Utils;
-using ZenonCli.Options;
 
 namespace ZenonCli.Commands
 {
@@ -36,7 +35,7 @@ namespace ZenonCli.Commands
             public string? ToAddress { get; set; }
 
             [Value(1, Required = true, MetaName = "amount")]
-            public long Amount { get; set; }
+            public string Amount { get; set; }
 
             [Value(2, Default = "ZNN", MetaName = "tokenStandard", MetaValue = "[ZNN/QSR/ZTS]")]
             public string? TokenStandard { get; set; }
@@ -47,23 +46,20 @@ namespace ZenonCli.Commands
             protected override async Task ProcessAsync()
             {
                 var address = ZnnClient.DefaultKeyPair.Address;
-                var recipient = Address.Parse(this.ToAddress);
-                var tokenStandard = ParseTokenStandard(this.TokenStandard);
-                var token = await ZnnClient.Embedded.Token.GetByZts(tokenStandard);
-                var amount = this.Amount * token.DecimalsExponent;
+                var recipient = ParseAddress(ToAddress);
+                var tokenStandard = ParseTokenStandard(TokenStandard);
+                var token = await GetTokenAsync(tokenStandard);
+                var amount = ParseAmount(Amount, token.Decimals);
 
                 if (amount <= 0)
                 {
-                    WriteError($"amount must be greater than 0");
+                    WriteError($"You cannot send that amount.");
                     return;
                 }
 
-                if (!await AssertBalanceAsync(ZnnClient, address, tokenStandard, amount))
-                {
-                    return;
-                }
+                await AssertBalanceAsync(address, tokenStandard, amount);
 
-                var data = this.Message != null ? Encoding.UTF8.GetBytes(this.Message) : null;
+                var data = this.Message != null ? Encoding.UTF8.GetBytes(Message) : null;
 
                 if (data != null)
                 {
@@ -88,7 +84,7 @@ namespace ZenonCli.Commands
 
             protected override async Task ProcessAsync()
             {
-                var block = Hash.Parse(this.BlockHash);
+                var block = ParseHash(BlockHash);
 
                 WriteInfo("Please wait ...");
 
@@ -161,7 +157,7 @@ namespace ZenonCli.Commands
                         {
                             continue;
                         }
-                        var hash = Hash.Parse(tx.Value<string>("hash"));
+                        var hash = ParseHash(tx.Value<string>("hash"));
                         WriteInfo($"receiving transaction with hash {hash}");
                         queue.Add(hash);
                     }
