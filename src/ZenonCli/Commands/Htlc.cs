@@ -88,7 +88,7 @@ namespace ZenonCli.Commands
                 await AssertUserAddressAsync(address, "hashLockedAddress");
 
                 var token = await GetTokenAsync(tokenStandard);
-                var amount = ParseAmount(Amount, token.Decimals);
+                var amount = ParseAmount(Amount!, token.Decimals);
 
                 if (amount <= 0)
                 {

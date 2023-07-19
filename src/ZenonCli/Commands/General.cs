@@ -35,7 +35,7 @@ namespace ZenonCli.Commands
             public string? ToAddress { get; set; }
 
             [Value(1, Required = true, MetaName = "amount")]
-            public string Amount { get; set; }
+            public string? Amount { get; set; }
 
             [Value(2, Default = "ZNN", MetaName = "tokenStandard", MetaValue = "[ZNN/QSR/ZTS]")]
             public string? TokenStandard { get; set; }
@@ -49,7 +49,7 @@ namespace ZenonCli.Commands
                 var recipient = ParseAddress(ToAddress);
                 var tokenStandard = ParseTokenStandard(TokenStandard);
                 var token = await GetTokenAsync(tokenStandard);
-                var amount = ParseAmount(Amount, token.Decimals);
+                var amount = ParseAmount(Amount!, token.Decimals);
 
                 if (amount <= 0)
                 {
