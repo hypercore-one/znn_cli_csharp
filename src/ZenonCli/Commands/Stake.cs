@@ -18,7 +18,7 @@ namespace ZenonCli.Commands
             protected override async Task ProcessAsync()
             {
                 var currentTime = DateTimeOffset.Now.ToUnixTimeSeconds();
-                var address = ZnnClient.DefaultKeyPair.Address;
+                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
 
                 if (!this.PageIndex.HasValue)
                     this.PageIndex = 0;
@@ -67,7 +67,7 @@ namespace ZenonCli.Commands
 
             protected override async Task ProcessAsync()
             {
-                var address = ZnnClient.DefaultKeyPair.Address;
+                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
                 var amount = ParseAmount(Amount!, Constants.CoinDecimals);
                 var duration = this.Duration;
 
@@ -108,7 +108,7 @@ namespace ZenonCli.Commands
 
             protected override async Task ProcessAsync()
             {
-                var address = ZnnClient.DefaultKeyPair.Address;
+                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
 
                 var hash = ParseHash(Id, "id");
 

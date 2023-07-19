@@ -16,7 +16,7 @@ namespace ZenonCli.Commands
 
             protected override async Task ProcessAsync()
             {
-                var address = ZnnClient.DefaultKeyPair.Address;
+                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
 
                 var tokenStandard = ParseTokenStandard(Zts);
                 if (tokenStandard != TokenStandard.ZnnZts ||

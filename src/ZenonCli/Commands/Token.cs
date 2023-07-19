@@ -315,7 +315,7 @@ namespace ZenonCli.Commands
 
             protected override async Task ProcessAsync()
             {
-                var address = ZnnClient.DefaultKeyPair.Address;
+                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
                 var tokenStandard = ParseTokenStandard(TokenStandard);
                 var amount = BigInteger.Parse(Amount!);
 
@@ -343,7 +343,7 @@ namespace ZenonCli.Commands
             {
                 WriteInfo("Transferring ZTS token ownership ...");
 
-                var address = ZnnClient.DefaultKeyPair.Address;
+                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
                 var tokenStandard = ParseTokenStandard(this.TokenStandard);
                 var newOwnerAddress = ParseAddress(this.NewOwnerAddress, "newOwnerAddress");
                 var token = await GetTokenAsync(tokenStandard);
@@ -371,7 +371,7 @@ namespace ZenonCli.Commands
             {
                 WriteInfo("Disabling ZTS token mintable flag ...");
 
-                var address = ZnnClient.DefaultKeyPair.Address;
+                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
                 var tokenStandard = ParseTokenStandard(TokenStandard);
                 var token = await GetTokenAsync(tokenStandard);
 

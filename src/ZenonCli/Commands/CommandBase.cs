@@ -1,6 +1,8 @@
-﻿using System.Globalization;
+﻿using HidApi;
+using System.Globalization;
 using System.Numerics;
 using Zenon;
+using Zenon.LedgerWallet;
 using Zenon.Model.Embedded;
 using Zenon.Model.Primitives;
 using Zenon.Utils;
@@ -38,6 +40,11 @@ namespace ZenonCli.Commands
                 {
                     await DisconnectAsync((IConnectionOptions)this);
                 }
+
+                if (this is IKeyStoreOptions)
+                {
+                    await DisposeKeyStoreAsync((IKeyStoreOptions)this);
+                }
             }
             catch (Exception e)
             {
@@ -49,12 +56,37 @@ namespace ZenonCli.Commands
 
         #region IKeyStoreOptions
 
-        protected async Task InitKeyStoreAsync(IKeyStoreOptions options)
+        protected async Task DisposeKeyStoreAsync(IKeyStoreOptions options)
         {
             await Task.Run(() =>
             {
+                var disposableWallet = ZnnClient.DefaultKeyStore as IDisposable;
+
+                if (disposableWallet != null)
+                    disposableWallet.Dispose();
+
+                Hid.Exit(); //Call at the end of your program
+            });   
+        }
+
+        protected async Task InitKeyStoreAsync(IKeyStoreOptions options)
+        {
+            if (options.KeyStore == "nanos" ||
+                options.KeyStore == "nanosp" ||
+                options.KeyStore == "nanox" ||
+                options.KeyStore == "stax")
+            {
+                var productString = options.KeyStore.Insert(4, " ").Trim();
+                var deviceInfo = 
+                    Hid.Enumerate(0x2c97).First(x => String.Equals(x.ProductString, productString, StringComparison.OrdinalIgnoreCase));
+                
+                ZnnClient.DefaultKeyStore = LedgerWallet.Connect(deviceInfo.Path);
+                ZnnClient.DefaultKeyPair = await ZnnClient.DefaultKeyStore.GetSignerAsync(options.Index);
+            }
+            else
+            {
                 var allKeyStores =
-                    ZnnClient.KeyStoreManager.ListAllKeyStores();
+                ZnnClient.KeyStoreManager.ListAllKeyStores();
 
                 string? keyStorePath = null;
                 if (allKeyStores == null || allKeyStores.Length == 0)
@@ -106,8 +138,8 @@ namespace ZenonCli.Commands
                     ThrowError($"Invalid passphrase for keyStore {keyStorePath}");
                 }
 
-                ZnnClient.DefaultKeyPair = ZnnClient.DefaultKeyStore.GetKeyPair(index);
-            });
+                ZnnClient.DefaultKeyPair = await ZnnClient.DefaultKeyStore.GetSignerAsync(index);
+            }
         }
 
         #endregion
@@ -257,7 +289,7 @@ namespace ZenonCli.Commands
 
         public async Task AssertLiquidityGuardianAsync()
         {
-            var address = ZnnClient.DefaultKeyPair.Address;
+            var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
 
             var info = await ZnnClient.Embedded.Liquidity
                 .GetSecurityInfo();
@@ -270,7 +302,7 @@ namespace ZenonCli.Commands
 
         public async Task AssertLiquidityAdminAsync()
         {
-            var address = ZnnClient.DefaultKeyPair.Address;
+            var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
 
             var info = await ZnnClient.Embedded.Liquidity
                 .GetLiquidityInfo();
@@ -283,7 +315,7 @@ namespace ZenonCli.Commands
 
         public async Task AssertBridgeGuardianAsync()
         {
-            var address = ZnnClient.DefaultKeyPair.Address;
+            var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
 
             var info = await ZnnClient.Embedded.Bridge
                 .GetSecurityInfo();
@@ -296,7 +328,7 @@ namespace ZenonCli.Commands
 
         public async Task AssertBridgeAdminAsync()
         {
-            var address = ZnnClient.DefaultKeyPair.Address;
+            var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
 
             var info = await ZnnClient.Embedded.Bridge
                 .GetBridgeInfo();

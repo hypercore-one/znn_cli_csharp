@@ -18,7 +18,7 @@ namespace ZenonCli.Commands
 
                 protected override async Task ProcessAsync()
                 {
-                    var address = ZnnClient.DefaultKeyPair.Address;
+                    var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
                     var transactionHash = ParseHash(Hash);
 
                     var request = await ZnnClient.Embedded.Bridge
@@ -53,7 +53,7 @@ namespace ZenonCli.Commands
 
                 protected override async Task ProcessAsync()
                 {
-                    var address = ZnnClient.DefaultKeyPair.Address;
+                    var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
 
                     var redeemAllGlobally = Redeem.HasValue ? Redeem.Value : false;
 

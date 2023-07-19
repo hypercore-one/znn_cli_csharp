@@ -219,7 +219,7 @@ namespace ZenonCli.Commands
                 {
                     await AssertBridgeAdminAsync();
 
-                    var address = ZnnClient.DefaultKeyPair.Address;
+                    var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
 
                     if (this.Addresses == null)
                     {
@@ -304,7 +304,7 @@ namespace ZenonCli.Commands
                 {
                     await AssertBridgeAdminAsync();
 
-                    var address = ZnnClient.DefaultKeyPair.Address;
+                    var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
                     var newAdmin = ParseAddress(this.Address);
 
                     await AssertUserAddressAsync(newAdmin);

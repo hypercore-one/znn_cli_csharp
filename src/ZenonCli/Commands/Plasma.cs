@@ -25,7 +25,7 @@ namespace ZenonCli.Commands
 
                 AssertPageRange(PageIndex.Value, PageSize.Value);
 
-                var address = ZnnClient.DefaultKeyPair.Address;
+                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
                 var fusionEntryList = await ZnnClient.Embedded.Plasma.GetEntriesByAddress(address,
                         this.PageIndex.Value, this.PageSize.Value);
 
@@ -105,7 +105,7 @@ namespace ZenonCli.Commands
 
             protected override async Task ProcessAsync()
             {
-                var address = ZnnClient.DefaultKeyPair.Address;
+                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
                 var id = ParseHash(Id, "id");
 
                 int pageIndex = 0;

@@ -75,7 +75,7 @@ namespace ZenonCli.Commands
 
             protected override async Task ProcessAsync()
             {
-                var address = ZnnClient.DefaultKeyPair.Address;
+                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
                 var hashLocked = ParseAddress(this.HashLockedAddress, "hashLockedAddress");
                 var tokenStandard = ParseTokenStandard(this.TokenStandard);
                 var keyMaxSize = Constants.HtlcPreimageMaxLength;
@@ -170,7 +170,7 @@ namespace ZenonCli.Commands
 
             protected override async Task ProcessAsync()
             {
-                var address = ZnnClient.DefaultKeyPair.Address;
+                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
                 var currentTime = DateTimeOffset.Now.ToUnixTimeSeconds();
 
                 var id = ParseHash(this.Id, "id");
@@ -220,7 +220,7 @@ namespace ZenonCli.Commands
 
             protected override async Task ProcessAsync()
             {
-                var address = ZnnClient.DefaultKeyPair.Address;
+                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
                 var currentTime = DateTimeOffset.Now.ToUnixTimeSeconds();
                 Hash preimageCheck;
 
@@ -381,7 +381,7 @@ namespace ZenonCli.Commands
 
             protected override async Task ProcessAsync()
             {
-                var address = ZnnClient.DefaultKeyPair.Address;
+                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
 
                 var id = ParseHash(this.Id, "id");
 
@@ -579,7 +579,7 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                var address = ZnnClient.DefaultKeyPair.Address;
+                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
 
                 await ZnnClient.Send(ZnnClient.Embedded.Htlc.AllowProxyUnlock());
 
@@ -593,7 +593,7 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                var address = ZnnClient.DefaultKeyPair.Address;
+                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
 
                 await ZnnClient.Send(ZnnClient.Embedded.Htlc.DenyProxyUnlock());
 

@@ -10,7 +10,7 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                var address = ZnnClient.DefaultKeyPair.Address;
+                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
                 var sentinels = await ZnnClient.Embedded.Sentinel.GetAllActive();
 
                 bool one = false;
@@ -43,7 +43,7 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                var address = ZnnClient.DefaultKeyPair.Address;
+                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
 
                 var accountInfo =
                     await ZnnClient.Ledger.GetAccountInfoByAddress(address);
@@ -77,7 +77,7 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                var address = ZnnClient.DefaultKeyPair.Address;
+                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
 
                 var entry =
                     await ZnnClient.Embedded.Sentinel.GetByOwner(address);
@@ -118,7 +118,7 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                var address = ZnnClient.DefaultKeyPair.Address;
+                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
                 var balance = await ZnnClient.Ledger.GetAccountInfoByAddress(address);
                 var depositedQsr =
                     await ZnnClient.Embedded.Sentinel.GetDepositedQsr(address);
@@ -146,7 +146,7 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                var address = ZnnClient.DefaultKeyPair.Address;
+                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
 
                 var depositedQsr =
                     await ZnnClient.Embedded.Sentinel.GetDepositedQsr(address);

@@ -229,7 +229,7 @@ namespace ZenonCli.Commands
 
             protected override async Task ProcessAsync()
             {
-                var address = ZnnClient.DefaultKeyPair.Address;
+                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
                 var months = this.Duration;
                 var duration = months * Constants.StakeTimeUnitSec;
                 var tokenStandard = ParseTokenStandard(TokenStandard);
@@ -286,7 +286,7 @@ namespace ZenonCli.Commands
             {
                 var id = ParseHash(Id, "id");
 
-                var address = ZnnClient.DefaultKeyPair.Address;
+                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
                 var list = await ZnnClient.Embedded.Liquidity
                     .GetLiquidityStakeEntriesByAddress(address);
 
@@ -329,7 +329,7 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                var address = ZnnClient.DefaultKeyPair.Address;
+                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
                 var uncollectedRewards =
                     await ZnnClient.Embedded.Liquidity.GetUncollectedReward(address);
 

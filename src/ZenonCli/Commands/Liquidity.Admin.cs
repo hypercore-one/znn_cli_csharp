@@ -58,7 +58,7 @@ namespace ZenonCli.Commands
                 {
                     await AssertLiquidityAdminAsync();
 
-                    var address = ZnnClient.DefaultKeyPair.Address;
+                    var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
                     var newAdmin = ParseAddress(this.Address);
 
                     await AssertUserAddressAsync(newAdmin);
@@ -88,7 +88,7 @@ namespace ZenonCli.Commands
                 {
                     await AssertLiquidityAdminAsync();
 
-                    var address = ZnnClient.DefaultKeyPair.Address;
+                    var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
 
                     if (this.Addresses == null)
                     {

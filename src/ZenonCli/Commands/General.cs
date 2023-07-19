@@ -45,7 +45,7 @@ namespace ZenonCli.Commands
 
             protected override async Task ProcessAsync()
             {
-                var address = ZnnClient.DefaultKeyPair.Address;
+                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
                 var recipient = ParseAddress(ToAddress);
                 var tokenStandard = ParseTokenStandard(TokenStandard);
                 var token = await GetTokenAsync(tokenStandard);
@@ -99,7 +99,7 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                var address = ZnnClient.DefaultKeyPair.Address;
+                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
 
                 var unreceived = await ZnnClient.Ledger
                     .GetUnreceivedBlocksByAddress(address, pageIndex: 0, pageSize: 5);
@@ -143,7 +143,7 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                var address = ZnnClient.DefaultKeyPair.Address;
+                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
 
                 var queue = new BlockingCollection<Hash>();
 
@@ -183,7 +183,7 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                var address = ZnnClient.DefaultKeyPair.Address;
+                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
 
                 var unreceived = await ZnnClient.Ledger
                     .GetUnreceivedBlocksByAddress(address, pageIndex: 0, pageSize: 5);
@@ -219,7 +219,7 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                var address = ZnnClient.DefaultKeyPair.Address;
+                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
 
                 var unconfirmed = await ZnnClient.Ledger
                     .GetUnconfirmedBlocksByAddress(address, pageIndex: 0, pageSize: 5);

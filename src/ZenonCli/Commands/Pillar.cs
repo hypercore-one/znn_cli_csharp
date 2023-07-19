@@ -41,7 +41,7 @@ namespace ZenonCli.Commands
 
             protected override async Task ProcessAsync()
             {
-                var address = ZnnClient.DefaultKeyPair.Address;
+                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
 
                 var producerAddress = ParseAddress(this.ProducerAddress, "producerAddress");
                 var rewardAddress = ParseAddress(this.RewardAddress, "rewardAddress");
@@ -190,7 +190,7 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                var address = ZnnClient.DefaultKeyPair.Address;
+                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
 
                 var balance = await ZnnClient.Ledger.GetAccountInfoByAddress(address);
                 var qsrAmount = await ZnnClient.Embedded.Pillar.GetQsrRegistrationCost();
@@ -220,7 +220,7 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                var address = ZnnClient.DefaultKeyPair.Address;
+                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
 
                 var depositedQsr =
                     await ZnnClient.Embedded.Pillar.GetDepositedQsr(address);
