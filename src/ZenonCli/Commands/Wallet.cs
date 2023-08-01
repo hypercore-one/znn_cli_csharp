@@ -105,7 +105,7 @@ namespace ZenonCli.Commands
 
                     var addresses = ZnnClient.DefaultKeyStore.DeriveAddressesByRange(this.Start, this.End);
 
-                for (int i = 0; i <= this.End - this.Start; i += 1)
+                    for (int i = 0; i <= this.End - this.Start; i += 1)
                     {
                         WriteInfo($"  {i + this.Start}\t{addresses[i]}");
                     }
