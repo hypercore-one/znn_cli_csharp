@@ -1,7 +1,7 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
 
-namespace ZenonCli
+namespace ZenonCli.Commands
 {
     internal static class Helper
     {
@@ -23,6 +23,18 @@ namespace ZenonCli
         public static byte[] GeneratePreimage(int length = 32)
         {
             return RandomNumberGenerator.GetBytes(length);
+        }
+
+        public static byte[] Combine(params byte[][] arrays)
+        {
+            byte[] ret = new byte[arrays.Sum(x => x.Length)];
+            int offset = 0;
+            foreach (byte[] data in arrays)
+            {
+                Buffer.BlockCopy(data, 0, ret, offset, data.Length);
+                offset += data.Length;
+            }
+            return ret;
         }
     }
 }
