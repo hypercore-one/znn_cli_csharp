@@ -4,8 +4,6 @@ on:
   push:
     branches: 
       - main
-      - bigint
-      - wallet
 
   workflow_dispatch:
   

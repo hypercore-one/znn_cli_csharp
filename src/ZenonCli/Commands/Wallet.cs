@@ -1,5 +1,6 @@
 ﻿using CommandLine;
 using Zenon.Model.Primitives;
+using Zenon.Wallet;
 
 namespace ZenonCli.Commands
 {
@@ -10,24 +11,21 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                await Task.Run(() =>
+                var walletDefinitions = await GetAllWalletDefinitionsAsync();
+
+                if (walletDefinitions.Count() != 0)
                 {
-                    var stores = ZnnClient.KeyStoreManager.ListAllKeyStores();
+                    WriteInfo("Available wallets:");
 
-                    if (stores.Length != 0)
+                    foreach (var walletDefinition in walletDefinitions)
                     {
-                        WriteInfo("Available keyStores:");
-
-                        foreach (var store in stores)
-                        {
-                            WriteInfo(Path.GetFileName(store));
-                        }
+                        WriteInfo(walletDefinition.WalletName);
                     }
-                    else
-                    {
-                        WriteInfo("No keyStores found");
-                    }
-                });
+                }
+                else
+                {
+                    WriteInfo("No wallets found");
+                }
             }
         }
 
@@ -44,9 +42,10 @@ namespace ZenonCli.Commands
             {
                 await Task.Run(() =>
                 {
-                    var keyStore = ZnnClient.KeyStoreManager.CreateNew(this.Passphrase, this.KeyStoreName);
+                    var keyStoreManager = new KeyStoreManager();
+                    var keyStoreDefinition = keyStoreManager!.CreateNew(Passphrase, KeyStoreName);
 
-                    WriteInfo($"keyStore successfully created: {Path.GetFileName(keyStore)}");
+                    WriteInfo($"keyStore successfully created: {keyStoreDefinition.WalletId}");
                 });
             }
         }
@@ -67,10 +66,10 @@ namespace ZenonCli.Commands
             {
                 await Task.Run(() =>
                 {
-                    var keyStore = ZnnClient.KeyStoreManager
-                        .CreateFromMnemonic(this.Mnemonic, this.Passphrase, this.KeyStoreName);
+                    var keyStoreManager = new KeyStoreManager();
+                    var keyStoreDefinition = keyStoreManager!.CreateFromMnemonic(Mnemonic, Passphrase, KeyStoreName);
 
-                    WriteInfo($"keyStore successfully from mnemonic: {Path.GetFileName(keyStore)}");
+                    WriteInfo($"Wallet successfully created from mnemonic: {keyStoreDefinition.WalletId}");
                 });
             }
         }
@@ -82,14 +81,14 @@ namespace ZenonCli.Commands
             {
                 await Task.Run(() =>
                 {
-                    var keyStore = ZnnClient.DefaultKeyStore as Zenon.Wallet.KeyStore;
+                    var keyStore = Wallet as KeyStore;
 
                     if (keyStore == null)
                     {
-                        WriteError("The command is not supported by this keyStore");
+                        WriteError("This command is not supported by this wallet");
                     }
 
-                    WriteInfo($"Mnemonic for keyStore File: {ZnnClient.DefaultKeyStorePath}");
+                    WriteInfo($"Mnemonic for wallet: {WalletDefinition!.WalletId}");
 
                     WriteInfo(keyStore!.Mnemonic);
                 });
@@ -107,18 +106,18 @@ namespace ZenonCli.Commands
 
             protected override async Task ProcessAsync()
             {
-                WriteInfo($"Addresses for keyStore File: {ZnnClient.DefaultKeyStorePath}");
+                WriteInfo($"Addresses for wallet: {WalletDefinition!.WalletName}");
 
                 var addresses = new List<Address>();
-                for (var i = this.Start; i <= this.End; i++)
+                for (var i = Start; i <= End; i++)
                 {
-                    var signer = await ZnnClient.DefaultKeyStore.GetSignerAsync(i);
+                    var signer = await Wallet!.GetAccountAsync(i);
                     addresses.Add(await signer.GetAddressAsync());
                 }
 
-                for (int i = 0; i <= this.End - this.Start; i += 1)
+                for (int i = 0; i <= End - Start; i += 1)
                 {
-                    WriteInfo($"  {i + this.Start}\t{addresses[i]}");
+                    WriteInfo($"  {i + Start}\t{addresses[i]}");
                 }
             }
         }
@@ -133,7 +132,14 @@ namespace ZenonCli.Commands
             {
                 await Task.Run(() =>
                 {
-                    File.Copy(ZnnClient.DefaultKeyStorePath, this.FilePath!);
+                    var keyStoreManager = WalletManager as KeyStoreManager;
+
+                    if (keyStoreManager == null)
+                    {
+                        WriteError("This command is not supported by this wallet");
+                    }
+
+                    File.Copy(WalletDefinition!.WalletId, FilePath!);
 
                     WriteInfo("Done! Check the current directory");
                 });

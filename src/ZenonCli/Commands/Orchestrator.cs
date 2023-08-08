@@ -17,7 +17,7 @@ namespace ZenonCli.Commands
             {
                 await AssertBridgeAdminAsync();
 
-                var tcList = await ZnnClient.Embedded.Bridge
+                var tcList = await Zdk!.Embedded.Bridge
                     .GetTimeChallengesInfo();
 
                 var tc = tcList.List
@@ -26,8 +26,8 @@ namespace ZenonCli.Commands
 
                 if (tc != null && tc.ParamsHash != Hash.Empty)
                 {
-                    var frontierMomentum = await ZnnClient.Ledger.GetFrontierMomentum();
-                    var secInfo = await ZnnClient.Embedded.Bridge.GetSecurityInfo();
+                    var frontierMomentum = await Zdk!.Ledger.GetFrontierMomentum();
+                    var secInfo = await Zdk!.Embedded.Bridge.GetSecurityInfo();
 
                     if (tc.ChallengeStartHeight + secInfo.AdministratorDelay > frontierMomentum.Height)
                     {
@@ -60,7 +60,7 @@ namespace ZenonCli.Commands
                 }
 
                 // Use signature value '1' to circumvent the empty string unpack issue.
-                await ZnnClient.Send(ZnnClient.Embedded.Bridge.ChangeTssECDSAPubKey(this.PubKey, "1", "1"));
+                await Zdk!.SendAsync(Zdk!.Embedded.Bridge.ChangeTssECDSAPubKey(this.PubKey, "1", "1"));
                 WriteInfo("Done");
             }
         }
@@ -82,7 +82,7 @@ namespace ZenonCli.Commands
                 var signature = Signature ?? "1";
 
                 WriteInfo("Halting bridge operations ...");
-                await ZnnClient.Send(ZnnClient.Embedded.Bridge.Halt(signature));
+                await Zdk!.SendAsync(Zdk!.Embedded.Bridge.Halt(signature));
                 WriteInfo("Done");
             }
         }

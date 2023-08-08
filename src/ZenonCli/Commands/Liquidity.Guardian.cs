@@ -21,14 +21,14 @@ namespace ZenonCli.Commands
 
                     await AssertUserAddressAsync(newAdmin);
 
-                    var currentAdmin = (await ZnnClient.Embedded.Liquidity.GetLiquidityInfo()).Administrator;
+                    var currentAdmin = (await Zdk!.Embedded.Liquidity.GetLiquidityInfo()).Administrator;
 
                     if (currentAdmin == Zenon.Model.Primitives.Address.EmptyAddress)
                     {
                         WriteInfo("Proposing new liquidity administrator ...");
                         var block =
-                            ZnnClient.Embedded.Liquidity.ProposeAdministrator(newAdmin);
-                        await ZnnClient.Send(block);
+                            Zdk!.Embedded.Liquidity.ProposeAdministrator(newAdmin);
+                        await Zdk!.SendAsync(block);
                         WriteInfo("Done");
                     }
                     else

@@ -2,7 +2,7 @@
 
 namespace ZenonCli.Options
 {
-    public interface IKeyStoreOptions
+    public interface IWalletOptions
     {
         [Option('p', "passphrase", HelpText = "Use this passphrase for the keyStore or enter it manually in a secure way")]
         public string? Passphrase { get; set; }

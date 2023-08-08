@@ -26,7 +26,7 @@ namespace ZenonCli.Commands
 
                 AssertPageRange(PageIndex.Value, PageSize.Value);
 
-                var tokenList = await ZnnClient.Embedded.Token.GetAll(PageIndex.Value, PageSize.Value);
+                var tokenList = await Zdk!.Embedded.Token.GetAll(PageIndex.Value, PageSize.Value);
 
                 foreach (var token in tokenList.List)
                 {
@@ -88,7 +88,7 @@ namespace ZenonCli.Commands
             {
                 var ownerAddress = ParseAddress(OwnerAddress, "ownerAddress");
 
-                var tokens = await ZnnClient.Embedded.Token.GetByOwner(ownerAddress);
+                var tokens = await Zdk!.Embedded.Token.GetByOwner(ownerAddress);
 
                 foreach (var token in tokens.List)
                 {
@@ -254,8 +254,8 @@ namespace ZenonCli.Commands
 
                 WriteInfo($"Issuing {this.Name} ZTS token ...");
 
-                await ZnnClient.Send(
-                    ZnnClient.Embedded.Token.IssueToken(
+                await Zdk!.SendAsync(
+                    Zdk!.Embedded.Token.IssueToken(
                         this.Name,
                         this.Symbol,
                         this.Domain,
@@ -297,8 +297,8 @@ namespace ZenonCli.Commands
 
                 WriteInfo("Minting ZTS token ...");
 
-                await ZnnClient.Send(
-                    ZnnClient.Embedded.Token.MintToken(tokenStandard, amount, mintAddress));
+                await Zdk!.SendAsync(
+                    Zdk!.Embedded.Token.MintToken(tokenStandard, amount, mintAddress));
 
                 WriteInfo("Done");
             }
@@ -315,7 +315,7 @@ namespace ZenonCli.Commands
 
             protected override async Task ProcessAsync()
             {
-                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
+                var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
                 var tokenStandard = ParseTokenStandard(TokenStandard);
                 var amount = BigInteger.Parse(Amount!);
 
@@ -323,8 +323,8 @@ namespace ZenonCli.Commands
 
                 WriteInfo($"Burning {TokenStandard} ZTS token ...");
 
-                await ZnnClient.Send(
-                    ZnnClient.Embedded.Token.BurnToken(tokenStandard, amount));
+                await Zdk!.SendAsync(
+                    Zdk!.Embedded.Token.BurnToken(tokenStandard, amount));
 
                 WriteInfo("Done");
             }
@@ -343,7 +343,7 @@ namespace ZenonCli.Commands
             {
                 WriteInfo("Transferring ZTS token ownership ...");
 
-                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
+                var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
                 var tokenStandard = ParseTokenStandard(this.TokenStandard);
                 var newOwnerAddress = ParseAddress(this.NewOwnerAddress, "newOwnerAddress");
                 var token = await GetTokenAsync(tokenStandard);
@@ -354,7 +354,7 @@ namespace ZenonCli.Commands
                     return;
                 }
 
-                await ZnnClient.Send(ZnnClient.Embedded.Token.UpdateToken(
+                await Zdk!.SendAsync(Zdk!.Embedded.Token.UpdateToken(
                     tokenStandard, newOwnerAddress, token.IsMintable, token.IsBurnable));
 
                 WriteInfo("Done");
@@ -371,7 +371,7 @@ namespace ZenonCli.Commands
             {
                 WriteInfo("Disabling ZTS token mintable flag ...");
 
-                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
+                var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
                 var tokenStandard = ParseTokenStandard(TokenStandard);
                 var token = await GetTokenAsync(tokenStandard);
 
@@ -381,7 +381,7 @@ namespace ZenonCli.Commands
                     return;
                 }
 
-                await ZnnClient.Send(ZnnClient.Embedded.Token.UpdateToken(
+                await Zdk!.SendAsync(Zdk!.Embedded.Token.UpdateToken(
                     tokenStandard, token.Owner, false, token.IsBurnable));
 
                 WriteInfo("Done");

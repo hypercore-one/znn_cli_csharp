@@ -27,7 +27,7 @@ namespace ZenonCli.Commands
                 HtlcInfo htlc;
                 try
                 {
-                    htlc = await ZnnClient.Embedded.Htlc.GetById(id);
+                    htlc = await Zdk!.Embedded.Htlc.GetById(id);
                 }
                 catch
                 {
@@ -75,7 +75,7 @@ namespace ZenonCli.Commands
 
             protected override async Task ProcessAsync()
             {
-                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
+                var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
                 var hashLocked = ParseAddress(this.HashLockedAddress, "hashLockedAddress");
                 var tokenStandard = ParseTokenStandard(this.TokenStandard);
                 var keyMaxSize = Constants.HtlcPreimageMaxLength;
@@ -136,7 +136,7 @@ namespace ZenonCli.Commands
                 }
 
                 long expirationTime = this.ExpirationTime * 60 * 60; // convert to seconds
-                Momentum currentFrontierMomentum = await ZnnClient.Ledger.GetFrontierMomentum();
+                Momentum currentFrontierMomentum = await Zdk!.Ledger.GetFrontierMomentum();
                 long currentTime = currentFrontierMomentum.Timestamp;
                 expirationTime += currentTime;
 
@@ -152,10 +152,10 @@ namespace ZenonCli.Commands
                 WriteInfo($"   Can be reclaimed in {FormatDuration(expirationTime - currentTime)} by {address}");
                 WriteInfo($"   Can be unlocked by {hashLocked} with hashlock {hashLock} hashtype {this.HashType}");
 
-                var block = ZnnClient.Embedded.Htlc
+                var block = Zdk!.Embedded.Htlc
                     .Create(tokenStandard, amount, hashLocked, expirationTime, this.HashType.Value, keyMaxSize, hashLock.Bytes);
 
-                await ZnnClient.Send(block);
+                await Zdk!.SendAsync(block);
 
                 WriteInfo($"Submitted htlc with id {block.Hash}");
                 WriteInfo("Done");
@@ -170,7 +170,7 @@ namespace ZenonCli.Commands
 
             protected override async Task ProcessAsync()
             {
-                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
+                var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
                 var currentTime = DateTimeOffset.Now.ToUnixTimeSeconds();
 
                 var id = ParseHash(this.Id, "id");
@@ -178,7 +178,7 @@ namespace ZenonCli.Commands
                 HtlcInfo htlc;
                 try
                 {
-                    htlc = await ZnnClient.Embedded.Htlc.GetById(id);
+                    htlc = await Zdk!.Embedded.Htlc.GetById(id);
                 }
                 catch
                 {
@@ -202,7 +202,7 @@ namespace ZenonCli.Commands
 
                 WriteInfo($"Reclaiming htlc id {htlc.Id} with amount {FormatAmount(htlc.Amount, token.Decimals)} {token.Symbol}");
 
-                await ZnnClient.Send(ZnnClient.Embedded.Htlc.Reclaim(id));
+                await Zdk!.SendAsync(Zdk!.Embedded.Htlc.Reclaim(id));
 
                 WriteInfo("Done");
                 WriteInfo($"Use receiveAll to collect your htlc amount after 2 momentums");
@@ -220,7 +220,7 @@ namespace ZenonCli.Commands
 
             protected override async Task ProcessAsync()
             {
-                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
+                var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
                 var currentTime = DateTimeOffset.Now.ToUnixTimeSeconds();
                 Hash preimageCheck;
 
@@ -229,7 +229,7 @@ namespace ZenonCli.Commands
                 HtlcInfo htlc;
                 try
                 {
-                    htlc = await ZnnClient.Embedded.Htlc.GetById(id);
+                    htlc = await Zdk!.Embedded.Htlc.GetById(id);
                 }
                 catch
                 {
@@ -237,7 +237,7 @@ namespace ZenonCli.Commands
                     return;
                 }
 
-                if (!await ZnnClient.Embedded.Htlc.GetProxyUnlockStatus(htlc.HashLocked))
+                if (!await Zdk!.Embedded.Htlc.GetProxyUnlockStatus(htlc.HashLocked))
                 {
                     WriteError($"Cannot unlock htlc. Permission denied");
                     return;
@@ -282,7 +282,7 @@ namespace ZenonCli.Commands
 
                 WriteInfo($"Unlocking htlc id {htlc.Id} with amount {FormatAmount(htlc.Amount, token.Decimals)} {token.Symbol}");
 
-                await ZnnClient.Send(ZnnClient.Embedded.Htlc.Unlock(id, BytesUtils.FromHexString(this.Preimage)));
+                await Zdk!.SendAsync(Zdk!.Embedded.Htlc.Unlock(id, BytesUtils.FromHexString(this.Preimage)));
 
                 WriteInfo("Done");
                 WriteInfo($"Use receiveAll to collect your htlc amount after 2 momentums");
@@ -298,7 +298,7 @@ namespace ZenonCli.Commands
             protected override async Task ProcessAsync()
             {
                 var hash = ParseHash(this.BlockHash, "blockHash");
-                var block = await ZnnClient.Ledger.GetAccountBlockByHash(hash);
+                var block = await Zdk!.Ledger.GetAccountBlockByHash(hash);
 
                 if (block == null)
                 {
@@ -381,11 +381,11 @@ namespace ZenonCli.Commands
 
             protected override async Task ProcessAsync()
             {
-                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
+                var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
 
                 var id = ParseHash(this.Id, "id");
 
-                var htlc = await ZnnClient.Embedded.Htlc.GetById(id);
+                var htlc = await Zdk!.Embedded.Htlc.GetById(id);
 
                 if (htlc == null)
                 {
@@ -393,13 +393,13 @@ namespace ZenonCli.Commands
                     return;
                 }
 
-                while (await MonitorAsync(ZnnClient, address, new HtlcInfo[] { htlc }) != true)
+                while (await MonitorAsync(Zdk!, address, new HtlcInfo[] { htlc }) != true)
                 {
                     await Task.Delay(TimeSpan.FromSeconds(1));
                 }
             }
 
-            private async Task<bool> MonitorAsync(Znn znnClient, Address address, HtlcInfo[] htlcs)
+            private async Task<bool> MonitorAsync(Zdk zdk, Address address, HtlcInfo[] htlcs)
             {
                 foreach (var htlc in htlcs)
                 {
@@ -411,7 +411,7 @@ namespace ZenonCli.Commands
                 var queue = new List<Hash>();
 
                 WriteInfo("Subscribing for htlc-contract events ...");
-                await znnClient.Subscribe.ToAllAccountBlocks((json) =>
+                await zdk.Subscribe.ToAllAccountBlocks((json) =>
                 {
                     // Extract hashes for all new tx that interact with the htlc contract
                     for (var i = 0; i < json.Length; i += 1)
@@ -444,7 +444,7 @@ namespace ZenonCli.Commands
                             {
                                 try
                                 {
-                                    await znnClient.Send(znnClient.Embedded.Htlc.Reclaim(htlc.Id));
+                                    await zdk.SendAsync(zdk.Embedded.Htlc.Reclaim(htlc.Id));
                                     WriteInfo($"  Reclaiming htlc id {htlc.Id} now ...");
                                     htlcList.Remove(htlc);
                                 }
@@ -465,7 +465,7 @@ namespace ZenonCli.Commands
                     foreach (var hash in queue.ToArray())
                     {
                         // Identify if htlc tx are either UnlockHtlc or ReclaimHtlc
-                        var block = await znnClient.Ledger.GetAccountBlockByHash(hash);
+                        var block = await zdk.Ledger.GetAccountBlockByHash(hash);
 
                         if (block.BlockType != BlockTypeEnum.UserSend)
                             continue;
@@ -566,7 +566,7 @@ namespace ZenonCli.Commands
             {
                 var address = ParseAddress(this.Address);
 
-                var status = await ZnnClient.Embedded.Htlc.GetProxyUnlockStatus(address);
+                var status = await Zdk!.Embedded.Htlc.GetProxyUnlockStatus(address);
 
                 WriteInfo($"Htlc proxy unlocking is {(status ? "allowed" : "denied")} for {address}");
 
@@ -579,9 +579,9 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
+                var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
 
-                await ZnnClient.Send(ZnnClient.Embedded.Htlc.AllowProxyUnlock());
+                await Zdk!.SendAsync(Zdk!.Embedded.Htlc.AllowProxyUnlock());
 
                 WriteInfo($"Htlc proxy unlocking is allowed for ${address}");
                 WriteInfo("Done");
@@ -593,9 +593,9 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
+                var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
 
-                await ZnnClient.Send(ZnnClient.Embedded.Htlc.DenyProxyUnlock());
+                await Zdk!.SendAsync(Zdk!.Embedded.Htlc.DenyProxyUnlock());
 
                 WriteInfo($"Htlc proxy unlocking is denied for ${address}");
                 WriteInfo("Done");

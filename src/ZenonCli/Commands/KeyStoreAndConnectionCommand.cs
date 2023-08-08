@@ -2,7 +2,7 @@
 
 namespace ZenonCli.Commands
 {
-    public abstract class KeyStoreAndConnectionCommand : KeyStoreCommand, IConnectionOptions
+    public abstract class KeyStoreAndConnectionCommand : KeyStoreCommand, IClientOptions
     {
         public bool Verbose { get; set; }
         public string? Url { get; set; }

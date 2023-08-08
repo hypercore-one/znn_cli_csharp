@@ -27,7 +27,7 @@ namespace ZenonCli.Commands
 
                 protected override async Task ProcessAsync()
                 {
-                    var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
+                    var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
                     var tokenStandard = ParseTokenStandard(this.TokenStandard);
                     var token = await GetTokenAsync(tokenStandard);
                     var amount = ParseAmount(this.Amount!, token.Decimals);
@@ -41,7 +41,7 @@ namespace ZenonCli.Commands
                     await AssertBalanceAsync(address, tokenStandard, amount);
 
                     var info =
-                        await ZnnClient.Embedded.Bridge.GetNetworkInfo(this.NetworkClass!.Value, this.ChainId!.Value);
+                        await Zdk!.Embedded.Bridge.GetNetworkInfo(this.NetworkClass!.Value, this.ChainId!.Value);
 
                     if (info.NetworkClass == 0 || info.ChainId == 0)
                     {
@@ -64,9 +64,9 @@ namespace ZenonCli.Commands
                     }
 
                     WriteInfo("Wrapping token ...");
-                    var wrapToken = ZnnClient.Embedded.Bridge
+                    var wrapToken = Zdk!.Embedded.Bridge
                         .WrapToken(NetworkClass!.Value, ChainId!.Value, ToAddress, amount, tokenStandard);
-                    await ZnnClient.Send(wrapToken);
+                    await Zdk!.SendAsync(wrapToken);
                     WriteInfo("Done");
                 }
             }
@@ -76,7 +76,7 @@ namespace ZenonCli.Commands
             {
                 protected override async Task ProcessAsync()
                 {
-                    var list = await ZnnClient.Embedded.Bridge.GetAllWrapTokenRequests();
+                    var list = await Zdk!.Embedded.Bridge.GetAllWrapTokenRequests();
                     WriteInfo("All wrap token requests:");
                     WriteInfo($"Count: {list.Count}");
 
@@ -108,13 +108,13 @@ namespace ZenonCli.Commands
 
                     if (this.NetworkClass.HasValue && this.ChainId.HasValue)
                     {
-                        list = await ZnnClient.Embedded.Bridge
+                        list = await Zdk!.Embedded.Bridge
                             .GetAllWrapTokenRequestsByToAddressNetworkClassAndChainId(
                                 Address, NetworkClass!.Value, ChainId!.Value);
                     }
                     else
                     {
-                        list = await ZnnClient.Embedded.Bridge
+                        list = await Zdk!.Embedded.Bridge
                             .GetAllWrapTokenRequestsByToAddress(Address);
                     }
 
@@ -138,7 +138,7 @@ namespace ZenonCli.Commands
             {
                 protected override async Task ProcessAsync()
                 {
-                    var list = await ZnnClient.Embedded.Bridge
+                    var list = await Zdk!.Embedded.Bridge
                         .GetAllUnsignedWrapTokenRequests();
 
                     WriteInfo("All unsigned wrap token requests:");
@@ -165,7 +165,7 @@ namespace ZenonCli.Commands
                     var id = ParseHash(this.Id, "id");
 
                     var request =
-                        await ZnnClient.Embedded.Bridge.GetWrapTokenRequestById(id);
+                        await Zdk!.Embedded.Bridge.GetWrapTokenRequestById(id);
 
                     await WriteAsync(request);
                 }

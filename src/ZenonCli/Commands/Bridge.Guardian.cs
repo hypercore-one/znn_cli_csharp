@@ -21,14 +21,14 @@ namespace ZenonCli.Commands
 
                     await AssertUserAddressAsync(newAdmin);
 
-                    var currentAdmin = (await ZnnClient.Embedded.Bridge.GetBridgeInfo()).Administrator;
+                    var currentAdmin = (await Zdk!.Embedded.Bridge.GetBridgeInfo()).Administrator;
 
                     if (currentAdmin == Zenon.Model.Primitives.Address.EmptyAddress)
                     {
                         WriteInfo("Proposing new Bridge administrator ...");
                         var block =
-                            ZnnClient.Embedded.Bridge.ProposeAdministrator(newAdmin);
-                        await ZnnClient.Send(block);
+                            Zdk!.Embedded.Bridge.ProposeAdministrator(newAdmin);
+                        await Zdk!.SendAsync(block);
                         WriteInfo("Done");
                     }
                     else

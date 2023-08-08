@@ -16,7 +16,7 @@ namespace ZenonCli.Commands
 
             protected override async Task ProcessAsync()
             {
-                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
+                var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
 
                 var tokenStandard = ParseTokenStandard(Zts);
                 if (tokenStandard != TokenStandard.ZnnZts ||
@@ -38,7 +38,7 @@ namespace ZenonCli.Commands
                 await AssertBalanceAsync(address, tokenStandard, amount);
 
                 WriteInfo($"Donating {FormatAmount(amount, token.Decimals)} ${token.Symbol} to Accelerator-Z ...");
-                await ZnnClient.Send(ZnnClient.Embedded.Accelerator.Donate(amount, tokenStandard));
+                await Zdk!.SendAsync(Zdk!.Embedded.Accelerator.Donate(amount, tokenStandard));
                 WriteInfo("Done");
             }
         }

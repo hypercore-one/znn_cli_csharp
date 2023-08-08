@@ -45,7 +45,7 @@ namespace ZenonCli.Commands
 
             protected override async Task ProcessAsync()
             {
-                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
+                var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
                 var recipient = ParseAddress(ToAddress);
                 var tokenStandard = ParseTokenStandard(TokenStandard);
                 var token = await GetTokenAsync(tokenStandard);
@@ -70,7 +70,7 @@ namespace ZenonCli.Commands
                     WriteInfo($"Sending {FormatAmount(amount, token.Decimals)} {this.TokenStandard} to {this.ToAddress}");
                 }
 
-                await ZnnClient.Send(AccountBlockTemplate.Send(recipient, tokenStandard, amount, data));
+                await Zdk!.SendAsync(AccountBlockTemplate.Send(Zdk!.Client.ProtocolVersion, Zdk!.Client.ChainIdentifier, recipient, tokenStandard, amount, data));
 
                 WriteInfo("Done");
             }
@@ -88,7 +88,7 @@ namespace ZenonCli.Commands
 
                 WriteInfo("Please wait ...");
 
-                await ZnnClient.Send(AccountBlockTemplate.Receive(block));
+                await Zdk!.SendAsync(AccountBlockTemplate.Receive(Zdk!.Client.ProtocolVersion, Zdk!.Client.ChainIdentifier, block));
 
                 WriteInfo("Done");
             }
@@ -99,9 +99,9 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
+                var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
 
-                var unreceived = await ZnnClient.Ledger
+                var unreceived = await Zdk!.Ledger
                     .GetUnreceivedBlocksByAddress(address, pageIndex: 0, pageSize: 5);
 
                 if (unreceived.Count == 0)
@@ -127,10 +127,10 @@ namespace ZenonCli.Commands
                 {
                     foreach (var block in unreceived.List)
                     {
-                        await ZnnClient.Send(AccountBlockTemplate.Receive(block.Hash));
+                        await Zdk!.SendAsync(AccountBlockTemplate.Receive(Zdk!.Client.ProtocolVersion, Zdk!.Client.ChainIdentifier, block.Hash));
                     }
 
-                    unreceived = await ZnnClient.Ledger
+                    unreceived = await Zdk!.Ledger
                         .GetUnreceivedBlocksByAddress(address, pageIndex: 0, pageSize: 5);
                 }
 
@@ -143,12 +143,12 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
+                var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
 
                 var queue = new BlockingCollection<Hash>();
 
                 WriteInfo("Subscribing for account-block events ...");
-                await ZnnClient.Subscribe.ToAllAccountBlocks((json) =>
+                await Zdk!.Subscribe.ToAllAccountBlocks((json) =>
                 {
                     for (var i = 0; i < json.Length; i += 1)
                     {
@@ -169,7 +169,7 @@ namespace ZenonCli.Commands
                     Hash? hash;
                     if (queue.TryTake(out hash))
                     {
-                        var template = await ZnnClient.Send(AccountBlockTemplate.Receive(hash));
+                        var template = await Zdk!.SendAsync(AccountBlockTemplate.Receive(Zdk!.Client.ProtocolVersion, Zdk!.Client.ChainIdentifier, hash));
                         WriteInfo($"successfully received {hash}. Receive-block-hash {template.Hash}");
                     }
 
@@ -183,9 +183,9 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
+                var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
 
-                var unreceived = await ZnnClient.Ledger
+                var unreceived = await Zdk!.Ledger
                     .GetUnreceivedBlocksByAddress(address, pageIndex: 0, pageSize: 5);
 
                 if (unreceived.Count == 0)
@@ -219,9 +219,9 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
+                var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
 
-                var unconfirmed = await ZnnClient.Ledger
+                var unconfirmed = await Zdk!.Ledger
                     .GetUnconfirmedBlocksByAddress(address, pageIndex: 0, pageSize: 5);
 
                 if (unconfirmed.Count == 0)
@@ -251,7 +251,7 @@ namespace ZenonCli.Commands
             {
                 var address = ParseAddress(Address);
 
-                var info = await ZnnClient.Ledger
+                var info = await Zdk!.Ledger
                     .GetAccountInfoByAddress(address);
 
                 WriteInfo($"Balance for account-chain {info.Address} having height {info.BlockCount}");
@@ -273,7 +273,7 @@ namespace ZenonCli.Commands
             protected override async Task ProcessAsync()
             {
                 var currentFrontierMomentum =
-                    await ZnnClient.Ledger.GetFrontierMomentum();
+                    await Zdk!.Ledger.GetFrontierMomentum();
 
                 WriteInfo($"Momentum height: {currentFrontierMomentum.Height}");
                 WriteInfo($"Momentum hash: {currentFrontierMomentum.Hash}");

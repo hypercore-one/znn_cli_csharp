@@ -24,7 +24,7 @@ namespace ZenonCli.Commands
 
                 AssertPageRange(PageIndex.Value, PageSize.Value);
 
-                var result = await ZnnClient.Embedded.Spork
+                var result = await Zdk!.Embedded.Spork
                     .GetAll(PageIndex.Value, PageSize.Value);
 
                 if (result == null || result.Count == 0)
@@ -81,7 +81,7 @@ namespace ZenonCli.Commands
                 }
 
                 WriteInfo("Creating spork ...");
-                await ZnnClient.Send(ZnnClient.Embedded.Spork.CreateSpork(name, description));
+                await Zdk!.SendAsync(Zdk!.Embedded.Spork.CreateSpork(name, description));
                 WriteInfo("Done");
             }
         }
@@ -97,7 +97,7 @@ namespace ZenonCli.Commands
                 var id = ParseHash(Id, "id");
 
                 WriteInfo("Activating spork ...");
-                await ZnnClient.Send(ZnnClient.Embedded.Spork.ActivateSpork(id));
+                await Zdk!.SendAsync(Zdk!.Embedded.Spork.ActivateSpork(id));
                 WriteInfo("Done");
             }
         }

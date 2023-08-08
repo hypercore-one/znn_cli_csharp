@@ -17,7 +17,7 @@ namespace ZenonCli.Commands
                     await AssertLiquidityAdminAsync();
 
                     WriteInfo("Initializing liquidity emergency mode ...");
-                    await ZnnClient.Send(ZnnClient.Embedded.Liquidity.Emergency());
+                    await Zdk!.SendAsync(Zdk!.Embedded.Liquidity.Emergency());
                     WriteInfo("Done");
                 }
             }
@@ -30,7 +30,7 @@ namespace ZenonCli.Commands
                     await AssertLiquidityAdminAsync();
 
                     WriteInfo("Halting the liquidity ...");
-                    await ZnnClient.Send(ZnnClient.Embedded.Liquidity.SetIsHalted(true));
+                    await Zdk!.SendAsync(Zdk!.Embedded.Liquidity.SetIsHalted(true));
                     WriteInfo("Done");
                 }
             }
@@ -43,7 +43,7 @@ namespace ZenonCli.Commands
                     await AssertLiquidityAdminAsync();
 
                     WriteInfo("Unhalting the liquidity ...");
-                    await ZnnClient.Send(ZnnClient.Embedded.Liquidity.SetIsHalted(false));
+                    await Zdk!.SendAsync(Zdk!.Embedded.Liquidity.SetIsHalted(false));
                     WriteInfo("Done");
                 }
             }
@@ -58,7 +58,7 @@ namespace ZenonCli.Commands
                 {
                     await AssertLiquidityAdminAsync();
 
-                    var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
+                    var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
                     var newAdmin = ParseAddress(this.Address);
 
                     await AssertUserAddressAsync(newAdmin);
@@ -73,7 +73,7 @@ namespace ZenonCli.Commands
                         return;
 
                     WriteInfo("Changing liquidity administrator...");
-                    await ZnnClient.Send(ZnnClient.Embedded.Liquidity.ChangeAdministrator(newAdmin));
+                    await Zdk!.SendAsync(Zdk!.Embedded.Liquidity.ChangeAdministrator(newAdmin));
                     WriteInfo("Done");
                 }
             }
@@ -88,7 +88,7 @@ namespace ZenonCli.Commands
                 {
                     await AssertLiquidityAdminAsync();
 
-                    var address = await ZnnClient.DefaultKeyPair.GetAddressAsync();
+                    var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
 
                     if (this.Addresses == null)
                     {
@@ -119,7 +119,7 @@ namespace ZenonCli.Commands
                         return;
                     }
 
-                    var tcList = await ZnnClient.Embedded.Liquidity
+                    var tcList = await Zdk!.Embedded.Liquidity
                         .GetTimeChallengesInfo();
 
                     var tc = tcList.List
@@ -128,8 +128,8 @@ namespace ZenonCli.Commands
 
                     if (tc != null && tc.ParamsHash != Hash.Empty)
                     {
-                        var frontierMomentum = await ZnnClient.Ledger.GetFrontierMomentum();
-                        var secInfo = await ZnnClient.Embedded.Liquidity.GetSecurityInfo();
+                        var frontierMomentum = await Zdk!.Ledger.GetFrontierMomentum();
+                        var secInfo = await Zdk!.Embedded.Liquidity.GetSecurityInfo();
 
                         if (tc.ChallengeStartHeight + secInfo.AdministratorDelay > frontierMomentum.Height)
                         {
@@ -158,7 +158,7 @@ namespace ZenonCli.Commands
                         WriteInfo("Nominating guardians ...");
                     }
 
-                    await ZnnClient.Send(ZnnClient.Embedded.Liquidity.NominateGuardians(guardians));
+                    await Zdk!.SendAsync(Zdk!.Embedded.Liquidity.NominateGuardians(guardians));
                     WriteInfo("Done");
                 }
             }
@@ -169,8 +169,8 @@ namespace ZenonCli.Commands
                 protected override async Task ProcessAsync()
                 {
                     var block =
-                        ZnnClient.Embedded.Liquidity.UnlockLiquidityStakeEntries(TokenStandard.Parse("zts17d6yr02kh0r9qr566p7tg6"));
-                    block = await ZnnClient.Send(block);
+                        Zdk!.Embedded.Liquidity.UnlockLiquidityStakeEntries(TokenStandard.Parse("zts17d6yr02kh0r9qr566p7tg6"));
+                    block = await Zdk!.SendAsync(block);
                     WriteInfo(JsonConvert.SerializeObject(block.ToJson(), Formatting.Indented));
                 }
             }
@@ -189,8 +189,8 @@ namespace ZenonCli.Commands
                     await AssertLiquidityAdminAsync();
 
                     WriteInfo("Setting additional liquidity reward ...");
-                    var block = ZnnClient.Embedded.Liquidity.SetAdditionalReward(ZnnReward, QsrReward);
-                    await ZnnClient.Send(block);
+                    var block = Zdk!.Embedded.Liquidity.SetAdditionalReward(ZnnReward, QsrReward);
+                    await Zdk!.SendAsync(block);
                     WriteInfo("Done");
                 }
             }

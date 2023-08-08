@@ -2,7 +2,7 @@
 
 namespace ZenonCli.Commands
 {
-    public abstract class KeyStoreCommand : CommandBase, IKeyStoreOptions
+    public abstract class KeyStoreCommand : CommandBase, IWalletOptions
     {
         public string? Passphrase { get; set; }
         public string? KeyStore { get; set; }

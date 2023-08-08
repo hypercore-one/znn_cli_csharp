@@ -11,7 +11,7 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                var info = await ZnnClient.Embedded.Bridge.GetBridgeInfo();
+                var info = await Zdk!.Embedded.Bridge.GetBridgeInfo();
 
                 WriteInfo($"Bridge info:");
                 WriteInfo($"   Admnistrator: {info.Administrator}");
@@ -42,7 +42,7 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                var info = await ZnnClient.Embedded.Bridge.GetSecurityInfo();
+                var info = await Zdk!.Embedded.Bridge.GetSecurityInfo();
 
                 WriteInfo($"Security info:");
 
@@ -84,7 +84,7 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                var list = await ZnnClient.Embedded.Bridge.GetTimeChallengesInfo();
+                var list = await Zdk!.Embedded.Bridge.GetTimeChallengesInfo();
 
                 if (list == null || list.Count == 0)
                 {
@@ -109,7 +109,7 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                var info = await ZnnClient.Embedded.Bridge.GetOrchestratorInfo();
+                var info = await Zdk!.Embedded.Bridge.GetOrchestratorInfo();
 
                 WriteInfo($"Orchestrator info:");
                 WriteInfo($"   Window size: {info.WindowSize}");
@@ -132,16 +132,16 @@ namespace ZenonCli.Commands
                 {
                     var tokenStandard = ParseTokenStandard(this.TokenStandard);
                     var token = await GetTokenAsync(tokenStandard);
-                    var info = await ZnnClient.Embedded.Bridge.GetFeeTokenPair(tokenStandard);
+                    var info = await Zdk!.Embedded.Bridge.GetFeeTokenPair(tokenStandard);
 
                     WriteInfo($"Fees accumulated for {token.Symbol}: ${FormatAmount(info.AccumulatedFee, token.Decimals)}");
                 }
                 else
                 {
                     var znnInfo =
-                        await ZnnClient.Embedded.Bridge.GetFeeTokenPair(Zenon.Model.Primitives.TokenStandard.ZnnZts);
+                        await Zdk!.Embedded.Bridge.GetFeeTokenPair(Zenon.Model.Primitives.TokenStandard.ZnnZts);
                     var qsrInfo =
-                        await ZnnClient.Embedded.Bridge.GetFeeTokenPair(Zenon.Model.Primitives.TokenStandard.QsrZts);
+                        await Zdk!.Embedded.Bridge.GetFeeTokenPair(Zenon.Model.Primitives.TokenStandard.QsrZts);
 
                     WriteInfo($"Fees accumulated for ZNN: ${FormatAmount(znnInfo.AccumulatedFee, Constants.CoinDecimals)}");
 
