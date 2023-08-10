@@ -7,7 +7,7 @@ namespace ZenonCli.Commands
     public class Plasma
     {
         [Verb("plasma.list", HelpText = "List plasma fusion entries.")]
-        public class List : ConnectionCommand
+        public class List : WalletAndConnectionCommand
         {
             [Value(0, Default = 0, MetaName = "pageIndex")]
             public int? PageIndex { get; set; }
