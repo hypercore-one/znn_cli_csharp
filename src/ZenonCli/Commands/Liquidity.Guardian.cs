@@ -8,7 +8,7 @@ namespace ZenonCli.Commands
         {
             [Verb("liquidity.guardian.proposeAdmin",
                 HelpText = "Participate in a vote to elect a new liquidity administrator when the contract is in emergency mode")]
-            public class ProposeAdmin : KeyStoreAndConnectionCommand
+            public class ProposeAdmin : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "address", Required = true)]
                 public string? Address { get; set; }

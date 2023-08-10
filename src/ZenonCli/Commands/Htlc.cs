@@ -53,7 +53,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("htlc.create", HelpText = "Create an htlc.")]
-        public class Create : KeyStoreAndConnectionCommand
+        public class Create : WalletAndConnectionCommand
         {
             [Value(0, Required = true, MetaName = "hashLockedAddress")]
             public string? HashLockedAddress { get; set; }
@@ -163,7 +163,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("htlc.reclaim", HelpText = "Reclaim an expired htlc.")]
-        public class Reclaim : KeyStoreAndConnectionCommand
+        public class Reclaim : WalletAndConnectionCommand
         {
             [Value(0, Required = true, MetaName = "id", HelpText = "The id of the htlc to reclaim.")]
             public string? Id { get; set; }
@@ -210,7 +210,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("htlc.unlock", HelpText = "Unlock an active htlc.")]
-        public class Unlock : KeyStoreAndConnectionCommand
+        public class Unlock : WalletAndConnectionCommand
         {
             [Value(0, Required = true, MetaName = "id", HelpText = "The id of the htlc to unlock.")]
             public string? Id { get; set; }
@@ -374,7 +374,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("htlc.monitor", HelpText = "Monitor htlc by id -- automatically reclaim it or display its preimage.")]
-        public class Monitor : KeyStoreAndConnectionCommand
+        public class Monitor : WalletAndConnectionCommand
         {
             [Value(0, Required = true, MetaName = "id", HelpText = "The id of the htlc to monitor.")]
             public string? Id { get; set; }
@@ -575,7 +575,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("htlc.allowProxy", HelpText = "Allow htlc proxy unlock.")]
-        public class AllowProxyUnlock : KeyStoreAndConnectionCommand
+        public class AllowProxyUnlock : WalletAndConnectionCommand
         {
             protected override async Task ProcessAsync()
             {
@@ -589,7 +589,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("htlc.denyProxy", HelpText = "Deny htlc proxy unlock.")]
-        public class DenyProxyUnlock : KeyStoreAndConnectionCommand
+        public class DenyProxyUnlock : WalletAndConnectionCommand
         {
             protected override async Task ProcessAsync()
             {

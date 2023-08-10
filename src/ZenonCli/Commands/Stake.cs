@@ -7,7 +7,7 @@ namespace ZenonCli.Commands
     public class Stake
     {
         [Verb("stake.list", HelpText = "List all stakes.")]
-        public class List : ConnectionCommand
+        public class List : WalletAndConnectionCommand
         {
             [Value(0, Default = 0, MetaName = "pageIndex")]
             public int? PageIndex { get; set; }
@@ -57,7 +57,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("stake.register", HelpText = "Register stake.")]
-        public class Register : KeyStoreAndConnectionCommand
+        public class Register : WalletAndConnectionCommand
         {
             [Value(0, Required = true, MetaName = "amount")]
             public string? Amount { get; set; }
@@ -101,7 +101,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("stake.revoke", HelpText = "Revoke stake.")]
-        public class Revoke : KeyStoreAndConnectionCommand
+        public class Revoke : WalletAndConnectionCommand
         {
             [Value(0, Required = true, MetaName = "id")]
             public string? Id { get; set; }
@@ -155,7 +155,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("stake.collect", HelpText = "Collect staking rewards.")]
-        public class Collect : KeyStoreAndConnectionCommand
+        public class Collect : WalletAndConnectionCommand
         {
             protected override async Task ProcessAsync()
             {

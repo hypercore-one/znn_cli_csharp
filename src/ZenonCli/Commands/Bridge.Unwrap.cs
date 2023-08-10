@@ -8,7 +8,7 @@ namespace ZenonCli.Commands
         public class Unwrap
         {
             [Verb("bridge.unwrap.redeem", HelpText = "Redeem a pending unwrap request for any recipient.")]
-            public class Redeem : KeyStoreAndConnectionCommand
+            public class Redeem : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "hash", Required = true, HelpText = "The transaction hash")]
                 public string? Hash { get; set; }
@@ -46,7 +46,7 @@ namespace ZenonCli.Commands
             }
 
             [Verb("bridge.unwrap.redeemAll", HelpText = "Redeem all pending unwrap requests for yourself or all addresses.")]
-            public class RedeemAll : KeyStoreAndConnectionCommand
+            public class RedeemAll : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "redeem", Default = false, HelpText = "If the boolean is true, all unredeemed transactions will be redeemed")]
                 public bool? Redeem { get; set; }

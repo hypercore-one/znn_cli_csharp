@@ -8,7 +8,7 @@ namespace ZenonCli.Commands
         public class Wrap
         {
             [Verb("bridge.wrap.token", HelpText = "Wrap assets for an EVM-compatible network.")]
-            public class Token : KeyStoreAndConnectionCommand
+            public class Token : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "networkClass", Required = true, HelpText = "The class of the destination network")]
                 public int? NetworkClass { get; set; }

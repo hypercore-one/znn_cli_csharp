@@ -62,7 +62,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("plasma.fuse", HelpText = "Fuse QSR to an address to generate plasma.")]
-        public class Fuse : KeyStoreAndConnectionCommand
+        public class Fuse : WalletAndConnectionCommand
         {
             [Value(0, Required = true, MetaName = "toAddress")]
             public string? ToAddress { get; set; }
@@ -98,7 +98,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("plasma.cancel", HelpText = "Cancel a plasma fusion and receive the QSR back.")]
-        public class Cancel : KeyStoreAndConnectionCommand
+        public class Cancel : WalletAndConnectionCommand
         {
             [Value(0, Required = true, MetaName = "id")]
             public string? Id { get; set; }

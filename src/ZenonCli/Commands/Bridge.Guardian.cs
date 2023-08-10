@@ -8,7 +8,7 @@ namespace ZenonCli.Commands
         {
             [Verb("bridge.guardian.proposeAdmin",
                 HelpText = "Participate in a vote to elect a new bridge administrator when the bridge is in Emergency mode.")]
-            public class ProposeAdministrator : KeyStoreAndConnectionCommand
+            public class ProposeAdministrator : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "address", Required = true)]
                 public string? Address { get; set; }

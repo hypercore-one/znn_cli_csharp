@@ -11,7 +11,7 @@ namespace ZenonCli.Commands
         public class Admin
         {
             [Verb("bridge.admin.emergency", HelpText = "Put the bridge contract in emergency mode.")]
-            public class Emergency : KeyStoreAndConnectionCommand
+            public class Emergency : WalletAndConnectionCommand
             {
                 protected override async Task ProcessAsync()
                 {
@@ -24,7 +24,7 @@ namespace ZenonCli.Commands
             }
 
             [Verb("bridge.admin.halt", HelpText = "Halt bridge operations.")]
-            public class Halt : KeyStoreAndConnectionCommand
+            public class Halt : WalletAndConnectionCommand
             {
                 protected override async Task ProcessAsync()
                 {
@@ -38,7 +38,7 @@ namespace ZenonCli.Commands
             }
 
             [Verb("bridge.admin.unhalt", HelpText = "Unhalt bridge operations.")]
-            public class Unhalt : KeyStoreAndConnectionCommand
+            public class Unhalt : WalletAndConnectionCommand
             {
                 protected override async Task ProcessAsync()
                 {
@@ -51,7 +51,7 @@ namespace ZenonCli.Commands
             }
 
             [Verb("bridge.admin.enableKeyGen", HelpText = "Enable bridge key generation.")]
-            public class EnableKeyGen : KeyStoreAndConnectionCommand
+            public class EnableKeyGen : WalletAndConnectionCommand
             {
                 protected override async Task ProcessAsync()
                 {
@@ -64,7 +64,7 @@ namespace ZenonCli.Commands
             }
 
             [Verb("bridge.admin.disableKeyGen", HelpText = "Disable bridge key generation.")]
-            public class DisableKeyGen : KeyStoreAndConnectionCommand
+            public class DisableKeyGen : WalletAndConnectionCommand
             {
                 protected override async Task ProcessAsync()
                 {
@@ -77,7 +77,7 @@ namespace ZenonCli.Commands
             }
 
             [Verb("bridge.admin.setTokenPair", HelpText = "Set a token pair to enable bridging the asset")]
-            public class SetTokenPair : KeyStoreAndConnectionCommand
+            public class SetTokenPair : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "networkClass", Required = true)]
                 public int? NetworkClass { get; set; }
@@ -154,7 +154,7 @@ namespace ZenonCli.Commands
             }
 
             [Verb("bridge.admin.removeTokenPair", HelpText = "Remove a token pair to disable bridging the asset")]
-            public class RemoveTokenPair : KeyStoreAndConnectionCommand
+            public class RemoveTokenPair : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "networkClass", Required = true)]
                 public int? NetworkClass { get; set; }
@@ -185,7 +185,7 @@ namespace ZenonCli.Commands
             }
 
             [Verb("bridge.admin.revokeUnwrapRequest", HelpText = "Revoke an unwrap request to prevent it from being redeemed.")]
-            public class Revoke : KeyStoreAndConnectionCommand
+            public class Revoke : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "transactionHash", Required = true, HelpText = "The hash of the transaction")]
                 public string? TransactionHash { get; set; }
@@ -210,7 +210,7 @@ namespace ZenonCli.Commands
             }
 
             [Verb("bridge.admin.nominateGuardians", HelpText = "Nominate bridge guardians.")]
-            public class NominateGuardians : KeyStoreAndConnectionCommand
+            public class NominateGuardians : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "addresses", Required = true)]
                 public IEnumerable<string>? Addresses { get; set; }
@@ -295,7 +295,7 @@ namespace ZenonCli.Commands
             }
 
             [Verb("bridge.admin.changeAdmin", HelpText = "Change bridge administrator.")]
-            public class ChangeAdministrator : KeyStoreAndConnectionCommand
+            public class ChangeAdministrator : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "address", Required = true)]
                 public string? Address { get; set; }
@@ -325,7 +325,7 @@ namespace ZenonCli.Commands
             }
 
             [Verb("bridge.admin.setMetadata", HelpText = "Set the bridge metadata.")]
-            public class SetMetadata : KeyStoreAndConnectionCommand
+            public class SetMetadata : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "metadata")]
                 public string? Metadata { get; set; }
@@ -343,7 +343,7 @@ namespace ZenonCli.Commands
             }
 
             [Verb("bridge.admin.setOrchestratorInfo", HelpText = "Get the bridge information.")]
-            public class SetOrchestratorInfo : KeyStoreAndConnectionCommand
+            public class SetOrchestratorInfo : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "windowSize", Required = true, HelpText = "Size in momentums of a window used in the orchestrator to determine which signing ceremony should occur, wrap or unwrap request and to determine the key sign ceremony timeout")]
                 public long? WindowSize { get; set; }
@@ -371,7 +371,7 @@ namespace ZenonCli.Commands
             }
 
             [Verb("bridge.admin.setNetwork", HelpText = "Configure network parameters to allow bridging.")]
-            public class SetNetwork : KeyStoreAndConnectionCommand
+            public class SetNetwork : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "networkClass", Required = true)]
                 public int? NetworkClass { get; set; }
@@ -431,7 +431,7 @@ namespace ZenonCli.Commands
             }
 
             [Verb("bridge.admin.removeNetwork", HelpText = "Remove a network to disable bridging.")]
-            public class Remove : KeyStoreAndConnectionCommand
+            public class Remove : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "networkClass", Required = true)]
                 public int? NetworkClass { get; set; }
@@ -466,7 +466,7 @@ namespace ZenonCli.Commands
             }
 
             [Verb("bridge.admin.setNetworkMetadata", HelpText = "Set network metadata.")]
-            public class SetNetworkMetadata : KeyStoreAndConnectionCommand
+            public class SetNetworkMetadata : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "networkClass", Required = true)]
                 public int? NetworkClass { get; set; }
@@ -505,7 +505,7 @@ namespace ZenonCli.Commands
             }
 
             [Verb("bridge.admin.setRedeemDelay", HelpText = "Set the redeem delay in momentums.")]
-            public class SetRedeemDelay : KeyStoreAndConnectionCommand
+            public class SetRedeemDelay : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "redeemDelay", Required = true)]
                 public long? RedeemDelay { get; set; }

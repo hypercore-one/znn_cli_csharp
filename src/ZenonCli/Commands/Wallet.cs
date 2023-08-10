@@ -75,7 +75,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("wallet.dumpMnemonic", HelpText = "Dump the mnemonic of a wallet.")]
-        public class DumpMnemonic : KeyStoreCommand
+        public class DumpMnemonic : WalletCommand
         {
             protected override async Task ProcessAsync()
             {
@@ -96,7 +96,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("wallet.deriveAddresses", HelpText = "Derive one or more addresses of a wallet.")]
-        public class DeriveAddresses : KeyStoreCommand
+        public class DeriveAddresses : WalletCommand
         {
             [Value(0, MetaName = "start", Required = true)]
             public int Start { get; set; }
@@ -109,13 +109,13 @@ namespace ZenonCli.Commands
                 WriteInfo($"Addresses for wallet: {WalletDefinition!.WalletName}");
 
                 var addresses = new List<Address>();
-                for (var i = Start; i <= End; i++)
+                for (var i = Start; i < End; i++)
                 {
                     var signer = await Wallet!.GetAccountAsync(i);
                     addresses.Add(await signer.GetAddressAsync());
                 }
 
-                for (int i = 0; i <= End - Start; i += 1)
+                for (int i = 0; i < End - Start; i += 1)
                 {
                     WriteInfo($"  {i + Start}\t{addresses[i]}");
                 }
@@ -123,7 +123,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("wallet.export", HelpText = "Export wallet.")]
-        public class Export : KeyStoreCommand
+        public class Export : WalletCommand
         {
             [Value(0, MetaName = "filePath", Required = true)]
             public string? FilePath { get; set; }

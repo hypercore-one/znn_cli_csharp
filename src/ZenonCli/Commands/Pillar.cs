@@ -22,7 +22,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("pillar.register", HelpText = "Register pillar.")]
-        public class Register : KeyStoreAndConnectionCommand
+        public class Register : WalletAndConnectionCommand
         {
             [Value(0, Required = true, MetaName = "name")]
             public string? Name { get; set; }
@@ -101,7 +101,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("pillar.revoke", HelpText = "Revoke pillar.")]
-        public class Revoke : KeyStoreAndConnectionCommand
+        public class Revoke : WalletAndConnectionCommand
         {
             [Value(0, Required = true, MetaName = "name")]
             public string? Name { get; set; }
@@ -145,7 +145,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("pillar.delegate", HelpText = "Delegate to pillar.")]
-        public class Delegate : KeyStoreAndConnectionCommand
+        public class Delegate : WalletAndConnectionCommand
         {
             [Value(0, Required = true, MetaName = "name")]
             public string? Name { get; set; }
@@ -161,7 +161,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("pillar.undelegate", HelpText = "Undelegate pillar.")]
-        public class Undelegate : KeyStoreAndConnectionCommand
+        public class Undelegate : WalletAndConnectionCommand
         {
             protected override async Task ProcessAsync()
             {
@@ -174,7 +174,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("pillar.collect", HelpText = "Collect pillar rewards.")]
-        public class Collect : KeyStoreAndConnectionCommand
+        public class Collect : WalletAndConnectionCommand
         {
             protected override async Task ProcessAsync()
             {
@@ -186,7 +186,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("pillar.depositQsr", HelpText = "Deposit QSR to the pillar contract.")]
-        public class DepositQsr : KeyStoreAndConnectionCommand
+        public class DepositQsr : WalletAndConnectionCommand
         {
             protected override async Task ProcessAsync()
             {
@@ -216,7 +216,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("pillar.withdrawQsr", HelpText = "Withdraw deposited QSR from the pillar contract.")]
-        public class WithdrawQsr : KeyStoreAndConnectionCommand
+        public class WithdrawQsr : WalletAndConnectionCommand
         {
             protected override async Task ProcessAsync()
             {

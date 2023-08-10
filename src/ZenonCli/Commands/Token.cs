@@ -107,7 +107,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("token.issue", HelpText = "Issue token.")]
-        public class Issue : KeyStoreAndConnectionCommand
+        public class Issue : WalletAndConnectionCommand
         {
             [Value(0, Required = true, MetaName = "name")]
             public string? Name { get; set; }
@@ -271,7 +271,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("token.mint", HelpText = "Mint token.")]
-        public class Mint : KeyStoreAndConnectionCommand
+        public class Mint : WalletAndConnectionCommand
         {
             [Value(0, Required = true, MetaName = "tokenStandard")]
             public string? TokenStandard { get; set; }
@@ -305,7 +305,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("token.burn", HelpText = "Burn token.")]
-        public class Burn : KeyStoreAndConnectionCommand
+        public class Burn : WalletAndConnectionCommand
         {
             [Value(0, Required = true, MetaName = "tokenStandard")]
             public string? TokenStandard { get; set; }
@@ -331,7 +331,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("token.transferOwnership", HelpText = "Transfer token ownership to another address.")]
-        public class TransferOwnership : KeyStoreAndConnectionCommand
+        public class TransferOwnership : WalletAndConnectionCommand
         {
             [Value(0, Required = true, MetaName = "tokenStandard")]
             public string? TokenStandard { get; set; }
@@ -362,7 +362,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("token.disableMint", HelpText = "Disable a token's minting capability.")]
-        public class DisableMint : KeyStoreAndConnectionCommand
+        public class DisableMint : WalletAndConnectionCommand
         {
             [Value(0, Required = true, MetaName = "tokenStandard")]
             public string? TokenStandard { get; set; }

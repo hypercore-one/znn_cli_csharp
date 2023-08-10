@@ -10,7 +10,7 @@ namespace ZenonCli.Commands
         public class Admin
         {
             [Verb("liquidity.admin.emergency", HelpText = "Put the liquidity contract in emergency mode.")]
-            public class Emergency : KeyStoreAndConnectionCommand
+            public class Emergency : WalletAndConnectionCommand
             {
                 protected override async Task ProcessAsync()
                 {
@@ -23,7 +23,7 @@ namespace ZenonCli.Commands
             }
 
             [Verb("liquidity.admin.halt", HelpText = "Halt liquidity operations.")]
-            public class Halt : KeyStoreAndConnectionCommand
+            public class Halt : WalletAndConnectionCommand
             {
                 protected override async Task ProcessAsync()
                 {
@@ -36,7 +36,7 @@ namespace ZenonCli.Commands
             }
 
             [Verb("liquidity.admin.unhalt", HelpText = "Unhalt liquidity operations.")]
-            public class Unhalt : KeyStoreAndConnectionCommand
+            public class Unhalt : WalletAndConnectionCommand
             {
                 protected override async Task ProcessAsync()
                 {
@@ -49,7 +49,7 @@ namespace ZenonCli.Commands
             }
 
             [Verb("liquidity.admin.changeAdmin", HelpText = "Change liquidity administrator.")]
-            public class ChangeAdmin : KeyStoreAndConnectionCommand
+            public class ChangeAdmin : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "address", Required = true)]
                 public string? Address { get; set; }
@@ -79,7 +79,7 @@ namespace ZenonCli.Commands
             }
 
             [Verb("liquidity.admin.nominateGuardians", HelpText = "Nominate liquidity guardians.")]
-            public class NominateGuardians : KeyStoreAndConnectionCommand
+            public class NominateGuardians : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "addresses", Required = true)]
                 public IEnumerable<string>? Addresses { get; set; }
@@ -164,7 +164,7 @@ namespace ZenonCli.Commands
             }
 
             [Verb("liquidity.admin.unlockStakeEntries", HelpText = "Allows all staked entries to be cancelled immediately.")]
-            public class UnlockStakeEntries : KeyStoreAndConnectionCommand
+            public class UnlockStakeEntries : WalletAndConnectionCommand
             {
                 protected override async Task ProcessAsync()
                 {
@@ -176,7 +176,7 @@ namespace ZenonCli.Commands
             }
 
             [Verb("liquidity.admin.setAdditionalReward", HelpText = "Set additional liquidity reward percentages.")]
-            public class SetAdditionalReward : KeyStoreAndConnectionCommand
+            public class SetAdditionalReward : WalletAndConnectionCommand
             {
                 [Value(0, Required = true, MetaName = "znnRweard")]
                 public long ZnnReward { get; set; }
@@ -196,7 +196,7 @@ namespace ZenonCli.Commands
             }
 
             [Verb("liquidity.admin.setTokenTuple", HelpText = "Configure token tuples that can be staked.")]
-            public class SetTokenTuple : KeyStoreAndConnectionCommand
+            public class SetTokenTuple : WalletAndConnectionCommand
             {
                 protected override async Task ProcessAsync()
                 {

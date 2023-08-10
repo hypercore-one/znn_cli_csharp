@@ -6,7 +6,7 @@ namespace ZenonCli.Commands
     public class Az
     {
         [Verb("az.donate", HelpText = "Donate ZNN and QSR as fuel for the Mothership.")]
-        public class Donate : KeyStoreAndConnectionCommand
+        public class Donate : WalletAndConnectionCommand
         {
             [Value(0, Required = true, MetaName = "amount")]
             public string? Amount { get; set; }

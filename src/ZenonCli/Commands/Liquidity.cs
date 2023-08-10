@@ -216,7 +216,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("liquidity.stake", HelpText = "Stake LP tokens.")]
-        public class Stake : KeyStoreAndConnectionCommand
+        public class Stake : WalletAndConnectionCommand
         {
             [Value(0, Required = true, MetaName = "duration", HelpText = "Duration in months")]
             public long Duration { get; set; }
@@ -277,7 +277,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("liquidity.cancelStake", HelpText = "Cancel an unlocked stake and receive your LP tokens.")]
-        public class CancelStake : KeyStoreAndConnectionCommand
+        public class CancelStake : WalletAndConnectionCommand
         {
             [Value(0, MetaName = "id", Required = true)]
             public string? Id { get; set; }
@@ -325,7 +325,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("liquidity.collectRewards", HelpText = "Collect liquidity rewards.")]
-        public class CollectRewards : KeyStoreAndConnectionCommand
+        public class CollectRewards : WalletAndConnectionCommand
         {
             protected override async Task ProcessAsync()
             {

@@ -29,7 +29,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("send", HelpText = "Send tokens to an address.")]
-        public class Send : KeyStoreAndConnectionCommand
+        public class Send : WalletAndConnectionCommand
         {
             [Value(0, Required = true, MetaName = "toAddress")]
             public string? ToAddress { get; set; }
@@ -77,7 +77,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("receive", HelpText = "Manually receive a transaction by blockHash.")]
-        public class Receive : KeyStoreAndConnectionCommand
+        public class Receive : WalletAndConnectionCommand
         {
             [Value(0, MetaName = "blockHash", Required = true)]
             public string? BlockHash { get; set; }
@@ -95,7 +95,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("receiveAll", HelpText = "Receive all pending transactions.")]
-        public class ReceiveAll : KeyStoreAndConnectionCommand
+        public class ReceiveAll : WalletAndConnectionCommand
         {
             protected override async Task ProcessAsync()
             {
@@ -139,7 +139,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("autoreceive", HelpText = "Automaticly receive transactions.")]
-        public class Autoreceive : KeyStoreAndConnectionCommand
+        public class Autoreceive : WalletAndConnectionCommand
         {
             protected override async Task ProcessAsync()
             {
@@ -179,7 +179,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("unreceived", HelpText = "List pending/unreceived transactions.")]
-        public class Unreceived : KeyStoreAndConnectionCommand
+        public class Unreceived : WalletAndConnectionCommand
         {
             protected override async Task ProcessAsync()
             {
@@ -215,7 +215,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("unconfirmed", HelpText = "List unconfirmed transactions.")]
-        public class Unconfirmed : KeyStoreAndConnectionCommand
+        public class Unconfirmed : WalletAndConnectionCommand
         {
             protected override async Task ProcessAsync()
             {

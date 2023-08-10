@@ -48,7 +48,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("spork.create", HelpText = "Create a new spork.")]
-        public class Create : KeyStoreAndConnectionCommand
+        public class Create : WalletAndConnectionCommand
         {
             [Value(0, Required = true, MetaName = "name")]
             public string? Name { get; set; }
@@ -87,7 +87,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("spork.activate", HelpText = "Activate a spork.")]
-        public class Activate : KeyStoreAndConnectionCommand
+        public class Activate : WalletAndConnectionCommand
         {
             [Value(0, Required = true, MetaName = "id", HelpText = "The id of the spork to activate.")]
             public string? Id { get; set; }

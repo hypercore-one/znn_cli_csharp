@@ -6,7 +6,7 @@ namespace ZenonCli.Commands
     public class Sentinel
     {
         [Verb("sentinel.list", HelpText = "List all sentinels.")]
-        public class List : ConnectionCommand
+        public class List : WalletAndConnectionCommand
         {
             protected override async Task ProcessAsync()
             {
@@ -39,7 +39,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("sentinel.register", HelpText = "Register a sentinel.")]
-        public class Register : KeyStoreAndConnectionCommand
+        public class Register : WalletAndConnectionCommand
         {
             protected override async Task ProcessAsync()
             {
@@ -73,7 +73,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("sentinel.revoke", HelpText = "Revoke a sentinel.")]
-        public class Revoke : KeyStoreAndConnectionCommand
+        public class Revoke : WalletAndConnectionCommand
         {
             protected override async Task ProcessAsync()
             {
@@ -102,7 +102,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("sentinel.collect", HelpText = "Collect sentinel rewards.")]
-        public class Collect : KeyStoreAndConnectionCommand
+        public class Collect : WalletAndConnectionCommand
         {
             protected override async Task ProcessAsync()
             {
@@ -114,7 +114,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("sentinel.depositQsr", HelpText = "Deposit QSR to the sentinel contract.")]
-        public class DepositQsr : KeyStoreAndConnectionCommand
+        public class DepositQsr : WalletAndConnectionCommand
         {
             protected override async Task ProcessAsync()
             {
@@ -142,7 +142,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("sentinel.withdrawQsr", HelpText = "Withdraw deposited QSR from the sentinel contract.")]
-        public class WithdrawQsr : KeyStoreAndConnectionCommand
+        public class WithdrawQsr : WalletAndConnectionCommand
         {
             protected override async Task ProcessAsync()
             {
