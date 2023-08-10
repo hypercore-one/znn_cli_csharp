@@ -180,7 +180,7 @@ namespace ZenonCli.Commands
 
             var client = new WsClient(options.Url!, clientOptions);
             await client.ConnectAsync();
-            
+
             if (options.Chain != null)
             {
                 if (!String.Equals(options.Chain, "auto", StringComparison.OrdinalIgnoreCase))
