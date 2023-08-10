@@ -8,7 +8,7 @@ namespace ZenonCli.Options
         public string? Passphrase { get; set; }
 
         [Option('k', "keyStore", HelpText = "Select the local keyStore")]
-        public string? KeyStore { get; set; }
+        public string? WalletName { get; set; }
 
         [Option('i', "index", Default = 0, HelpText = "Address index")]
         public int Index { get; set; }

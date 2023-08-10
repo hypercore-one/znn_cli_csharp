@@ -85,20 +85,20 @@ namespace ZenonCli.Commands
             {
                 ThrowError("No wallets founds");
             }
-            else if (options.KeyStore != null)
+            else if (options.WalletName != null)
             {
                 string? walletName;
 
-                if (options.KeyStore == "nanos" ||
-                    options.KeyStore == "nanosp" ||
-                    options.KeyStore == "nanox" ||
-                    options.KeyStore == "stax")
+                if (options.WalletName == "nanos" ||
+                    options.WalletName == "nanosp" ||
+                    options.WalletName == "nanox" ||
+                    options.WalletName == "stax")
                 {
-                    walletName = options.KeyStore.Insert(4, " ").Trim();
+                    walletName = options.WalletName.Insert(4, " ").Trim();
                 }
                 else
                 {
-                    walletName = options.KeyStore;
+                    walletName = options.WalletName;
                 }
 
                 // Use user provided keyStore: make sure it exists
@@ -106,7 +106,7 @@ namespace ZenonCli.Commands
 
                 if (WalletDefinition == null)
                 {
-                    ThrowError($"The wallet {options.KeyStore} does not exist");
+                    ThrowError($"The wallet {options.WalletName} does not exist");
                 }
             }
             else if (walletDefinitions.Count() == 1)
@@ -124,10 +124,10 @@ namespace ZenonCli.Commands
 
             Zenon.Wallet.IWalletOptions? walletOptions;
 
-            if (options.KeyStore == "nanos" ||
-                options.KeyStore == "nanosp" ||
-                options.KeyStore == "nanox" ||
-                options.KeyStore == "stax")
+            if (options.WalletName == "nanos" ||
+                options.WalletName == "nanosp" ||
+                options.WalletName == "nanox" ||
+                options.WalletName == "stax")
             {
                 walletOptions = null;
             }
