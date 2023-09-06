@@ -134,7 +134,7 @@ namespace ZenonCli.Commands
                     var token = await GetTokenAsync(tokenStandard);
                     var info = await Zdk!.Embedded.Bridge.GetFeeTokenPair(tokenStandard);
 
-                    WriteInfo($"Fees accumulated for {token.Symbol}: ${FormatAmount(info.AccumulatedFee, token.Decimals)}");
+                    WriteInfo($"Fees accumulated for {token.Symbol}: {FormatAmount(info.AccumulatedFee, token.Decimals)}");
                 }
                 else
                 {
@@ -143,9 +143,9 @@ namespace ZenonCli.Commands
                     var qsrInfo =
                         await Zdk!.Embedded.Bridge.GetFeeTokenPair(Zenon.Model.Primitives.TokenStandard.QsrZts);
 
-                    WriteInfo($"Fees accumulated for ZNN: ${FormatAmount(znnInfo.AccumulatedFee, Constants.CoinDecimals)}");
+                    WriteInfo($"Fees accumulated for ZNN: {FormatAmount(znnInfo.AccumulatedFee, Constants.CoinDecimals)}");
 
-                    WriteInfo($"Fees accumulated for QSR: ${FormatAmount(qsrInfo.AccumulatedFee, Constants.CoinDecimals)}");
+                    WriteInfo($"Fees accumulated for QSR: {FormatAmount(qsrInfo.AccumulatedFee, Constants.CoinDecimals)}");
                 }
             }
         }

@@ -22,7 +22,7 @@ namespace ZenonCli.Commands
                 WriteInfo($"numGoroutine: {osInfo.numGoroutine}");
             }
 
-            private string FormatMemory(long size)
+            private string FormatMemory(ulong size)
             {
                 var sizeUnits = new string[] { "B", "kB", "MB", "GB", "TB" };
 

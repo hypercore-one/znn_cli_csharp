@@ -80,10 +80,10 @@ namespace ZenonCli.Commands
             public class SetTokenPair : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "networkClass", Required = true)]
-                public int? NetworkClass { get; set; }
+                public uint? NetworkClass { get; set; }
 
                 [Value(1, MetaName = "chainId", Required = true)]
-                public int? ChainId { get; set; }
+                public uint? ChainId { get; set; }
 
                 [Value(2, MetaName = "tokenStandard", Required = true)]
                 public string? TokenStandard { get; set; }
@@ -107,7 +107,7 @@ namespace ZenonCli.Commands
                 public int? FeePercentage { get; set; }
 
                 [Value(9, MetaName = "redeemDelay", Required = true)]
-                public int? RedeemDelay { get; set; }
+                public ulong? RedeemDelay { get; set; }
 
                 [Value(10, MetaName = "metadata", Required = true)]
                 public string? Metadata { get; set; }
@@ -157,10 +157,10 @@ namespace ZenonCli.Commands
             public class RemoveTokenPair : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "networkClass", Required = true)]
-                public int? NetworkClass { get; set; }
+                public uint? NetworkClass { get; set; }
 
                 [Value(1, MetaName = "chainId", Required = true)]
-                public int? ChainId { get; set; }
+                public uint? ChainId { get; set; }
 
                 [Value(2, MetaName = "tokenStandard", Required = true)]
                 public string? TokenStandard { get; set; }
@@ -191,7 +191,7 @@ namespace ZenonCli.Commands
                 public string? TransactionHash { get; set; }
 
                 [Value(1, MetaName = "logIndex", Required = true, HelpText = "The log index in the block of the transaction that locked/burned the funds")]
-                public int? LogIndex { get; set; }
+                public uint? LogIndex { get; set; }
 
                 protected override async Task ProcessAsync()
                 {
@@ -346,16 +346,16 @@ namespace ZenonCli.Commands
             public class SetOrchestratorInfo : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "windowSize", Required = true, HelpText = "Size in momentums of a window used in the orchestrator to determine which signing ceremony should occur, wrap or unwrap request and to determine the key sign ceremony timeout")]
-                public long? WindowSize { get; set; }
+                public ulong? WindowSize { get; set; }
 
                 [Value(1, MetaName = "keyGenThreshold", Required = true, HelpText = "Minimum number of participants of a key generation ceremony")]
-                public int? KeyGenThreshold { get; set; }
+                public uint? KeyGenThreshold { get; set; }
 
                 [Value(2, MetaName = "confirmationsToFinality", Required = true, HelpText = "Minimum number of momentums to consider a wrap request confirmed")]
-                public int? ConfirmationsToFinality { get; set; }
+                public uint? ConfirmationsToFinality { get; set; }
 
                 [Value(3, MetaName = "estimatedMomentumTime", Required = true, HelpText = "Time in seconds between momentums")]
-                public int? EstimatedMomentumTime { get; set; }
+                public uint? EstimatedMomentumTime { get; set; }
 
                 protected override async Task ProcessAsync()
                 {
@@ -374,10 +374,10 @@ namespace ZenonCli.Commands
             public class SetNetwork : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "networkClass", Required = true)]
-                public int? NetworkClass { get; set; }
+                public uint? NetworkClass { get; set; }
 
                 [Value(1, MetaName = "chainId", Required = true)]
-                public int? ChainId { get; set; }
+                public uint? ChainId { get; set; }
 
                 [Value(2, MetaName = "name", Required = true)]
                 public string? Name { get; set; }
@@ -434,10 +434,10 @@ namespace ZenonCli.Commands
             public class Remove : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "networkClass", Required = true)]
-                public int? NetworkClass { get; set; }
+                public uint? NetworkClass { get; set; }
 
                 [Value(1, MetaName = "chainId", Required = true)]
-                public int? ChainId { get; set; }
+                public uint? ChainId { get; set; }
 
                 protected override async Task ProcessAsync()
                 {
@@ -469,10 +469,10 @@ namespace ZenonCli.Commands
             public class SetNetworkMetadata : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "networkClass", Required = true)]
-                public int? NetworkClass { get; set; }
+                public uint? NetworkClass { get; set; }
 
                 [Value(1, MetaName = "chainId", Required = true)]
-                public int? ChainId { get; set; }
+                public uint? ChainId { get; set; }
 
                 [Value(2, MetaName = "metadata")]
                 public string? Metadata { get; set; }
@@ -508,7 +508,7 @@ namespace ZenonCli.Commands
             public class SetRedeemDelay : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "redeemDelay", Required = true)]
-                public long? RedeemDelay { get; set; }
+                public ulong? RedeemDelay { get; set; }
 
                 protected override async Task ProcessAsync()
                 {

@@ -10,10 +10,10 @@ namespace ZenonCli.Commands
         public class List : WalletAndConnectionCommand
         {
             [Value(0, Default = 0, MetaName = "pageIndex")]
-            public int? PageIndex { get; set; }
+            public uint? PageIndex { get; set; }
 
             [Value(1, Default = 25, MetaName = "PageSize")]
-            public int? PageSize { get; set; }
+            public uint? PageSize { get; set; }
 
             protected override async Task ProcessAsync()
             {
@@ -108,7 +108,7 @@ namespace ZenonCli.Commands
                 var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
                 var id = ParseHash(Id, "id");
 
-                int pageIndex = 0;
+                uint pageIndex = 0;
                 bool found = false;
                 bool gotError = false;
 

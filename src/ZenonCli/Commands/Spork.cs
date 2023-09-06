@@ -9,10 +9,10 @@ namespace ZenonCli.Commands
         public class List : ConnectionCommand
         {
             [Value(0, Default = 0, MetaName = "pageIndex")]
-            public int? PageIndex { get; set; }
+            public uint? PageIndex { get; set; }
 
             [Value(1, Default = 25, MetaName = "pageSize")]
-            public int? PageSize { get; set; }
+            public uint? PageSize { get; set; }
 
             protected override async Task ProcessAsync()
             {

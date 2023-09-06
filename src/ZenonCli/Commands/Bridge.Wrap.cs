@@ -11,10 +11,10 @@ namespace ZenonCli.Commands
             public class Token : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "networkClass", Required = true, HelpText = "The class of the destination network")]
-                public int? NetworkClass { get; set; }
+                public uint? NetworkClass { get; set; }
 
                 [Value(1, MetaName = "chainId", Required = true, HelpText = "The chain identifier of the destination network")]
-                public int? ChainId { get; set; }
+                public uint? ChainId { get; set; }
 
                 [Value(2, MetaName = "toAddress", Required = true, HelpText = "The address that can redeem the funds on the destination network")]
                 public string? ToAddress { get; set; }
@@ -97,10 +97,10 @@ namespace ZenonCli.Commands
                 public string? Address { get; set; }
 
                 [Value(1, MetaName = "networkClass", HelpText = "The class of the network")]
-                public int? NetworkClass { get; set; }
+                public uint? NetworkClass { get; set; }
 
                 [Value(2, MetaName = "chainId", HelpText = "The chain identifier of the network")]
-                public int? ChainId { get; set; }
+                public uint? ChainId { get; set; }
 
                 protected override async Task ProcessAsync()
                 {

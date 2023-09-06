@@ -197,7 +197,7 @@ namespace ZenonCli.Commands
 
                     Helper.Dispose(client);
 
-                    clientOptions.ChainIdentifier = momentum.ChainIdentifier;
+                    clientOptions.ChainIdentifier = (int)momentum.ChainIdentifier;
                     client = new WsClient(options.Url!, clientOptions);
                     await client.ConnectAsync();
                 }
@@ -279,7 +279,7 @@ namespace ZenonCli.Commands
 
         #region Assertions
 
-        public void AssertPageRange(int pageIndex, int pageSize)
+        public void AssertPageRange(uint pageIndex, uint pageSize)
         {
             if (pageIndex < 0)
             {

@@ -30,10 +30,10 @@ namespace ZenonCli.Commands
             public class Get : ConnectionCommand
             {
                 [Value(0, MetaName = "networkClass", Required = true)]
-                public int? NetworkClass { get; set; }
+                public uint? NetworkClass { get; set; }
 
                 [Value(1, MetaName = "chainId", Required = true)]
-                public int? ChainId { get; set; }
+                public uint? ChainId { get; set; }
 
                 protected override async Task ProcessAsync()
                 {
