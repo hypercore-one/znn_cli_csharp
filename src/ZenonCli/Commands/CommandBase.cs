@@ -122,16 +122,9 @@ namespace ZenonCli.Commands
                 ThrowError($"Please provide a wallet name. Use wallet.list to list all available wallets");
             }
 
-            Zenon.Wallet.IWalletOptions? walletOptions;
+            Zenon.Wallet.IWalletOptions? walletOptions = null;
 
-            if (options.WalletName == "nanos" ||
-                options.WalletName == "nanosp" ||
-                options.WalletName == "nanox" ||
-                options.WalletName == "stax")
-            {
-                walletOptions = null;
-            }
-            else
+            if (WalletDefinition is KeyStoreDefinition)
             {
                 string? passphrase = options.Passphrase;
 
