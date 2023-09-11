@@ -255,15 +255,17 @@ namespace ZenonCli.Commands
                     .GetAccountInfoByAddress(address);
 
                 WriteInfo($"Balance for account-chain {info.Address} having height {info.BlockCount}");
-                if (info.BalanceInfoList.Length == 0)
+                if (info.BalanceInfoList.Length == 0 || info.BalanceInfoList.All(x => x.Balance!.Value == 0))
                 {
                     WriteInfo($"  No coins or tokens at address {address}");
                 }
-
-                foreach (var entry in info.BalanceInfoList)
+                else
                 {
-                    WriteInfo($"  {FormatAmount(entry.Balance!.Value, entry.Token.Decimals)} {entry.Token.Symbol} {entry.Token.Domain} {entry.Token.TokenStandard}");
-                }
+                    foreach (var entry in info.BalanceInfoList)
+                    {
+                        WriteInfo($"  {FormatAmount(entry.Balance!.Value, entry.Token.Decimals)} {entry.Token.Symbol} {entry.Token.Domain} {entry.Token.TokenStandard}");
+                    }
+                }   
             }
         }
 
