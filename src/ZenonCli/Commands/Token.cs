@@ -11,10 +11,10 @@ namespace ZenonCli.Commands
         public class List : ConnectionCommand
         {
             [Value(0, Default = 0, MetaName = "pageIndex")]
-            public uint? PageIndex { get; set; }
+            public int? PageIndex { get; set; }
 
             [Value(1, Default = 25, MetaName = "PageSize")]
-            public uint? PageSize { get; set; }
+            public int? PageSize { get; set; }
 
             protected override async Task ProcessAsync()
             {
@@ -26,7 +26,7 @@ namespace ZenonCli.Commands
 
                 AssertPageRange(PageIndex.Value, PageSize.Value);
 
-                var tokenList = await Zdk!.Embedded.Token.GetAll(PageIndex.Value, PageSize.Value);
+                var tokenList = await Zdk!.Embedded.Token.GetAll((uint)PageIndex.Value, (uint)PageSize.Value);
 
                 foreach (var token in tokenList.List)
                 {

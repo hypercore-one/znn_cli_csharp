@@ -10,10 +10,10 @@ namespace ZenonCli.Commands
         public class List : WalletAndConnectionCommand
         {
             [Value(0, Default = 0, MetaName = "pageIndex")]
-            public uint? PageIndex { get; set; }
+            public int? PageIndex { get; set; }
 
             [Value(1, Default = 25, MetaName = "PageSize")]
-            public uint? PageSize { get; set; }
+            public int? PageSize { get; set; }
 
             protected override async Task ProcessAsync()
             {
@@ -27,7 +27,7 @@ namespace ZenonCli.Commands
 
                 var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
                 var fusionEntryList = await Zdk!.Embedded.Plasma.GetEntriesByAddress(address,
-                        this.PageIndex.Value, this.PageSize.Value);
+                        (uint)PageIndex.Value, (uint)PageSize.Value);
 
                 if (fusionEntryList.Count > 0)
                 {

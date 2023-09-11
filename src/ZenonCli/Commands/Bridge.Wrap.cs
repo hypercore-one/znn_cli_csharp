@@ -11,10 +11,10 @@ namespace ZenonCli.Commands
             public class Token : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "networkClass", Required = true, HelpText = "The class of the destination network")]
-                public uint? NetworkClass { get; set; }
+                public int? NetworkClass { get; set; }
 
                 [Value(1, MetaName = "chainId", Required = true, HelpText = "The chain identifier of the destination network")]
-                public uint? ChainId { get; set; }
+                public int? ChainId { get; set; }
 
                 [Value(2, MetaName = "toAddress", Required = true, HelpText = "The address that can redeem the funds on the destination network")]
                 public string? ToAddress { get; set; }
@@ -41,7 +41,7 @@ namespace ZenonCli.Commands
                     await AssertBalanceAsync(address, tokenStandard, amount);
 
                     var info =
-                        await Zdk!.Embedded.Bridge.GetNetworkInfo(this.NetworkClass!.Value, this.ChainId!.Value);
+                        await Zdk!.Embedded.Bridge.GetNetworkInfo((uint)NetworkClass!.Value, (uint)ChainId!.Value);
 
                     if (info.NetworkClass == 0 || info.ChainId == 0)
                     {
@@ -65,7 +65,7 @@ namespace ZenonCli.Commands
 
                     WriteInfo("Wrapping token ...");
                     var wrapToken = Zdk!.Embedded.Bridge
-                        .WrapToken(NetworkClass!.Value, ChainId!.Value, ToAddress, amount, tokenStandard);
+                        .WrapToken((uint)NetworkClass!.Value, (uint)ChainId!.Value, ToAddress, amount, tokenStandard);
                     await Zdk!.SendAsync(wrapToken);
                     WriteInfo("Done");
                 }
@@ -97,10 +97,10 @@ namespace ZenonCli.Commands
                 public string? Address { get; set; }
 
                 [Value(1, MetaName = "networkClass", HelpText = "The class of the network")]
-                public uint? NetworkClass { get; set; }
+                public int? NetworkClass { get; set; }
 
                 [Value(2, MetaName = "chainId", HelpText = "The chain identifier of the network")]
-                public uint? ChainId { get; set; }
+                public int? ChainId { get; set; }
 
                 protected override async Task ProcessAsync()
                 {
@@ -110,7 +110,7 @@ namespace ZenonCli.Commands
                     {
                         list = await Zdk!.Embedded.Bridge
                             .GetAllWrapTokenRequestsByToAddressNetworkClassAndChainId(
-                                Address, NetworkClass!.Value, ChainId!.Value);
+                                Address, (uint)NetworkClass!.Value, (uint)ChainId!.Value);
                     }
                     else
                     {

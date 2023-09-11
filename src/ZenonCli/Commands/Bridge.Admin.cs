@@ -80,10 +80,10 @@ namespace ZenonCli.Commands
             public class SetTokenPair : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "networkClass", Required = true)]
-                public uint? NetworkClass { get; set; }
+                public int? NetworkClass { get; set; }
 
                 [Value(1, MetaName = "chainId", Required = true)]
-                public uint? ChainId { get; set; }
+                public int? ChainId { get; set; }
 
                 [Value(2, MetaName = "tokenStandard", Required = true)]
                 public string? TokenStandard { get; set; }
@@ -107,7 +107,7 @@ namespace ZenonCli.Commands
                 public int? FeePercentage { get; set; }
 
                 [Value(9, MetaName = "redeemDelay", Required = true)]
-                public ulong? RedeemDelay { get; set; }
+                public long? RedeemDelay { get; set; }
 
                 [Value(10, MetaName = "metadata", Required = true)]
                 public string? Metadata { get; set; }
@@ -136,8 +136,8 @@ namespace ZenonCli.Commands
                     WriteInfo("Setting token pair ...");
 
                     var setTokenPair = Zdk!.Embedded.Bridge.SetTokenPair(
-                        NetworkClass!.Value,
-                        ChainId!.Value,
+                        (uint)NetworkClass!.Value,
+                        (uint)ChainId!.Value,
                         tokenStandard,
                         TokenAddress,
                         Bridgeable!.Value,
@@ -145,7 +145,7 @@ namespace ZenonCli.Commands
                         Owned!.Value,
                         minAmount,
                         feePercentage,
-                        RedeemDelay!.Value,
+                        (ulong)RedeemDelay!.Value,
                         Metadata);
                     await Zdk!.SendAsync(setTokenPair);
 
@@ -157,10 +157,10 @@ namespace ZenonCli.Commands
             public class RemoveTokenPair : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "networkClass", Required = true)]
-                public uint? NetworkClass { get; set; }
+                public int? NetworkClass { get; set; }
 
                 [Value(1, MetaName = "chainId", Required = true)]
-                public uint? ChainId { get; set; }
+                public int? ChainId { get; set; }
 
                 [Value(2, MetaName = "tokenStandard", Required = true)]
                 public string? TokenStandard { get; set; }
@@ -177,7 +177,7 @@ namespace ZenonCli.Commands
                     WriteInfo("Removing token pair ...");
 
                     var removeTokenPair = Zdk!.Embedded.Bridge
-                        .RemoveTokenPair(NetworkClass!.Value, ChainId!.Value, tokenStandard, TokenAddress);
+                        .RemoveTokenPair((uint)NetworkClass!.Value, (uint)ChainId!.Value, tokenStandard, TokenAddress);
                     await Zdk!.SendAsync(removeTokenPair);
 
                     WriteInfo("Done");
@@ -191,7 +191,7 @@ namespace ZenonCli.Commands
                 public string? TransactionHash { get; set; }
 
                 [Value(1, MetaName = "logIndex", Required = true, HelpText = "The log index in the block of the transaction that locked/burned the funds")]
-                public uint? LogIndex { get; set; }
+                public int? LogIndex { get; set; }
 
                 protected override async Task ProcessAsync()
                 {
@@ -202,7 +202,7 @@ namespace ZenonCli.Commands
                     WriteInfo("Revoking unwrap request ...");
 
                     var revokeUnwrapRequest =
-                        Zdk!.Embedded.Bridge.RevokeUnwrapRequest(transactionHash, LogIndex!.Value);
+                        Zdk!.Embedded.Bridge.RevokeUnwrapRequest(transactionHash, (uint)LogIndex!.Value);
                     await Zdk!.SendAsync(revokeUnwrapRequest);
 
                     WriteInfo("Done");
@@ -346,26 +346,26 @@ namespace ZenonCli.Commands
             public class SetOrchestratorInfo : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "windowSize", Required = true, HelpText = "Size in momentums of a window used in the orchestrator to determine which signing ceremony should occur, wrap or unwrap request and to determine the key sign ceremony timeout")]
-                public ulong? WindowSize { get; set; }
+                public long? WindowSize { get; set; }
 
                 [Value(1, MetaName = "keyGenThreshold", Required = true, HelpText = "Minimum number of participants of a key generation ceremony")]
-                public uint? KeyGenThreshold { get; set; }
+                public int? KeyGenThreshold { get; set; }
 
                 [Value(2, MetaName = "confirmationsToFinality", Required = true, HelpText = "Minimum number of momentums to consider a wrap request confirmed")]
-                public uint? ConfirmationsToFinality { get; set; }
+                public int? ConfirmationsToFinality { get; set; }
 
                 [Value(3, MetaName = "estimatedMomentumTime", Required = true, HelpText = "Time in seconds between momentums")]
-                public uint? EstimatedMomentumTime { get; set; }
+                public int? EstimatedMomentumTime { get; set; }
 
                 protected override async Task ProcessAsync()
                 {
                     await AssertBridgeAdminAsync();
 
                     WriteInfo("Setting orchestrator information...");
-                    await Zdk!.SendAsync(Zdk!.Embedded.Bridge.SetOrchestratorInfo(WindowSize!.Value,
-                        KeyGenThreshold!.Value,
-                        ConfirmationsToFinality!.Value,
-                        EstimatedMomentumTime!.Value));
+                    await Zdk!.SendAsync(Zdk!.Embedded.Bridge.SetOrchestratorInfo((ulong)WindowSize!.Value,
+                        (uint)KeyGenThreshold!.Value,
+                        (uint)ConfirmationsToFinality!.Value,
+                        (uint)EstimatedMomentumTime!.Value));
                     WriteInfo("Done");
                 }
             }
@@ -374,10 +374,10 @@ namespace ZenonCli.Commands
             public class SetNetwork : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "networkClass", Required = true)]
-                public uint? NetworkClass { get; set; }
+                public int? NetworkClass { get; set; }
 
                 [Value(1, MetaName = "chainId", Required = true)]
-                public uint? ChainId { get; set; }
+                public int? ChainId { get; set; }
 
                 [Value(2, MetaName = "name", Required = true)]
                 public string? Name { get; set; }
@@ -425,7 +425,7 @@ namespace ZenonCli.Commands
 
                     WriteInfo("Setting bridge network...");
                     await Zdk!.SendAsync(Zdk!.Embedded.Bridge.SetNetwork(
-                        networkClass, chainId, name, contractAddress, Metadata));
+                        (uint)networkClass, (uint)chainId, name, contractAddress, Metadata));
                     WriteInfo("Done");
                 }
             }
@@ -434,10 +434,10 @@ namespace ZenonCli.Commands
             public class Remove : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "networkClass", Required = true)]
-                public uint? NetworkClass { get; set; }
+                public int? NetworkClass { get; set; }
 
                 [Value(1, MetaName = "chainId", Required = true)]
-                public uint? ChainId { get; set; }
+                public int? ChainId { get; set; }
 
                 protected override async Task ProcessAsync()
                 {
@@ -460,7 +460,7 @@ namespace ZenonCli.Commands
 
 
                     WriteInfo("Removing bridge network...");
-                    await Zdk!.SendAsync(Zdk!.Embedded.Bridge.RemoveNetwork(networkClass, chainId));
+                    await Zdk!.SendAsync(Zdk!.Embedded.Bridge.RemoveNetwork((uint)networkClass, (uint)chainId));
                     WriteInfo("Done");
                 }
             }
@@ -469,10 +469,10 @@ namespace ZenonCli.Commands
             public class SetNetworkMetadata : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "networkClass", Required = true)]
-                public uint? NetworkClass { get; set; }
+                public int? NetworkClass { get; set; }
 
                 [Value(1, MetaName = "chainId", Required = true)]
-                public uint? ChainId { get; set; }
+                public int? ChainId { get; set; }
 
                 [Value(2, MetaName = "metadata")]
                 public string? Metadata { get; set; }
@@ -499,7 +499,7 @@ namespace ZenonCli.Commands
                     JsonConvert.DeserializeObject(Metadata!);
 
                     WriteInfo("Setting bridge network metadata...");
-                    await Zdk!.SendAsync(Zdk!.Embedded.Bridge.SetNetworkMetadata(networkClass, chainId, Metadata!));
+                    await Zdk!.SendAsync(Zdk!.Embedded.Bridge.SetNetworkMetadata((uint)networkClass, (uint)chainId, Metadata!));
                     WriteInfo("Done");
                 }
             }
@@ -508,14 +508,14 @@ namespace ZenonCli.Commands
             public class SetRedeemDelay : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "redeemDelay", Required = true)]
-                public ulong? RedeemDelay { get; set; }
+                public long? RedeemDelay { get; set; }
 
                 protected override async Task ProcessAsync()
                 {
                     await AssertBridgeAdminAsync();
 
                     WriteInfo("Setting bridge redeem delay...");
-                    await Zdk!.SendAsync(Zdk!.Embedded.Bridge.SetRedeemDelay(RedeemDelay!.Value));
+                    await Zdk!.SendAsync(Zdk!.Embedded.Bridge.SetRedeemDelay((ulong)RedeemDelay!.Value));
                     WriteInfo("Done");
                 }
             }

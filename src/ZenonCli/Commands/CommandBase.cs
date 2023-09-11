@@ -279,7 +279,7 @@ namespace ZenonCli.Commands
 
         #region Assertions
 
-        public void AssertPageRange(uint pageIndex, uint pageSize)
+        public void AssertPageRange(int pageIndex, int pageSize)
         {
             if (pageIndex < 0)
             {

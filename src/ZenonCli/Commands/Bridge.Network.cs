@@ -30,10 +30,10 @@ namespace ZenonCli.Commands
             public class Get : ConnectionCommand
             {
                 [Value(0, MetaName = "networkClass", Required = true)]
-                public uint? NetworkClass { get; set; }
+                public int? NetworkClass { get; set; }
 
                 [Value(1, MetaName = "chainId", Required = true)]
-                public uint? ChainId { get; set; }
+                public int? ChainId { get; set; }
 
                 protected override async Task ProcessAsync()
                 {
@@ -44,8 +44,8 @@ namespace ZenonCli.Commands
                     }
 
                     var network = await Zdk!.Embedded.Bridge.GetNetworkInfo(
-                        this.NetworkClass!.Value,
-                        this.ChainId!.Value);
+                        (uint)NetworkClass!.Value,
+                        (uint)ChainId!.Value);
 
                     if (network.NetworkClass == 0 || network.ChainId == 0)
                     {
