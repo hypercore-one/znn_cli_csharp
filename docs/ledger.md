@@ -19,13 +19,13 @@ Install the Ledger Zenon App on your Ledger device to manage ZNN, QSR and ZTS to
    - Your device will display **Processing…**
    - The app installation is confirmed.
 
-![nanos-znn-app](/assets/screenshots/nanos-znn-app.png)
+![nanos-znn-app](/docs/assets/screenshots/nanos-znn-app.png)
 
 ### **3. Connect device to your Zenon wallet**
 
 - Open the Zenon application on your Ledger device, the screen will display "Zenon is ready".
 
-![nanos-znn-app](/assets/screenshots/nanos-znn-ready.png)
+![nanos-znn-app](/docs/assets/screenshots/nanos-znn-ready.png)
 
 - [Download](https://github.com/HyperCore-One/znn_cli_csharp/releases) the latest Zenon CLI for Linux/MacOs/Windows.
 
