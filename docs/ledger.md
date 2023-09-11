@@ -1,3 +1,6 @@
+# Connect Ledger Nano S to your Zenon Wallet
+
+Install the Ledger Zenon App on your Ledger device to manage ZNN, QSR and ZTS tokens with the Zenpn CLI. The Ledger Zenon app is developed and supported by the [{H}yperCore One](https://github.com/hypercore-one) team.
 
 ### 1. Before you start
 
@@ -16,21 +19,30 @@
    - Your device will display **Processing…**
    - The app installation is confirmed.
 
+![nanos-znn-app](/assets/screenshots/nanos-znn-app.png)
+
 ### **3. Connect device to your Zenon wallet**
 
 - Open the Zenon application on your Ledger device, the screen will display "Zenon is ready".
 
-![WechatIMG106.jpeg](https://s1.ax1x.com/2018/07/27/PUeeCn.png)
+![nanos-znn-app](/assets/screenshots/nanos-znn-ready.png)
 
-- [Download](https://github.com/KingGorrin/znn_cli_csharp/releases) the latest Zenon CLI (znn-cli) for Linux/Mac or Windows.
+- [Download](https://github.com/HyperCore-One/znn_cli_csharp/releases) the latest Zenon CLI for Linux/MacOs/Windows.
 
-- Install the Zenon CLI by extracting the archive.
-- Open a command prompt and navigate to the directory containing the Zenon CLI. For example: `C:\znn-cli`.
-
+- Install the Zenon CLI by extracting the archive to a location on your desktop device.
+- Open a command prompt and change directory to the location of the Zenon CLI. For example: `C:\znn-cli`.
 
 ### **4. Use the Zenon wallet**
 
-- Your address is displayed on the ONT wallet. You can use it to receive ONT and ONG.
-- To send tokens,  press **Send**, then enter the amount and receiving address.
-- Verify and confirm all transaction details on your device display.
-- Press both buttons to sign the transaction.       
+- Your address can be displayed with the following command: `znn-cli wallet.deriveAddresses 0 1 -k "Nano S"`. You can use it to receive ZTS tokens.
+- To receive, execute the following command: `znn-cli receiveAll -k "Nano S" -u wss://my.hc1node.com:35998`.
+- To send 10 ZNN to z1qqjnwjjpnue8xmmpanz6csze6tcmtzzdtfsww7, execute the following command: `znn-cli send z1qqjnwjjpnue8xmmpanz6csze6tcmtzzdtfsww7 10 ZNN -k "Nano S" -u wss://my.hc1node.com:35998`.
+- Verify and confirm all transaction details on the ledger device.
+- Press both buttons to sign the transaction.
+
+### **5. Contact info**
+
+- Support: Go to the #dev-community channel in our Discord: https://discord.gg/aEW2UZvs
+- Name: [{H}yperCore One](https://github.com/hypercore-one)
+- Legal Entity: NOM Labz LLC
+- URL: [Zenon Network]http://zenon.network
