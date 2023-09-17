@@ -191,7 +191,7 @@ namespace ZenonCli.Commands
                 public string? TransactionHash { get; set; }
 
                 [Value(1, MetaName = "logIndex", Required = true, HelpText = "The log index in the block of the transaction that locked/burned the funds")]
-                public int? LogIndex { get; set; }
+                public long? LogIndex { get; set; }
 
                 protected override async Task ProcessAsync()
                 {

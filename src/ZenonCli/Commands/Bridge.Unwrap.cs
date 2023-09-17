@@ -14,7 +14,7 @@ namespace ZenonCli.Commands
                 public string? Hash { get; set; }
 
                 [Value(1, MetaName = "logIndex", Required = true, HelpText = "The log index")]
-                public int? LogIndex { get; set; }
+                public long? LogIndex { get; set; }
 
                 protected override async Task ProcessAsync()
                 {
@@ -190,7 +190,7 @@ namespace ZenonCli.Commands
                 public string? Hash { get; set; }
 
                 [Value(1, MetaName = "logIndex", Required = true, HelpText = "The log index")]
-                public int? LogIndex { get; set; }
+                public long? LogIndex { get; set; }
 
                 protected override async Task ProcessAsync()
                 {
