@@ -137,7 +137,7 @@ namespace ZenonCli.Commands
 
                 long expirationTime = this.ExpirationTime * 60 * 60; // convert to seconds
                 Momentum currentFrontierMomentum = await ZnnClient.Ledger.GetFrontierMomentum();
-                long currentTime = currentFrontierMomentum.Timestamp;
+                long currentTime = (long)currentFrontierMomentum.Timestamp;
                 expirationTime += currentTime;
 
                 if (this.HashLock != null)

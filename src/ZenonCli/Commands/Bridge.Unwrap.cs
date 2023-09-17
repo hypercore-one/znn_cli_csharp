@@ -14,7 +14,7 @@ namespace ZenonCli.Commands
                 public string? Hash { get; set; }
 
                 [Value(1, MetaName = "logIndex", Required = true, HelpText = "The log index")]
-                public int? LogIndex { get; set; }
+                public long? LogIndex { get; set; }
 
                 protected override async Task ProcessAsync()
                 {
@@ -22,7 +22,7 @@ namespace ZenonCli.Commands
                     var transactionHash = ParseHash(Hash);
 
                     var request = await ZnnClient.Embedded.Bridge
-                        .GetUnwrapTokenRequestByHashAndLog(transactionHash, LogIndex!.Value);
+                        .GetUnwrapTokenRequestByHashAndLog(transactionHash, (uint)LogIndex!.Value);
 
                     if (request.Redeemed == 0 && request.Revoked == 0)
                     {
@@ -190,14 +190,14 @@ namespace ZenonCli.Commands
                 public string? Hash { get; set; }
 
                 [Value(1, MetaName = "logIndex", Required = true, HelpText = "The log index")]
-                public int? LogIndex { get; set; }
+                public long? LogIndex { get; set; }
 
                 protected override async Task ProcessAsync()
                 {
                     var transactionHash = ParseHash(Hash);
 
                     var request = await ZnnClient.Embedded.Bridge
-                        .GetUnwrapTokenRequestByHashAndLog(transactionHash, LogIndex!.Value);
+                        .GetUnwrapTokenRequestByHashAndLog(transactionHash, (uint)LogIndex!.Value);
 
                     await WriteAsync(request);
                 }

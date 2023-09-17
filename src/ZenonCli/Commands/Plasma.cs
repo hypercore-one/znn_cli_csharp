@@ -27,7 +27,7 @@ namespace ZenonCli.Commands
 
                 var address = ZnnClient.DefaultKeyPair.Address;
                 var fusionEntryList = await ZnnClient.Embedded.Plasma.GetEntriesByAddress(address,
-                        this.PageIndex.Value, this.PageSize.Value);
+                        (uint)this.PageIndex.Value, (uint)this.PageSize.Value);
 
                 if (fusionEntryList.Count > 0)
                 {
@@ -131,7 +131,7 @@ namespace ZenonCli.Commands
                     }
                     pageIndex++;
                     fusions = await ZnnClient.Embedded.Plasma
-                        .GetEntriesByAddress(address, pageIndex: pageIndex);
+                        .GetEntriesByAddress(address, (uint)pageIndex);
                 }
 
                 if (!found)
