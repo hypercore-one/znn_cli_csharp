@@ -25,7 +25,7 @@ namespace ZenonCli.Commands
                 AssertPageRange(PageIndex.Value, PageSize.Value);
 
                 var result = await ZnnClient.Embedded.Spork
-                    .GetAll(PageIndex.Value, PageSize.Value);
+                    .GetAll((uint)PageIndex.Value, (uint)PageSize.Value);
 
                 if (result == null || result.Count == 0)
                 {

@@ -29,7 +29,7 @@ namespace ZenonCli.Commands
                 AssertPageRange(PageIndex.Value, PageSize.Value);
 
                 var stakeList = await ZnnClient.Embedded.Stake.GetEntriesByAddress(
-                    address, PageIndex.Value, PageSize.Value);
+                    address, (uint)PageIndex.Value, (uint)PageSize.Value);
 
                 if (stakeList.Count > 0)
                 {
@@ -117,7 +117,7 @@ namespace ZenonCli.Commands
                 bool one = false;
                 bool gotError = false;
 
-                var entries = await ZnnClient.Embedded.Stake.GetEntriesByAddress(address, pageIndex);
+                var entries = await ZnnClient.Embedded.Stake.GetEntriesByAddress(address, (uint)pageIndex);
 
                 while (entries.List.Length != 0)
                 {
@@ -134,7 +134,7 @@ namespace ZenonCli.Commands
                         }
                     }
                     pageIndex++;
-                    entries = await ZnnClient.Embedded.Stake.GetEntriesByAddress(address, pageIndex);
+                    entries = await ZnnClient.Embedded.Stake.GetEntriesByAddress(address, (uint)pageIndex);
                 }
 
                 if (gotError)

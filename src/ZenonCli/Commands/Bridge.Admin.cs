@@ -136,8 +136,8 @@ namespace ZenonCli.Commands
                     WriteInfo("Setting token pair ...");
 
                     var setTokenPair = ZnnClient.Embedded.Bridge.SetTokenPair(
-                        NetworkClass!.Value,
-                        ChainId!.Value,
+                        (uint)NetworkClass!.Value,
+                        (uint)ChainId!.Value,
                         tokenStandard,
                         TokenAddress,
                         Bridgeable!.Value,
@@ -145,7 +145,7 @@ namespace ZenonCli.Commands
                         Owned!.Value,
                         minAmount,
                         feePercentage,
-                        RedeemDelay!.Value,
+                        (ulong)RedeemDelay!.Value,
                         Metadata);
                     await ZnnClient.Send(setTokenPair);
 
@@ -177,7 +177,7 @@ namespace ZenonCli.Commands
                     WriteInfo("Removing token pair ...");
 
                     var removeTokenPair = ZnnClient.Embedded.Bridge
-                        .RemoveTokenPair(NetworkClass!.Value, ChainId!.Value, tokenStandard, TokenAddress);
+                        .RemoveTokenPair((uint)NetworkClass!.Value, (uint)ChainId!.Value, tokenStandard, TokenAddress);
                     await ZnnClient.Send(removeTokenPair);
 
                     WriteInfo("Done");
@@ -191,7 +191,7 @@ namespace ZenonCli.Commands
                 public string? TransactionHash { get; set; }
 
                 [Value(1, MetaName = "logIndex", Required = true, HelpText = "The log index in the block of the transaction that locked/burned the funds")]
-                public int? LogIndex { get; set; }
+                public long? LogIndex { get; set; }
 
                 protected override async Task ProcessAsync()
                 {
@@ -202,7 +202,7 @@ namespace ZenonCli.Commands
                     WriteInfo("Revoking unwrap request ...");
 
                     var revokeUnwrapRequest =
-                        ZnnClient.Embedded.Bridge.RevokeUnwrapRequest(transactionHash, LogIndex!.Value);
+                        ZnnClient.Embedded.Bridge.RevokeUnwrapRequest(transactionHash, (uint)LogIndex!.Value);
                     await ZnnClient.Send(revokeUnwrapRequest);
 
                     WriteInfo("Done");
@@ -362,10 +362,10 @@ namespace ZenonCli.Commands
                     await AssertBridgeAdminAsync();
 
                     WriteInfo("Setting orchestrator information...");
-                    await ZnnClient.Send(ZnnClient.Embedded.Bridge.SetOrchestratorInfo(WindowSize!.Value,
-                        KeyGenThreshold!.Value,
-                        ConfirmationsToFinality!.Value,
-                        EstimatedMomentumTime!.Value));
+                    await ZnnClient.Send(ZnnClient.Embedded.Bridge.SetOrchestratorInfo((ulong)WindowSize!.Value,
+                        (uint)KeyGenThreshold!.Value,
+                        (uint)ConfirmationsToFinality!.Value,
+                        (uint)EstimatedMomentumTime!.Value));
                     WriteInfo("Done");
                 }
             }
@@ -425,7 +425,7 @@ namespace ZenonCli.Commands
 
                     WriteInfo("Setting bridge network...");
                     await ZnnClient.Send(ZnnClient.Embedded.Bridge.SetNetwork(
-                        networkClass, chainId, name, contractAddress, Metadata));
+                        (uint)networkClass, (uint)chainId, name, contractAddress, Metadata));
                     WriteInfo("Done");
                 }
             }
@@ -460,7 +460,7 @@ namespace ZenonCli.Commands
 
 
                     WriteInfo("Removing bridge network...");
-                    await ZnnClient.Send(ZnnClient.Embedded.Bridge.RemoveNetwork(networkClass, chainId));
+                    await ZnnClient.Send(ZnnClient.Embedded.Bridge.RemoveNetwork((uint)networkClass, (uint)chainId));
                     WriteInfo("Done");
                 }
             }
@@ -499,7 +499,7 @@ namespace ZenonCli.Commands
                     JsonConvert.DeserializeObject(Metadata!);
 
                     WriteInfo("Setting bridge network metadata...");
-                    await ZnnClient.Send(ZnnClient.Embedded.Bridge.SetNetworkMetadata(networkClass, chainId, Metadata!));
+                    await ZnnClient.Send(ZnnClient.Embedded.Bridge.SetNetworkMetadata((uint)networkClass, (uint)chainId, Metadata!));
                     WriteInfo("Done");
                 }
             }
@@ -515,7 +515,7 @@ namespace ZenonCli.Commands
                     await AssertBridgeAdminAsync();
 
                     WriteInfo("Setting bridge redeem delay...");
-                    await ZnnClient.Send(ZnnClient.Embedded.Bridge.SetRedeemDelay(RedeemDelay!.Value));
+                    await ZnnClient.Send(ZnnClient.Embedded.Bridge.SetRedeemDelay((ulong)RedeemDelay!.Value));
                     WriteInfo("Done");
                 }
             }

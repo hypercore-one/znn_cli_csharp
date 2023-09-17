@@ -26,7 +26,7 @@ namespace ZenonCli.Commands
 
                 AssertPageRange(PageIndex.Value, PageSize.Value);
 
-                var tokenList = await ZnnClient.Embedded.Token.GetAll(PageIndex.Value, PageSize.Value);
+                var tokenList = await ZnnClient.Embedded.Token.GetAll((uint)PageIndex.Value, (uint)PageSize.Value);
 
                 foreach (var token in tokenList.List)
                 {

@@ -126,7 +126,7 @@ namespace ZenonCli.Commands
             {
                 if (!String.Equals(options.Chain, "auto", StringComparison.OrdinalIgnoreCase))
                 {
-                    ZnnClient.ChainIdentifier = int.Parse(options.Chain);
+                    ZnnClient.ChainIdentifier = ulong.Parse(options.Chain);
                 }
                 else
                 {

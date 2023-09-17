@@ -116,7 +116,7 @@ namespace ZenonCli.Commands
             public string? TransactionHash { get; set; }
 
             [Value(3, MetaName = "logIndex", Required = true, HelpText = "The log index in the block of the transaction that locked/burned the funds on the source network; together with txHash it creates a unique identifier for a transaction")]
-            public int? LogIndex { get; set; }
+            public long? LogIndex { get; set; }
 
             [Value(4, MetaName = "address", Required = true, HelpText = "The destination NoM address")]
             public string? Address { get; set; }

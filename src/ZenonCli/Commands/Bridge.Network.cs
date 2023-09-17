@@ -44,8 +44,8 @@ namespace ZenonCli.Commands
                     }
 
                     var network = await ZnnClient.Embedded.Bridge.GetNetworkInfo(
-                        this.NetworkClass!.Value,
-                        this.ChainId!.Value);
+                        (uint)this.NetworkClass!.Value,
+                        (uint)this.ChainId!.Value);
 
                     if (network.NetworkClass == 0 || network.ChainId == 0)
                     {

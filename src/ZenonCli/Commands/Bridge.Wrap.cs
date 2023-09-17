@@ -41,7 +41,7 @@ namespace ZenonCli.Commands
                     await AssertBalanceAsync(address, tokenStandard, amount);
 
                     var info =
-                        await ZnnClient.Embedded.Bridge.GetNetworkInfo(this.NetworkClass!.Value, this.ChainId!.Value);
+                        await ZnnClient.Embedded.Bridge.GetNetworkInfo((uint)this.NetworkClass!.Value, (uint)this.ChainId!.Value);
 
                     if (info.NetworkClass == 0 || info.ChainId == 0)
                     {
@@ -65,7 +65,7 @@ namespace ZenonCli.Commands
 
                     WriteInfo("Wrapping token ...");
                     var wrapToken = ZnnClient.Embedded.Bridge
-                        .WrapToken(NetworkClass!.Value, ChainId!.Value, ToAddress, amount, tokenStandard);
+                        .WrapToken((uint)NetworkClass!.Value, (uint)ChainId!.Value, ToAddress, amount, tokenStandard);
                     await ZnnClient.Send(wrapToken);
                     WriteInfo("Done");
                 }
@@ -110,7 +110,7 @@ namespace ZenonCli.Commands
                     {
                         list = await ZnnClient.Embedded.Bridge
                             .GetAllWrapTokenRequestsByToAddressNetworkClassAndChainId(
-                                Address, NetworkClass!.Value, ChainId!.Value);
+                                Address, (uint)NetworkClass!.Value, (uint)ChainId!.Value);
                     }
                     else
                     {
