@@ -171,7 +171,7 @@ namespace ZenonCli.Commands
         {
             try
             {
-                return AmountUtils.ExtractDecimals(double.Parse(value, NumberStyles.Any, CultureInfo.InvariantCulture), (int)decimals);
+                return AmountUtils.ExtractDecimals(value, (int)decimals);
             }
             catch (Exception e)
             {
