@@ -59,8 +59,7 @@ namespace ZenonCli.Commands
                     WriteInfo("Changing public key...");
                 }
 
-                // Use signature value '1' to circumvent the empty string unpack issue.
-                await Zdk!.SendAsync(Zdk!.Embedded.Bridge.ChangeTssECDSAPubKey(this.PubKey, "1", "1"));
+                await Zdk!.SendAsync(Zdk!.Embedded.Bridge.ChangeTssECDSAPubKey(this.PubKey, "", ""));
                 WriteInfo("Done");
             }
         }
@@ -78,11 +77,8 @@ namespace ZenonCli.Commands
                     await AssertBridgeAdminAsync();
                 }
 
-                // Use signature value '1' to circumvent the empty string unpack issue.
-                var signature = Signature ?? "1";
-
                 WriteInfo("Halting bridge operations ...");
-                await Zdk!.SendAsync(Zdk!.Embedded.Bridge.Halt(signature));
+                await Zdk!.SendAsync(Zdk!.Embedded.Bridge.Halt(Signature));
                 WriteInfo("Done");
             }
         }

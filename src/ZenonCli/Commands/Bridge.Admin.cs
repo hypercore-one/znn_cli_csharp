@@ -31,8 +31,7 @@ namespace ZenonCli.Commands
                     await AssertBridgeAdminAsync();
 
                     WriteInfo("Halting the bridge ...");
-                    // Use signature value '1' to circumvent the empty string unpack issue.
-                    await Zdk!.SendAsync(Zdk!.Embedded.Bridge.Halt("1"));
+                    await Zdk!.SendAsync(Zdk!.Embedded.Bridge.Halt(""));
                     WriteInfo("Done");
                 }
             }
