@@ -19,7 +19,7 @@ namespace ZenonCli.Commands
                 var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
 
                 var tokenStandard = ParseTokenStandard(Zts);
-                if (tokenStandard != TokenStandard.ZnnZts ||
+                if (tokenStandard != TokenStandard.ZnnZts &&
                     tokenStandard != TokenStandard.QsrZts)
                 {
                     WriteError("You can only send ZNN or QSR.");
