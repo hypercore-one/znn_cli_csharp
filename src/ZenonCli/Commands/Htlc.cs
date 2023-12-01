@@ -237,7 +237,8 @@ namespace ZenonCli.Commands
                     return;
                 }
 
-                if (!await Zdk!.Embedded.Htlc.GetProxyUnlockStatus(htlc.HashLocked))
+                if (!await Zdk!.Embedded.Htlc.GetProxyUnlockStatus(htlc.HashLocked) &&
+                    address != htlc.HashLocked)
                 {
                     WriteError($"Cannot unlock htlc. Permission denied");
                     return;
