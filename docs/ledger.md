@@ -1,6 +1,6 @@
 # Connect Ledger Nano S to your Zenon Wallet
 
-Install the Ledger Zenon App on your Ledger device to manage ZNN, QSR and ZTS tokens with the Zenpn CLI. The Ledger Zenon app is developed and supported by the [{H}yperCore One](https://github.com/hypercore-one) team.
+Install the Zenon Ledger app on your Ledger Nano S to manage ZNN, QSR and ZTS tokens with the Zenon CLI. The Zenon Ledger app is developed and supported by the [{H}yperCore One](https://github.com/hypercore-one) team.
 
 ### 1. Before you start
 
@@ -16,7 +16,7 @@ Install the Ledger Zenon App on your Ledger device to manage ZNN, QSR and ZTS to
 4. Find **Zenon** in the app catalog.
 5. Press the **Install** button of the app.
    - An installation window appears.
-   - Your device will display **Processing…**
+   - Your device will display **Processing**
    - The app installation is confirmed.
 
 ![nanos-znn-app](/docs/assets/screenshots/nanos-znn-app.png)
@@ -27,10 +27,9 @@ Install the Ledger Zenon App on your Ledger device to manage ZNN, QSR and ZTS to
 
 ![nanos-znn-app](/docs/assets/screenshots/nanos-znn-ready.png)
 
-- [Download](https://github.com/HyperCore-One/znn_cli_csharp/releases) the latest Zenon CLI for Linux/MacOs/Windows.
-
+- The Zenon CLI is available Linux/MacOs/Windows as a downloadable binary from the [releases page](../../../../releases).
 - Install the Zenon CLI by extracting the archive to a location on your desktop device.
-- Open a command prompt and change directory to the location of the Zenon CLI. For example: `C:\znn-cli`.
+- Open a command prompt and change directory to the location of the Zenon CLI. For example: `cd ~/znn-cli`.
 
 ### **4. Use the Zenon wallet**
 
