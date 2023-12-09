@@ -50,7 +50,7 @@ namespace ZenonCli.Commands
                 var depositedQsr =
                     await Zdk!.Embedded.Sentinel.GetDepositedQsr(address);
 
-                WriteInfo($"You have {depositedQsr} QSR deposited for the Sentinel");
+                WriteInfo($"You have {FormatAmount(depositedQsr, Constants.CoinDecimals)} QSR deposited for the Sentinel");
 
                 if (accountInfo.Znn < Constants.SentinelRegisterZnnAmount ||
                     accountInfo.Qsr < Constants.SentinelRegisterQsrAmount)
@@ -122,7 +122,7 @@ namespace ZenonCli.Commands
                 var balance = await Zdk!.Ledger.GetAccountInfoByAddress(address);
                 var depositedQsr =
                     await Zdk!.Embedded.Sentinel.GetDepositedQsr(address);
-                WriteInfo("You have {depositedQsr} / {sentinelRegisterQsrAmount} QSR deposited for the Sentinel");
+                WriteInfo($"You have {FormatAmount(depositedQsr, Constants.CoinDecimals)} / {FormatAmount(Constants.SentinelRegisterQsrAmount, Constants.CoinDecimals)} QSR deposited for the Sentinel");
 
                 if (balance.Qsr!.Value < Constants.SentinelRegisterQsrAmount)
                 {
@@ -133,7 +133,7 @@ namespace ZenonCli.Commands
 
                 if (depositedQsr < Constants.SentinelRegisterQsrAmount)
                 {
-                    WriteInfo($"Depositing {Constants.SentinelRegisterQsrAmount - depositedQsr} QSR for the Sentinel");
+                    WriteInfo($"Depositing {FormatAmount(Constants.SentinelRegisterQsrAmount - depositedQsr, Constants.CoinDecimals)} QSR for the Sentinel");
                     await Zdk!.SendAsync(Zdk!.Embedded.Sentinel
                         .DepositQsr(Constants.SentinelRegisterQsrAmount - depositedQsr));
                 }
