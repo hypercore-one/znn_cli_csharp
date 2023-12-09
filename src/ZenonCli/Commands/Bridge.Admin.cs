@@ -502,22 +502,6 @@ namespace ZenonCli.Commands
                     WriteInfo("Done");
                 }
             }
-
-            [Verb("bridge.admin.setRedeemDelay", HelpText = "Set the redeem delay in momentums.")]
-            public class SetRedeemDelay : WalletAndConnectionCommand
-            {
-                [Value(0, MetaName = "redeemDelay", Required = true)]
-                public long? RedeemDelay { get; set; }
-
-                protected override async Task ProcessAsync()
-                {
-                    await AssertBridgeAdminAsync();
-
-                    WriteInfo("Setting bridge redeem delay...");
-                    await Zdk!.SendAsync(Zdk!.Embedded.Bridge.SetRedeemDelay((ulong)RedeemDelay!.Value));
-                    WriteInfo("Done");
-                }
-            }
         }
     }
 }
