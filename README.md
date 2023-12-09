@@ -13,7 +13,7 @@ A .NET based command-line interface (CLI) for interacting with Zenon Alphanet - 
 
 ## Installation
 
-Download and extract the [latest version](../../releases).
+Download and extract the [latest version](https://github.com/hypercore-one/znn_cli_csharp/releases/).
 
 ## Contributing
 
