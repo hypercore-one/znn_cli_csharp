@@ -197,7 +197,7 @@ namespace ZenonCli.Commands
                 var depositedQsr =
                     await Zdk!.Embedded.Pillar.GetDepositedQsr(address);
 
-                WriteInfo($"You have {depositedQsr} / {qsrAmount} QSR deposited for the Pillar registration");
+                WriteInfo($"You have {FormatAmount(depositedQsr, Constants.CoinDecimals)} / {FormatAmount(qsrAmount, Constants.CoinDecimals)} QSR  for the Pillar registration");
 
                 if (balance.Qsr!.Value < qsrAmount)
                 {
