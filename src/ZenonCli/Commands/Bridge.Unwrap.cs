@@ -30,7 +30,7 @@ namespace ZenonCli.Commands
 
                         var redeem = Zdk!.Embedded.Bridge
                             .Redeem(request.TransactionHash, request.LogIndex);
-                        await Zdk!.SendAsync(redeem);
+                        await SendAsync(redeem);
 
                         WriteInfo("Done");
                         if (request.ToAddress == address)
@@ -73,7 +73,7 @@ namespace ZenonCli.Commands
                                 await WriteRedeemAsync(request);
                                 var redeem = Zdk!.Embedded.Bridge
                                     .Redeem(request.TransactionHash, request.LogIndex);
-                                await Zdk!.SendAsync(redeem);
+                                await SendAsync(redeem);
                                 if (request.ToAddress == address)
                                 {
                                     redeemedSelf += 1;

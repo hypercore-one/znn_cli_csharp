@@ -271,7 +271,7 @@ namespace ZenonCli.Commands
 
                 WriteInfo($"Staking {FormatAmount(amount, token.Decimals)} {token.Symbol} for {months} month{(months > 1 ? "s" : "")} ...");
                 var block = Zdk!.Embedded.Liquidity.LiquidityStake(duration, amount, tokenStandard);
-                await Zdk!.SendAsync(block);
+                await SendAsync(block);
                 WriteInfo("Done");
             }
         }
@@ -307,7 +307,7 @@ namespace ZenonCli.Commands
                         WriteInfo("Cancelling liquidity stake ...");
                         var block =
                             Zdk!.Embedded.Liquidity.CancelLiquidityStake(id);
-                        await Zdk!.SendAsync(block);
+                        await SendAsync(block);
                         WriteInfo("Done");
                         WriteInfo("Use receiveAll to collect your staked amount after 2 momentums");
                     }
@@ -343,7 +343,7 @@ namespace ZenonCli.Commands
                     WriteInfo("Collecting rewards ...");
                     var block =
                         Zdk!.Embedded.Liquidity.CollectReward();
-                    await Zdk!.SendAsync(block);
+                    await SendAsync(block);
                     WriteInfo("Done");
                 }
                 else

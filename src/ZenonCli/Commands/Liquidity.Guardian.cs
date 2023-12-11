@@ -28,7 +28,7 @@ namespace ZenonCli.Commands
                         WriteInfo("Proposing new liquidity administrator ...");
                         var block =
                             Zdk!.Embedded.Liquidity.ProposeAdministrator(newAdmin);
-                        await Zdk!.SendAsync(block);
+                        await SendAsync(block);
                         WriteInfo("Done");
                     }
                     else

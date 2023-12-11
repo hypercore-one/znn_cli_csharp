@@ -70,7 +70,7 @@ namespace ZenonCli.Commands
                     WriteInfo($"Sending {FormatAmount(amount, token.Decimals)} {this.TokenStandard} to {this.ToAddress}");
                 }
 
-                await Zdk!.SendAsync(AccountBlockTemplate.Send(Zdk!.Client.ProtocolVersion, Zdk!.Client.ChainIdentifier, recipient, tokenStandard, amount, data));
+                await SendAsync(AccountBlockTemplate.Send(Zdk!.Client.ProtocolVersion, Zdk!.Client.ChainIdentifier, recipient, tokenStandard, amount, data));
 
                 WriteInfo("Done");
             }
@@ -88,7 +88,7 @@ namespace ZenonCli.Commands
 
                 WriteInfo("Please wait ...");
 
-                await Zdk!.SendAsync(AccountBlockTemplate.Receive(Zdk!.Client.ProtocolVersion, Zdk!.Client.ChainIdentifier, block));
+                await SendAsync(AccountBlockTemplate.Receive(Zdk!.Client.ProtocolVersion, Zdk!.Client.ChainIdentifier, block));
 
                 WriteInfo("Done");
             }
@@ -127,7 +127,7 @@ namespace ZenonCli.Commands
                 {
                     foreach (var block in unreceived.List)
                     {
-                        await Zdk!.SendAsync(AccountBlockTemplate.Receive(Zdk!.Client.ProtocolVersion, Zdk!.Client.ChainIdentifier, block.Hash));
+                        await SendAsync(AccountBlockTemplate.Receive(Zdk!.Client.ProtocolVersion, Zdk!.Client.ChainIdentifier, block.Hash));
                     }
 
                     unreceived = await Zdk!.Ledger
@@ -169,7 +169,7 @@ namespace ZenonCli.Commands
                     Hash? hash;
                     if (queue.TryTake(out hash))
                     {
-                        var template = await Zdk!.SendAsync(AccountBlockTemplate.Receive(Zdk!.Client.ProtocolVersion, Zdk!.Client.ChainIdentifier, hash));
+                        var template = await SendAsync(AccountBlockTemplate.Receive(Zdk!.Client.ProtocolVersion, Zdk!.Client.ChainIdentifier, hash));
                         WriteInfo($"successfully received {hash}. Receive-block-hash {template.Hash}");
                     }
 

@@ -38,7 +38,7 @@ namespace ZenonCli.Commands
                 await AssertBalanceAsync(address, tokenStandard, amount);
 
                 WriteInfo($"Donating {FormatAmount(amount, token.Decimals)} ${token.Symbol} to Accelerator-Z ...");
-                await Zdk!.SendAsync(Zdk!.Embedded.Accelerator.Donate(amount, tokenStandard));
+                await SendAsync(Zdk!.Embedded.Accelerator.Donate(amount, tokenStandard));
                 WriteInfo("Done");
             }
         }

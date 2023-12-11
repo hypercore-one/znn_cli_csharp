@@ -84,12 +84,12 @@ namespace ZenonCli.Commands
                 if (depositedQsr < qsrAmount)
                 {
                     WriteInfo($"Depositing {FormatAmount(qsrAmount - depositedQsr, Constants.CoinDecimals)} QSR for the Pillar registration");
-                    await Zdk!.SendAsync(Zdk!.Embedded.Pillar.DepositQsr(qsrAmount - depositedQsr));
+                    await SendAsync(Zdk!.Embedded.Pillar.DepositQsr(qsrAmount - depositedQsr));
                 }
 
                 WriteInfo("Registering Pillar ...");
 
-                await Zdk!.SendAsync(Zdk!.Embedded.Pillar.Register(
+                await SendAsync(Zdk!.Embedded.Pillar.Register(
                     newName,
                     producerAddress,
                     rewardAddress,
@@ -122,7 +122,7 @@ namespace ZenonCli.Commands
                         {
                             WriteInfo($"Revoking Pillar {pillar.Name} ...");
 
-                            await Zdk!.SendAsync(Zdk!.Embedded.Pillar.Revoke(this.Name));
+                            await SendAsync(Zdk!.Embedded.Pillar.Revoke(this.Name));
 
                             WriteInfo($"Use receiveAll to collect back the locked amount of ZNN");
                         }
@@ -154,7 +154,7 @@ namespace ZenonCli.Commands
             {
                 WriteInfo($"Delegating to Pillar {this.Name} ...");
 
-                await Zdk!.SendAsync(Zdk!.Embedded.Pillar.Delegate(this.Name));
+                await SendAsync(Zdk!.Embedded.Pillar.Delegate(this.Name));
 
                 WriteInfo("Done");
             }
@@ -167,7 +167,7 @@ namespace ZenonCli.Commands
             {
                 WriteInfo($"Undelegating ...");
 
-                await Zdk!.SendAsync(Zdk!.Embedded.Pillar.Undelegate());
+                await SendAsync(Zdk!.Embedded.Pillar.Undelegate());
 
                 WriteInfo("Done");
             }
@@ -178,7 +178,7 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                await Zdk!.SendAsync(Zdk!.Embedded.Pillar.CollectReward());
+                await SendAsync(Zdk!.Embedded.Pillar.CollectReward());
 
                 WriteInfo("Done");
                 WriteInfo($"Use receiveAll to collect your Pillar reward(s) after 1 momentum");
@@ -209,7 +209,7 @@ namespace ZenonCli.Commands
                 if (depositedQsr < qsrAmount)
                 {
                     WriteInfo($"Depositing {FormatAmount(qsrAmount - depositedQsr, Constants.CoinDecimals)} QSR for the Pillar registration");
-                    await Zdk!.SendAsync(Zdk!.Embedded.Pillar.DepositQsr(qsrAmount - depositedQsr));
+                    await SendAsync(Zdk!.Embedded.Pillar.DepositQsr(qsrAmount - depositedQsr));
                 }
                 WriteInfo("Done");
             }
@@ -233,7 +233,7 @@ namespace ZenonCli.Commands
 
                 WriteInfo($"Withdrawing {FormatAmount(depositedQsr, Constants.CoinDecimals)} QSR ...");
 
-                await Zdk!.SendAsync(Zdk!.Embedded.Pillar.WithdrawQsr());
+                await SendAsync(Zdk!.Embedded.Pillar.WithdrawQsr());
 
                 WriteInfo("Done");
             }

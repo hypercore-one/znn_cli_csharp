@@ -91,7 +91,7 @@ namespace ZenonCli.Commands
 
                 WriteInfo($"Fusing {FormatAmount(amount, Constants.CoinDecimals)} QSR to {beneficiary}");
 
-                await Zdk!.SendAsync(Zdk!.Embedded.Plasma.Fuse(beneficiary, amount));
+                await SendAsync(Zdk!.Embedded.Plasma.Fuse(beneficiary, amount));
 
                 WriteInfo("Done");
             }
@@ -144,7 +144,7 @@ namespace ZenonCli.Commands
                     return;
                 }
                 WriteInfo($"Canceling Plasma fuse entry with id {id}");
-                await Zdk!.SendAsync(Zdk!.Embedded.Plasma.Cancel(id));
+                await SendAsync(Zdk!.Embedded.Plasma.Cancel(id));
                 WriteInfo("Done");
             }
         }

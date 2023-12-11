@@ -155,7 +155,7 @@ namespace ZenonCli.Commands
                 var block = Zdk!.Embedded.Htlc
                     .Create(tokenStandard, amount, hashLocked, expirationTime, this.HashType.Value, keyMaxSize, hashLock.Bytes);
 
-                await Zdk!.SendAsync(block);
+                await SendAsync(block);
 
                 WriteInfo($"Submitted htlc with id {block.Hash}");
                 WriteInfo("Done");
@@ -202,7 +202,7 @@ namespace ZenonCli.Commands
 
                 WriteInfo($"Reclaiming htlc id {htlc.Id} with amount {FormatAmount(htlc.Amount, token.Decimals)} {token.Symbol}");
 
-                await Zdk!.SendAsync(Zdk!.Embedded.Htlc.Reclaim(id));
+                await SendAsync(Zdk!.Embedded.Htlc.Reclaim(id));
 
                 WriteInfo("Done");
                 WriteInfo($"Use receiveAll to collect your htlc amount after 2 momentums");
@@ -283,7 +283,7 @@ namespace ZenonCli.Commands
 
                 WriteInfo($"Unlocking htlc id {htlc.Id} with amount {FormatAmount(htlc.Amount, token.Decimals)} {token.Symbol}");
 
-                await Zdk!.SendAsync(Zdk!.Embedded.Htlc.Unlock(id, BytesUtils.FromHexString(this.Preimage)));
+                await SendAsync(Zdk!.Embedded.Htlc.Unlock(id, BytesUtils.FromHexString(this.Preimage)));
 
                 WriteInfo("Done");
                 WriteInfo($"Use receiveAll to collect your htlc amount after 2 momentums");
@@ -582,7 +582,7 @@ namespace ZenonCli.Commands
             {
                 var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
 
-                await Zdk!.SendAsync(Zdk!.Embedded.Htlc.AllowProxyUnlock());
+                await SendAsync(Zdk!.Embedded.Htlc.AllowProxyUnlock());
 
                 WriteInfo($"Htlc proxy unlocking is allowed for ${address}");
                 WriteInfo("Done");
@@ -596,7 +596,7 @@ namespace ZenonCli.Commands
             {
                 var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
 
-                await Zdk!.SendAsync(Zdk!.Embedded.Htlc.DenyProxyUnlock());
+                await SendAsync(Zdk!.Embedded.Htlc.DenyProxyUnlock());
 
                 WriteInfo($"Htlc proxy unlocking is denied for ${address}");
                 WriteInfo("Done");

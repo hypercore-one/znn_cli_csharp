@@ -17,7 +17,7 @@ namespace ZenonCli.Commands
                     await AssertLiquidityAdminAsync();
 
                     WriteInfo("Initializing liquidity emergency mode ...");
-                    await Zdk!.SendAsync(Zdk!.Embedded.Liquidity.Emergency());
+                    await SendAsync(Zdk!.Embedded.Liquidity.Emergency());
                     WriteInfo("Done");
                 }
             }
@@ -30,7 +30,7 @@ namespace ZenonCli.Commands
                     await AssertLiquidityAdminAsync();
 
                     WriteInfo("Halting the liquidity ...");
-                    await Zdk!.SendAsync(Zdk!.Embedded.Liquidity.SetIsHalted(true));
+                    await SendAsync(Zdk!.Embedded.Liquidity.SetIsHalted(true));
                     WriteInfo("Done");
                 }
             }
@@ -43,7 +43,7 @@ namespace ZenonCli.Commands
                     await AssertLiquidityAdminAsync();
 
                     WriteInfo("Unhalting the liquidity ...");
-                    await Zdk!.SendAsync(Zdk!.Embedded.Liquidity.SetIsHalted(false));
+                    await SendAsync(Zdk!.Embedded.Liquidity.SetIsHalted(false));
                     WriteInfo("Done");
                 }
             }
@@ -73,7 +73,7 @@ namespace ZenonCli.Commands
                         return;
 
                     WriteInfo("Changing liquidity administrator...");
-                    await Zdk!.SendAsync(Zdk!.Embedded.Liquidity.ChangeAdministrator(newAdmin));
+                    await SendAsync(Zdk!.Embedded.Liquidity.ChangeAdministrator(newAdmin));
                     WriteInfo("Done");
                 }
             }
@@ -158,7 +158,7 @@ namespace ZenonCli.Commands
                         WriteInfo("Nominating guardians ...");
                     }
 
-                    await Zdk!.SendAsync(Zdk!.Embedded.Liquidity.NominateGuardians(guardians));
+                    await SendAsync(Zdk!.Embedded.Liquidity.NominateGuardians(guardians));
                     WriteInfo("Done");
                 }
             }
@@ -170,7 +170,7 @@ namespace ZenonCli.Commands
                 {
                     var block =
                         Zdk!.Embedded.Liquidity.UnlockLiquidityStakeEntries(TokenStandard.Parse("zts17d6yr02kh0r9qr566p7tg6"));
-                    block = await Zdk!.SendAsync(block);
+                    block = await SendAsync(block);
                     WriteInfo(JsonConvert.SerializeObject(block.ToJson(), Formatting.Indented));
                 }
             }
@@ -190,7 +190,7 @@ namespace ZenonCli.Commands
 
                     WriteInfo("Setting additional liquidity reward ...");
                     var block = Zdk!.Embedded.Liquidity.SetAdditionalReward(ZnnReward, QsrReward);
-                    await Zdk!.SendAsync(block);
+                    await SendAsync(block);
                     WriteInfo("Done");
                 }
             }

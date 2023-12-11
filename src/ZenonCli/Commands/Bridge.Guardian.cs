@@ -28,7 +28,7 @@ namespace ZenonCli.Commands
                         WriteInfo("Proposing new Bridge administrator ...");
                         var block =
                             Zdk!.Embedded.Bridge.ProposeAdministrator(newAdmin);
-                        await Zdk!.SendAsync(block);
+                        await SendAsync(block);
                         WriteInfo("Done");
                     }
                     else

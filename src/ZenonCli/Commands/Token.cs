@@ -254,7 +254,7 @@ namespace ZenonCli.Commands
 
                 WriteInfo($"Issuing {this.Name} ZTS token ...");
 
-                await Zdk!.SendAsync(
+                await SendAsync(
                     Zdk!.Embedded.Token.IssueToken(
                         this.Name,
                         this.Symbol,
@@ -297,7 +297,7 @@ namespace ZenonCli.Commands
 
                 WriteInfo("Minting ZTS token ...");
 
-                await Zdk!.SendAsync(
+                await SendAsync(
                     Zdk!.Embedded.Token.MintToken(tokenStandard, amount, mintAddress));
 
                 WriteInfo("Done");
@@ -323,7 +323,7 @@ namespace ZenonCli.Commands
 
                 WriteInfo($"Burning {TokenStandard} ZTS token ...");
 
-                await Zdk!.SendAsync(
+                await SendAsync(
                     Zdk!.Embedded.Token.BurnToken(tokenStandard, amount));
 
                 WriteInfo("Done");
@@ -354,7 +354,7 @@ namespace ZenonCli.Commands
                     return;
                 }
 
-                await Zdk!.SendAsync(Zdk!.Embedded.Token.UpdateToken(
+                await SendAsync(Zdk!.Embedded.Token.UpdateToken(
                     tokenStandard, newOwnerAddress, token.IsMintable, token.IsBurnable));
 
                 WriteInfo("Done");
@@ -381,7 +381,7 @@ namespace ZenonCli.Commands
                     return;
                 }
 
-                await Zdk!.SendAsync(Zdk!.Embedded.Token.UpdateToken(
+                await SendAsync(Zdk!.Embedded.Token.UpdateToken(
                     tokenStandard, token.Owner, false, token.IsBurnable));
 
                 WriteInfo("Done");

@@ -66,7 +66,7 @@ namespace ZenonCli.Commands
                     WriteInfo("Wrapping token ...");
                     var wrapToken = Zdk!.Embedded.Bridge
                         .WrapToken((uint)NetworkClass!.Value, (uint)ChainId!.Value, ToAddress, amount, tokenStandard);
-                    await Zdk!.SendAsync(wrapToken);
+                    await SendAsync(wrapToken);
                     WriteInfo("Done");
                 }
             }

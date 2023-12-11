@@ -93,7 +93,7 @@ namespace ZenonCli.Commands
 
                 WriteInfo($"Staking {FormatAmount(amount, Constants.CoinDecimals)} ZNN for {duration} {Constants.StakeUnitDurationName}(s)");
 
-                await Zdk!.SendAsync(
+                await SendAsync(
                     Zdk!.Embedded.Stake.Stake(Constants.StakeTimeUnitSec * duration, amount));
 
                 WriteInfo("Done");
@@ -147,7 +147,7 @@ namespace ZenonCli.Commands
                     return;
                 }
 
-                await Zdk!.SendAsync(Zdk!.Embedded.Stake.Cancel(hash));
+                await SendAsync(Zdk!.Embedded.Stake.Cancel(hash));
 
                 WriteInfo("Done");
                 WriteInfo($"Use receiveAll to collect your stake amount and uncollected reward(s) after 2 momentums");
@@ -159,7 +159,7 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                await Zdk!.SendAsync(Zdk!.Embedded.Stake.CollectReward());
+                await SendAsync(Zdk!.Embedded.Stake.CollectReward());
 
                 WriteInfo("Done");
                 WriteInfo($"Use receiveAll to collect your stake reward(s) after 1 momentum");

@@ -59,7 +59,7 @@ namespace ZenonCli.Commands
                     WriteInfo("Changing public key...");
                 }
 
-                await Zdk!.SendAsync(Zdk!.Embedded.Bridge.ChangeTssECDSAPubKey(this.PubKey, "", ""));
+                await SendAsync(Zdk!.Embedded.Bridge.ChangeTssECDSAPubKey(this.PubKey, "", ""));
                 WriteInfo("Done");
             }
         }
@@ -78,7 +78,7 @@ namespace ZenonCli.Commands
                 }
 
                 WriteInfo("Halting bridge operations ...");
-                await Zdk!.SendAsync(Zdk!.Embedded.Bridge.Halt(Signature));
+                await SendAsync(Zdk!.Embedded.Bridge.Halt(Signature));
                 WriteInfo("Done");
             }
         }

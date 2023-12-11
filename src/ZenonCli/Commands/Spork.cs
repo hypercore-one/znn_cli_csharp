@@ -81,7 +81,7 @@ namespace ZenonCli.Commands
                 }
 
                 WriteInfo("Creating spork ...");
-                await Zdk!.SendAsync(Zdk!.Embedded.Spork.CreateSpork(name, description));
+                await SendAsync(Zdk!.Embedded.Spork.CreateSpork(name, description));
                 WriteInfo("Done");
             }
         }
@@ -97,7 +97,7 @@ namespace ZenonCli.Commands
                 var id = ParseHash(Id, "id");
 
                 WriteInfo("Activating spork ...");
-                await Zdk!.SendAsync(Zdk!.Embedded.Spork.ActivateSpork(id));
+                await SendAsync(Zdk!.Embedded.Spork.ActivateSpork(id));
                 WriteInfo("Done");
             }
         }

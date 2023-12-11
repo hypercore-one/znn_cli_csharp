@@ -1,12 +1,13 @@
-﻿using System.Globalization;
-using System.Numerics;
+﻿using System.Numerics;
 using Zenon;
 using Zenon.Client;
 using Zenon.Model.Embedded;
+using Zenon.Model.NoM;
 using Zenon.Model.Primitives;
 using Zenon.Utils;
 using Zenon.Wallet;
 using Zenon.Wallet.Ledger;
+using Zenon.Wallet.Ledger.Exceptions;
 using ZenonCli.Options;
 
 namespace ZenonCli.Commands
@@ -21,8 +22,10 @@ namespace ZenonCli.Commands
             new KeyStoreManager(),
             new LedgerManager(),
         };
-        protected IWalletManager? WalletManager;
         protected IWalletDefinition? WalletDefinition;
+        protected Zenon.Wallet.IWalletOptions? WalletOptions;
+        protected int AccountIndex;
+        protected IWalletManager? WalletManager;
         protected IWallet? Wallet;
         protected IWalletAccount? WalletAccount;
         protected Zdk? Zdk;
@@ -122,8 +125,6 @@ namespace ZenonCli.Commands
                 ThrowError($"Please provide a wallet name. Use wallet.list to list all available wallets");
             }
 
-            Zenon.Wallet.IWalletOptions? walletOptions = null;
-
             if (WalletDefinition is KeyStoreDefinition)
             {
                 string? passphrase = options.Passphrase;
@@ -134,10 +135,14 @@ namespace ZenonCli.Commands
                     passphrase = ReadPassword();
                 }
 
-                walletOptions = new KeyStoreOptions() { DecryptionPassword = passphrase };
+                WalletOptions = new KeyStoreOptions() { DecryptionPassword = passphrase };
+            }
+            else
+            {
+                WalletOptions = null;
             }
 
-            int index = options.Index;
+            AccountIndex = options.Index;
 
             try
             {
@@ -146,8 +151,8 @@ namespace ZenonCli.Commands
                     if (await walletManager.SupportsWalletAsync(WalletDefinition))
                     {
                         WalletManager = walletManager;
-                        Wallet = await walletManager!.GetWalletAsync(WalletDefinition, walletOptions);
-                        WalletAccount = await Wallet!.GetAccountAsync(index);
+                        Wallet = await walletManager!.GetWalletAsync(WalletDefinition, WalletOptions);
+                        WalletAccount = await Wallet!.GetAccountAsync(AccountIndex);
                         break;
                     }
                 }
@@ -198,6 +203,65 @@ namespace ZenonCli.Commands
 
             Zdk = new Zdk(client);
             Zdk!.DefaultWalletAccount = WalletAccount;
+        }
+
+        protected async Task<AccountBlockTemplate> SendAsync(AccountBlockTemplate blockTemplate, bool reconnect = false, int retries = 1)
+        {
+            try
+            {
+                if (reconnect)
+                {
+                    // Dispose wallet
+                    Helper.Dispose(Wallet);
+
+                    // Wait 1 sec.
+                    Thread.Sleep(1000);
+
+                    // Reconnect wallet
+                    Wallet = await WalletManager!.GetWalletAsync(WalletDefinition, WalletOptions);
+                    WalletAccount = await Wallet!.GetAccountAsync(AccountIndex);
+                    Zdk!.DefaultWalletAccount = WalletAccount;
+                }
+                return await Zdk!.SendAsync(blockTemplate);
+            }
+            catch (Exception e)
+            {
+                if (e is ResponseException)
+                {
+                    var returnCode = ((ResponseException)e).ReturnCode;
+
+                    if (returnCode == StatusCode.AppIsNotOpen)
+                    {
+                        WriteError($"The Zenon app is not open on the Ledger {WalletDefinition!.WalletName}.");
+                    }
+                    else if (returnCode == StatusCode.WrongResponseLength)
+                    {
+                        // This happens when the Ledger device was opened by another process.
+                        if (retries > 0)
+                        {
+                            return await SendAsync(blockTemplate, true, retries - 1);
+                        }
+                    }
+                    else
+                    {
+                        WriteError($"{e.Message}.");
+                    }
+                }
+                else
+                {
+                    WriteError($"Failed to send transaction. {e.Message}");
+                }
+
+                if (retries > 0)
+                {
+                    if (RetryOrAbort())
+                    {
+                        return await SendAsync(blockTemplate, true);
+                    }
+                }
+
+                throw;
+            }
         }
 
         protected async Task DisconnectAsync(IClientOptions options)
@@ -581,6 +645,18 @@ namespace ZenonCli.Commands
                     return defaultValue;
                 else
                     Console.WriteLine($"Invalid value: {key}");
+            }
+        }
+        public bool RetryOrAbort()
+        {
+            Console.WriteLine("Press [R]etry or [A]bort to continue.");
+            while (true)
+            {
+                var key = Console.ReadKey(true);
+                if (key.Key == ConsoleKey.R)
+                    return true;
+                if (key.Key == ConsoleKey.A)
+                    return false;
             }
         }
 

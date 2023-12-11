@@ -63,10 +63,10 @@ namespace ZenonCli.Commands
 
                 if (depositedQsr < Constants.SentinelRegisterQsrAmount)
                 {
-                    await Zdk!.SendAsync(Zdk!.Embedded.Sentinel
+                    await SendAsync(Zdk!.Embedded.Sentinel
                         .DepositQsr(Constants.SentinelRegisterQsrAmount - depositedQsr));
                 }
-                await Zdk!.SendAsync(Zdk!.Embedded.Sentinel.Register());
+                await SendAsync(Zdk!.Embedded.Sentinel.Register());
                 WriteInfo("Done");
                 WriteInfo($"Check after 2 momentums if the Sentinel was successfully registered using sentinel.list command");
             }
@@ -94,7 +94,7 @@ namespace ZenonCli.Commands
                     return;
                 }
 
-                await Zdk!.SendAsync(Zdk!.Embedded.Sentinel.Revoke());
+                await SendAsync(Zdk!.Embedded.Sentinel.Revoke());
 
                 WriteInfo("Done");
                 WriteInfo($"Use receiveAll to collect back the locked amount of ZNN and QSR");
@@ -106,7 +106,7 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                await Zdk!.SendAsync(Zdk!.Embedded.Sentinel.CollectReward());
+                await SendAsync(Zdk!.Embedded.Sentinel.CollectReward());
 
                 WriteInfo("Done");
                 WriteInfo($"Use receiveAll to collect your Sentinel reward(s) after 1 momentum");
@@ -134,7 +134,7 @@ namespace ZenonCli.Commands
                 if (depositedQsr < Constants.SentinelRegisterQsrAmount)
                 {
                     WriteInfo($"Depositing {FormatAmount(Constants.SentinelRegisterQsrAmount - depositedQsr, Constants.CoinDecimals)} QSR for the Sentinel");
-                    await Zdk!.SendAsync(Zdk!.Embedded.Sentinel
+                    await SendAsync(Zdk!.Embedded.Sentinel
                         .DepositQsr(Constants.SentinelRegisterQsrAmount - depositedQsr));
                 }
                 WriteInfo("Done");
@@ -159,7 +159,7 @@ namespace ZenonCli.Commands
 
                 WriteInfo($"Withdrawing {FormatAmount(depositedQsr, Constants.CoinDecimals)} QSR ...");
 
-                await Zdk!.SendAsync(Zdk!.Embedded.Sentinel.WithdrawQsr());
+                await SendAsync(Zdk!.Embedded.Sentinel.WithdrawQsr());
 
                 WriteInfo("Done");
             }
