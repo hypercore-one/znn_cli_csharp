@@ -152,10 +152,8 @@ namespace ZenonCli.Commands
                 WriteInfo($"   Can be reclaimed in {FormatDuration(expirationTime - currentTime)} by {address}");
                 WriteInfo($"   Can be unlocked by {hashLocked} with hashlock {hashLock} hashtype {this.HashType}");
 
-                var block = Zdk!.Embedded.Htlc
-                    .Create(tokenStandard, amount, hashLocked, expirationTime, this.HashType.Value, keyMaxSize, hashLock.Bytes);
-
-                await SendAsync(block);
+                var block = await SendAsync(Zdk!.Embedded.Htlc
+                    .Create(tokenStandard, amount, hashLocked, expirationTime, this.HashType.Value, keyMaxSize, hashLock.Bytes));
 
                 WriteInfo($"Submitted htlc with id {block.Hash}");
                 WriteInfo("Done");
