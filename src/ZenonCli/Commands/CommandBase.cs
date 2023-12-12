@@ -254,7 +254,7 @@ namespace ZenonCli.Commands
 
                 if (retries > 0)
                 {
-                    if (RetryOrAbort())
+                    if (Confirm("Do you want to retry?"))
                     {
                         return await SendAsync(blockTemplate, true);
                     }
@@ -645,18 +645,6 @@ namespace ZenonCli.Commands
                     return defaultValue;
                 else
                     Console.WriteLine($"Invalid value: {key}");
-            }
-        }
-        public bool RetryOrAbort()
-        {
-            Console.WriteLine("Press [R]etry or [A]bort to continue.");
-            while (true)
-            {
-                var key = Console.ReadKey(true);
-                if (key.Key == ConsoleKey.R)
-                    return true;
-                if (key.Key == ConsoleKey.A)
-                    return false;
             }
         }
 
