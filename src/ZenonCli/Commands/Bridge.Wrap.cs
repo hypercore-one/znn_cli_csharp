@@ -59,7 +59,7 @@ namespace ZenonCli.Commands
 
                     if (amount < tokenPair!.MinAmount)
                     {
-                        WriteError($"Invalid amount. Must be at least {FormatAmount(tokenPair.MinAmount, token.Decimals)} ${token.Symbol}");
+                        WriteError($"Invalid amount. Must be at least {FormatAmount(tokenPair.MinAmount, token.Decimals)} {token.Symbol}");
                         return;
                     }
 

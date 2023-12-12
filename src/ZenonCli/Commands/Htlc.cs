@@ -347,7 +347,7 @@ namespace ZenonCli.Commands
                         return;
                     }
 
-                    WriteInfo($"Reclaim htlc id: {args[0]} reclaimed by ${block.Address}");
+                    WriteInfo($"Reclaim htlc id: {args[0]} reclaimed by {block.Address}");
                 }
                 else if (String.Equals(f.Name, "Create", StringComparison.OrdinalIgnoreCase))
                 {
@@ -584,7 +584,7 @@ namespace ZenonCli.Commands
 
                 await SendAsync(Zdk!.Embedded.Htlc.AllowProxyUnlock());
 
-                WriteInfo($"Htlc proxy unlocking is allowed for ${address}");
+                WriteInfo($"Htlc proxy unlocking is allowed for {address}");
                 WriteInfo("Done");
             }
         }
@@ -598,7 +598,7 @@ namespace ZenonCli.Commands
 
                 await SendAsync(Zdk!.Embedded.Htlc.DenyProxyUnlock());
 
-                WriteInfo($"Htlc proxy unlocking is denied for ${address}");
+                WriteInfo($"Htlc proxy unlocking is denied for {address}");
                 WriteInfo("Done");
             }
         }

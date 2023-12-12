@@ -17,7 +17,7 @@ namespace ZenonCli.Commands
                 WriteInfo($"platformVersion: {osInfo.platformVersion}");
                 WriteInfo($"kernelVersion: {osInfo.kernelVersion}");
                 WriteInfo($"memoryTotal: {osInfo.memoryTotal} ({FormatMemory(osInfo.memoryTotal)})");
-                WriteInfo($"memoryFree: ${osInfo.memoryFree} ({FormatMemory(osInfo.memoryFree)})");
+                WriteInfo($"memoryFree: {osInfo.memoryFree} ({FormatMemory(osInfo.memoryFree)})");
                 WriteInfo($"numCPU: {osInfo.numCPU}");
                 WriteInfo($"numGoroutine: {osInfo.numGoroutine}");
             }

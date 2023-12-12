@@ -174,7 +174,7 @@ namespace ZenonCli.Commands
                         WriteInfo($"      Id: {entry.Id}");
                         WriteInfo($"      Status: {(entry.Amount != 0 && entry.RevokeTime == 0 ? "Active" : "Cancelled")}");
                         WriteInfo($"      Token: {token.Name}");
-                        WriteInfo($"      Amount: {FormatAmount(entry.Amount, token.Decimals)} ${token.Symbol}");
+                        WriteInfo($"      Amount: {FormatAmount(entry.Amount, token.Decimals)} {token.Symbol}");
                         WriteInfo($"      Weighted amount: {FormatAmount(entry.WeightedAmount, token.Decimals)} {token.Symbol}");
                         WriteInfo($"      Duration: {duration} {Constants.StakeUnitDurationName}{(duration > 1 ? "s" : "")}");
                         WriteInfo($"      Time remaining: {FormatDuration(timeRemaining)} day{(timeRemaining > (24 * 60 * 60) ? "s" : "")}");
@@ -259,7 +259,7 @@ namespace ZenonCli.Commands
                 {
                     if (amount < liquidityToken.MinAmount)
                     {
-                        WriteError($"Minimum staking requirement: ${FormatAmount(liquidityToken.MinAmount, token.Decimals)} ${token.Symbol}");
+                        WriteError($"Minimum staking requirement: {FormatAmount(liquidityToken.MinAmount, token.Decimals)} {token.Symbol}");
                         return;
                     }
                 }
