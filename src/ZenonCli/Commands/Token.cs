@@ -1,4 +1,4 @@
-﻿using CommandLine;
+using CommandLine;
 using System.Numerics;
 using System.Text.RegularExpressions;
 using Zenon.Model.Primitives;
@@ -119,10 +119,10 @@ namespace ZenonCli.Commands
             public string? Domain { get; set; }
 
             [Value(3, Required = true, MetaName = "totalSupply")]
-            public long TotalSupply { get; set; }
+            public string? TotalSupply { get; set; }
 
             [Value(4, Required = true, MetaName = "maxSupply")]
-            public long MaxSupply { get; set; }
+            public string? MaxSupply { get; set; }
 
             [Value(5, Required = true, MetaName = "decimals")]
             public int Decimals { get; set; }
@@ -216,9 +216,8 @@ namespace ZenonCli.Commands
                     return;
                 }
 
-                var totalSupply = this.TotalSupply;
-                var maxSupply = this.MaxSupply;
-                var decimals = this.Decimals;
+                var totalSupply = ParseAmount(TotalSupply!, Decimals);
+                var maxSupply = ParseAmount(MaxSupply!, Decimals);
 
                 if (mintable == true)
                 {
@@ -256,12 +255,12 @@ namespace ZenonCli.Commands
 
                 await SendAsync(
                     Zdk!.Embedded.Token.IssueToken(
-                        this.Name,
-                        this.Symbol,
-                        this.Domain,
+                        Name,
+                        Symbol,
+                        Domain,
                         totalSupply,
                         maxSupply,
-                        decimals,
+                        Decimals,
                         mintable,
                         burnable,
                         utility));
@@ -287,7 +286,7 @@ namespace ZenonCli.Commands
                 var tokenStandard = ParseTokenStandard(TokenStandard);
                 var mintAddress = ParseAddress(ReceiveAddress);
                 var token = await GetTokenAsync(tokenStandard);
-                var amount = BigInteger.Parse(Amount!);
+                var amount = ParseAmount(Amount!, token.Decimals);
 
                 if (!token.IsMintable)
                 {
@@ -317,7 +316,8 @@ namespace ZenonCli.Commands
             {
                 var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
                 var tokenStandard = ParseTokenStandard(TokenStandard);
-                var amount = BigInteger.Parse(Amount!);
+                var token = await GetTokenAsync(tokenStandard);
+                var amount = ParseAmount(Amount!, token.Decimals);
 
                 await AssertBalanceAsync(address, tokenStandard, amount);
 

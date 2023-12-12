@@ -116,8 +116,9 @@ namespace ZenonCli.Commands
                     await AssertBridgeAdminAsync();
 
                     var tokenStandard = ParseTokenStandard(TokenStandard);
+                    var token = await GetTokenAsync(tokenStandard);
                     var feePercentage = FeePercentage!.Value * 100;
-                    var minAmount = BigInteger.Parse(MinAmount!);
+                    var minAmount = ParseAmount(MinAmount!, token.Decimals);
                     JsonConvert.DeserializeObject(Metadata!);
 
                     if (feePercentage > Constants.BridgeMaximumFee)
