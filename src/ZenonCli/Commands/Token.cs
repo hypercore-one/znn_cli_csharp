@@ -1,4 +1,4 @@
-using CommandLine;
+﻿using CommandLine;
 using System.Numerics;
 using System.Text.RegularExpressions;
 using Zenon.Model.Primitives;
@@ -7,6 +7,14 @@ namespace ZenonCli.Commands
 {
     public class Token
     {
+        private readonly static BigInteger Int255MaxValue = new BigInteger(new byte[] 
+        { 
+            0x7F,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,
+            0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,
+            0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,
+            0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF 
+        }, true, true);
+
         [Verb("token.list", HelpText = "List all tokens.")]
         public class List : ConnectionCommand
         {
@@ -226,9 +234,9 @@ namespace ZenonCli.Commands
                         WriteError("Max supply must to be larger than the total supply");
                         return;
                     }
-                    if (maxSupply > (1 << 53))
+                    if (maxSupply > Int255MaxValue)
                     {
-                        WriteError($"Max supply must to be less than {((1 << 53)) - 1}");
+                        WriteError($"Max supply must to be less than {Int255MaxValue + 1}");
                         return;
                     }
                 }
