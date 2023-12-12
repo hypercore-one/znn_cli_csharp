@@ -67,11 +67,11 @@ namespace ZenonCli.Commands
             [Value(3, Required = true, MetaName = "expirationTime", HelpText = "Total hours from now.")]
             public long ExpirationTime { get; set; }
 
-            [Value(4, MetaName = "hashLock", HelpText = "The hash lock as a hexidecimal string.")]
-            public string? HashLock { get; set; }
-
-            [Value(5, MetaName = "hashType", Default = 0, HelpText = "0 = SHA3-256, 1 = SHA2-256")]
+            [Value(4, MetaName = "hashType", Default = 0, HelpText = "0 = SHA3-256, 1 = SHA2-256")]
             public int? HashType { get; set; }
+
+            [Value(5, MetaName = "hashLock", HelpText = "The hash lock as a hexidecimal string.")]
+            public string? HashLock { get; set; }
 
             protected override async Task ProcessAsync()
             {
