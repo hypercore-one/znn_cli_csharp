@@ -36,5 +36,13 @@ namespace ZenonCli.Commands
             }
             return ret;
         }
+
+        public static void Dispose(object? obj)
+        {
+            if (obj is IDisposable)
+            {
+                ((IDisposable)obj).Dispose();
+            }
+        }
     }
 }

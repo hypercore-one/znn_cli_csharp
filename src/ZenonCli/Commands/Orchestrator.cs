@@ -8,7 +8,7 @@ namespace ZenonCli.Commands
     public class Orchestrator
     {
         [Verb("orchestrator.changePubKey", HelpText = "Change bridge TSS ECDSA public key. Can only be called by the administrator.")]
-        public class ChangePubKey : KeyStoreAndConnectionCommand
+        public class ChangePubKey : WalletAndConnectionCommand
         {
             [Value(0, MetaName = "pubKey", Required = true)]
             public string? PubKey { get; set; }
@@ -17,7 +17,7 @@ namespace ZenonCli.Commands
             {
                 await AssertBridgeAdminAsync();
 
-                var tcList = await ZnnClient.Embedded.Bridge
+                var tcList = await Zdk!.Embedded.Bridge
                     .GetTimeChallengesInfo();
 
                 var tc = tcList.List
@@ -26,8 +26,8 @@ namespace ZenonCli.Commands
 
                 if (tc != null && tc.ParamsHash != Hash.Empty)
                 {
-                    var frontierMomentum = await ZnnClient.Ledger.GetFrontierMomentum();
-                    var secInfo = await ZnnClient.Embedded.Bridge.GetSecurityInfo();
+                    var frontierMomentum = await Zdk!.Ledger.GetFrontierMomentum();
+                    var secInfo = await Zdk!.Embedded.Bridge.GetSecurityInfo();
 
                     if (tc.ChallengeStartHeight + secInfo.AdministratorDelay > frontierMomentum.Height)
                     {
@@ -59,13 +59,13 @@ namespace ZenonCli.Commands
                     WriteInfo("Changing public key...");
                 }
 
-                await ZnnClient!.Send(ZnnClient!.Embedded.Bridge.ChangeTssECDSAPubKey(this.PubKey, "", ""));
+                await SendAsync(Zdk!.Embedded.Bridge.ChangeTssECDSAPubKey(this.PubKey, "", ""));
                 WriteInfo("Done");
             }
         }
 
         [Verb("orchestrator.haltBridge", HelpText = "Halt bridge operations.")]
-        public class HaltBridge : KeyStoreAndConnectionCommand
+        public class HaltBridge : WalletAndConnectionCommand
         {
             [Value(0, MetaName = "signature", HelpText = "Only non administrators needs a TSS signature with the current tssNonce.")]
             public string? Signature { get; set; }
@@ -78,13 +78,13 @@ namespace ZenonCli.Commands
                 }
 
                 WriteInfo("Halting bridge operations ...");
-                await ZnnClient!.Send(ZnnClient!.Embedded.Bridge.Halt(Signature));
+                await SendAsync(Zdk!.Embedded.Bridge.Halt(Signature));
                 WriteInfo("Done");
             }
         }
 
         [Verb("orchestrator.updateWrapRequest", HelpText = "Update wrap token request.")]
-        public class UpdateWrapRequest : KeyStoreAndConnectionCommand
+        public class UpdateWrapRequest : WalletAndConnectionCommand
         {
             [Value(0, MetaName = "id", Required = true)]
             public string? Id { get; set; }
@@ -100,7 +100,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("orchestrator.unwrapToken", HelpText = "Unwrap assets.")]
-        public class UnwrapToken : KeyStoreAndConnectionCommand
+        public class UnwrapToken : WalletAndConnectionCommand
         {
             [Value(0, MetaName = "networkClass", Required = true, HelpText = "The class of the source network")]
             public int? NetworkClass { get; set; }

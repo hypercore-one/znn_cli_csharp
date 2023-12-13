@@ -12,8 +12,8 @@ The instructions below are for setting up a **devnet** with the **HTLC** branch 
 
 Follow the instructions based on the OS you're using:
 
-- [Windows 10+](./setup-devnet-win10-x64.md)
-- [Ubuntu 22.04+](./setup-devnet-linux-x64.md)
+- [Windows 10+](../setup-devnet-win10-x64.md)
+- [Ubuntu 22.04+](../setup-devnet-linux-x64.md)
 
 ## Setup wallets
 

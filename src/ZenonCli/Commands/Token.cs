@@ -26,7 +26,7 @@ namespace ZenonCli.Commands
 
                 AssertPageRange(PageIndex.Value, PageSize.Value);
 
-                var tokenList = await ZnnClient.Embedded.Token.GetAll((uint)PageIndex.Value, (uint)PageSize.Value);
+                var tokenList = await Zdk!.Embedded.Token.GetAll((uint)PageIndex.Value, (uint)PageSize.Value);
 
                 foreach (var token in tokenList.List)
                 {
@@ -88,7 +88,7 @@ namespace ZenonCli.Commands
             {
                 var ownerAddress = ParseAddress(OwnerAddress, "ownerAddress");
 
-                var tokens = await ZnnClient.Embedded.Token.GetByOwner(ownerAddress);
+                var tokens = await Zdk!.Embedded.Token.GetByOwner(ownerAddress);
 
                 foreach (var token in tokens.List)
                 {
@@ -107,7 +107,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("token.issue", HelpText = "Issue token.")]
-        public class Issue : KeyStoreAndConnectionCommand
+        public class Issue : WalletAndConnectionCommand
         {
             [Value(0, Required = true, MetaName = "name")]
             public string? Name { get; set; }
@@ -119,10 +119,10 @@ namespace ZenonCli.Commands
             public string? Domain { get; set; }
 
             [Value(3, Required = true, MetaName = "totalSupply")]
-            public long TotalSupply { get; set; }
+            public string? TotalSupply { get; set; }
 
             [Value(4, Required = true, MetaName = "maxSupply")]
-            public long MaxSupply { get; set; }
+            public string? MaxSupply { get; set; }
 
             [Value(5, Required = true, MetaName = "decimals")]
             public int Decimals { get; set; }
@@ -216,9 +216,8 @@ namespace ZenonCli.Commands
                     return;
                 }
 
-                var totalSupply = this.TotalSupply;
-                var maxSupply = this.MaxSupply;
-                var decimals = this.Decimals;
+                var totalSupply = ParseAmount(TotalSupply!, Decimals);
+                var maxSupply = ParseAmount(MaxSupply!, Decimals);
 
                 if (mintable == true)
                 {
@@ -227,9 +226,9 @@ namespace ZenonCli.Commands
                         WriteError("Max supply must to be larger than the total supply");
                         return;
                     }
-                    if (maxSupply > (1 << 53))
+                    if (maxSupply >= new BigInteger(1) << 255)
                     {
-                        WriteError($"Max supply must to be less than {((1 << 53)) - 1}");
+                        WriteError($"Max supply must to be less than {new BigInteger(1) << 255}");
                         return;
                     }
                 }
@@ -254,14 +253,14 @@ namespace ZenonCli.Commands
 
                 WriteInfo($"Issuing {this.Name} ZTS token ...");
 
-                await ZnnClient.Send(
-                    ZnnClient.Embedded.Token.IssueToken(
-                        this.Name,
-                        this.Symbol,
-                        this.Domain,
+                await SendAsync(
+                    Zdk!.Embedded.Token.IssueToken(
+                        Name,
+                        Symbol,
+                        Domain,
                         totalSupply,
                         maxSupply,
-                        decimals,
+                        Decimals,
                         mintable,
                         burnable,
                         utility));
@@ -271,7 +270,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("token.mint", HelpText = "Mint token.")]
-        public class Mint : KeyStoreAndConnectionCommand
+        public class Mint : WalletAndConnectionCommand
         {
             [Value(0, Required = true, MetaName = "tokenStandard")]
             public string? TokenStandard { get; set; }
@@ -287,7 +286,7 @@ namespace ZenonCli.Commands
                 var tokenStandard = ParseTokenStandard(TokenStandard);
                 var mintAddress = ParseAddress(ReceiveAddress);
                 var token = await GetTokenAsync(tokenStandard);
-                var amount = BigInteger.Parse(Amount!);
+                var amount = ParseAmount(Amount!, token.Decimals);
 
                 if (!token.IsMintable)
                 {
@@ -297,15 +296,15 @@ namespace ZenonCli.Commands
 
                 WriteInfo("Minting ZTS token ...");
 
-                await ZnnClient.Send(
-                    ZnnClient.Embedded.Token.MintToken(tokenStandard, amount, mintAddress));
+                await SendAsync(
+                    Zdk!.Embedded.Token.MintToken(tokenStandard, amount, mintAddress));
 
                 WriteInfo("Done");
             }
         }
 
         [Verb("token.burn", HelpText = "Burn token.")]
-        public class Burn : KeyStoreAndConnectionCommand
+        public class Burn : WalletAndConnectionCommand
         {
             [Value(0, Required = true, MetaName = "tokenStandard")]
             public string? TokenStandard { get; set; }
@@ -315,23 +314,24 @@ namespace ZenonCli.Commands
 
             protected override async Task ProcessAsync()
             {
-                var address = ZnnClient.DefaultKeyPair.Address;
+                var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
                 var tokenStandard = ParseTokenStandard(TokenStandard);
-                var amount = BigInteger.Parse(Amount!);
+                var token = await GetTokenAsync(tokenStandard);
+                var amount = ParseAmount(Amount!, token.Decimals);
 
                 await AssertBalanceAsync(address, tokenStandard, amount);
 
                 WriteInfo($"Burning {TokenStandard} ZTS token ...");
 
-                await ZnnClient.Send(
-                    ZnnClient.Embedded.Token.BurnToken(tokenStandard, amount));
+                await SendAsync(
+                    Zdk!.Embedded.Token.BurnToken(tokenStandard, amount));
 
                 WriteInfo("Done");
             }
         }
 
         [Verb("token.transferOwnership", HelpText = "Transfer token ownership to another address.")]
-        public class TransferOwnership : KeyStoreAndConnectionCommand
+        public class TransferOwnership : WalletAndConnectionCommand
         {
             [Value(0, Required = true, MetaName = "tokenStandard")]
             public string? TokenStandard { get; set; }
@@ -343,7 +343,7 @@ namespace ZenonCli.Commands
             {
                 WriteInfo("Transferring ZTS token ownership ...");
 
-                var address = ZnnClient.DefaultKeyPair.Address;
+                var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
                 var tokenStandard = ParseTokenStandard(this.TokenStandard);
                 var newOwnerAddress = ParseAddress(this.NewOwnerAddress, "newOwnerAddress");
                 var token = await GetTokenAsync(tokenStandard);
@@ -354,7 +354,7 @@ namespace ZenonCli.Commands
                     return;
                 }
 
-                await ZnnClient.Send(ZnnClient.Embedded.Token.UpdateToken(
+                await SendAsync(Zdk!.Embedded.Token.UpdateToken(
                     tokenStandard, newOwnerAddress, token.IsMintable, token.IsBurnable));
 
                 WriteInfo("Done");
@@ -362,7 +362,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("token.disableMint", HelpText = "Disable a token's minting capability.")]
-        public class DisableMint : KeyStoreAndConnectionCommand
+        public class DisableMint : WalletAndConnectionCommand
         {
             [Value(0, Required = true, MetaName = "tokenStandard")]
             public string? TokenStandard { get; set; }
@@ -371,7 +371,7 @@ namespace ZenonCli.Commands
             {
                 WriteInfo("Disabling ZTS token mintable flag ...");
 
-                var address = ZnnClient.DefaultKeyPair.Address;
+                var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
                 var tokenStandard = ParseTokenStandard(TokenStandard);
                 var token = await GetTokenAsync(tokenStandard);
 
@@ -381,7 +381,7 @@ namespace ZenonCli.Commands
                     return;
                 }
 
-                await ZnnClient.Send(ZnnClient.Embedded.Token.UpdateToken(
+                await SendAsync(Zdk!.Embedded.Token.UpdateToken(
                     tokenStandard, token.Owner, false, token.IsBurnable));
 
                 WriteInfo("Done");

@@ -5,8 +5,8 @@ namespace ZenonCli.Commands
 {
     public class Az
     {
-        [Verb("az.donate", HelpText = "Donate ZNN and QSR as fuel for the Mothership.")]
-        public class Donate : KeyStoreAndConnectionCommand
+        [Verb("az.donate", HelpText = "Donate ZNN or QSR as fuel for the Mothership.")]
+        public class Donate : WalletAndConnectionCommand
         {
             [Value(0, Required = true, MetaName = "amount")]
             public string? Amount { get; set; }
@@ -16,10 +16,10 @@ namespace ZenonCli.Commands
 
             protected override async Task ProcessAsync()
             {
-                var address = ZnnClient.DefaultKeyPair.Address;
+                var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
 
                 var tokenStandard = ParseTokenStandard(Zts);
-                if (tokenStandard != TokenStandard.ZnnZts ||
+                if (tokenStandard != TokenStandard.ZnnZts &&
                     tokenStandard != TokenStandard.QsrZts)
                 {
                     WriteError("You can only send ZNN or QSR.");
@@ -37,8 +37,8 @@ namespace ZenonCli.Commands
 
                 await AssertBalanceAsync(address, tokenStandard, amount);
 
-                WriteInfo($"Donating {FormatAmount(amount, token.Decimals)} ${token.Symbol} to Accelerator-Z ...");
-                await ZnnClient.Send(ZnnClient.Embedded.Accelerator.Donate(amount, tokenStandard));
+                WriteInfo($"Donating {FormatAmount(amount, token.Decimals)} {token.Symbol} to Accelerator-Z ...");
+                await SendAsync(Zdk!.Embedded.Accelerator.Donate(amount, tokenStandard));
                 WriteInfo("Done");
             }
         }

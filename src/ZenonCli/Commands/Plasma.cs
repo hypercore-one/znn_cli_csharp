@@ -7,7 +7,7 @@ namespace ZenonCli.Commands
     public class Plasma
     {
         [Verb("plasma.list", HelpText = "List plasma fusion entries.")]
-        public class List : ConnectionCommand
+        public class List : WalletAndConnectionCommand
         {
             [Value(0, Default = 0, MetaName = "pageIndex")]
             public int? PageIndex { get; set; }
@@ -25,9 +25,9 @@ namespace ZenonCli.Commands
 
                 AssertPageRange(PageIndex.Value, PageSize.Value);
 
-                var address = ZnnClient.DefaultKeyPair.Address;
-                var fusionEntryList = await ZnnClient.Embedded.Plasma.GetEntriesByAddress(address,
-                        (uint)this.PageIndex.Value, (uint)this.PageSize.Value);
+                var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
+                var fusionEntryList = await Zdk!.Embedded.Plasma.GetEntriesByAddress(address,
+                        (uint)PageIndex.Value, (uint)PageSize.Value);
 
                 if (fusionEntryList.Count > 0)
                 {
@@ -55,14 +55,14 @@ namespace ZenonCli.Commands
             protected override async Task ProcessAsync()
             {
                 var address = ParseAddress(this.address);
-                var plasmaInfo = await ZnnClient.Embedded.Plasma.Get(address);
+                var plasmaInfo = await Zdk!.Embedded.Plasma.Get(address);
 
                 WriteInfo($"{address} has {plasmaInfo.CurrentPlasma} / {plasmaInfo.MaxPlasma} plasma with {FormatAmount(plasmaInfo.QsrAmount, Constants.CoinDecimals)} QSR fused.");
             }
         }
 
         [Verb("plasma.fuse", HelpText = "Fuse QSR to an address to generate plasma.")]
-        public class Fuse : KeyStoreAndConnectionCommand
+        public class Fuse : WalletAndConnectionCommand
         {
             [Value(0, Required = true, MetaName = "toAddress")]
             public string? ToAddress { get; set; }
@@ -91,29 +91,29 @@ namespace ZenonCli.Commands
 
                 WriteInfo($"Fusing {FormatAmount(amount, Constants.CoinDecimals)} QSR to {beneficiary}");
 
-                await ZnnClient.Send(ZnnClient.Embedded.Plasma.Fuse(beneficiary, amount));
+                await SendAsync(Zdk!.Embedded.Plasma.Fuse(beneficiary, amount));
 
                 WriteInfo("Done");
             }
         }
 
         [Verb("plasma.cancel", HelpText = "Cancel a plasma fusion and receive the QSR back.")]
-        public class Cancel : KeyStoreAndConnectionCommand
+        public class Cancel : WalletAndConnectionCommand
         {
             [Value(0, Required = true, MetaName = "id")]
             public string? Id { get; set; }
 
             protected override async Task ProcessAsync()
             {
-                var address = ZnnClient.DefaultKeyPair.Address;
+                var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
                 var id = ParseHash(Id, "id");
 
-                int pageIndex = 0;
+                uint pageIndex = 0;
                 bool found = false;
                 bool gotError = false;
 
                 var fusions =
-                    await ZnnClient.Embedded.Plasma.GetEntriesByAddress(address);
+                    await Zdk!.Embedded.Plasma.GetEntriesByAddress(address);
 
                 while (fusions.List.Length > 0)
                 {
@@ -122,7 +122,7 @@ namespace ZenonCli.Commands
                     {
                         found = true;
                         if (entry.ExpirationHeight >
-                            (await ZnnClient.Ledger.GetFrontierMomentum()).Height)
+                            (await Zdk!.Ledger.GetFrontierMomentum()).Height)
                         {
                             WriteError($"Fuse entry can not be cancelled yet");
                             gotError = true;
@@ -130,8 +130,8 @@ namespace ZenonCli.Commands
                         break;
                     }
                     pageIndex++;
-                    fusions = await ZnnClient.Embedded.Plasma
-                        .GetEntriesByAddress(address, (uint)pageIndex);
+                    fusions = await Zdk!.Embedded.Plasma
+                        .GetEntriesByAddress(address, pageIndex: pageIndex);
                 }
 
                 if (!found)
@@ -144,7 +144,7 @@ namespace ZenonCli.Commands
                     return;
                 }
                 WriteInfo($"Canceling Plasma fuse entry with id {id}");
-                await ZnnClient.Send(ZnnClient.Embedded.Plasma.Cancel(id));
+                await SendAsync(Zdk!.Embedded.Plasma.Cancel(id));
                 WriteInfo("Done");
             }
         }

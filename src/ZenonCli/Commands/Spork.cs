@@ -24,7 +24,7 @@ namespace ZenonCli.Commands
 
                 AssertPageRange(PageIndex.Value, PageSize.Value);
 
-                var result = await ZnnClient.Embedded.Spork
+                var result = await Zdk!.Embedded.Spork
                     .GetAll((uint)PageIndex.Value, (uint)PageSize.Value);
 
                 if (result == null || result.Count == 0)
@@ -48,7 +48,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("spork.create", HelpText = "Create a new spork.")]
-        public class Create : KeyStoreAndConnectionCommand
+        public class Create : WalletAndConnectionCommand
         {
             [Value(0, Required = true, MetaName = "name")]
             public string? Name { get; set; }
@@ -81,13 +81,13 @@ namespace ZenonCli.Commands
                 }
 
                 WriteInfo("Creating spork ...");
-                await ZnnClient.Send(ZnnClient.Embedded.Spork.CreateSpork(name, description));
+                await SendAsync(Zdk!.Embedded.Spork.CreateSpork(name, description));
                 WriteInfo("Done");
             }
         }
 
         [Verb("spork.activate", HelpText = "Activate a spork.")]
-        public class Activate : KeyStoreAndConnectionCommand
+        public class Activate : WalletAndConnectionCommand
         {
             [Value(0, Required = true, MetaName = "id", HelpText = "The id of the spork to activate.")]
             public string? Id { get; set; }
@@ -97,7 +97,7 @@ namespace ZenonCli.Commands
                 var id = ParseHash(Id, "id");
 
                 WriteInfo("Activating spork ...");
-                await ZnnClient.Send(ZnnClient.Embedded.Spork.ActivateSpork(id));
+                await SendAsync(Zdk!.Embedded.Spork.ActivateSpork(id));
                 WriteInfo("Done");
             }
         }

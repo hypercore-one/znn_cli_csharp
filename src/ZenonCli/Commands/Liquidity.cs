@@ -11,7 +11,7 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                var info = await ZnnClient.Embedded.Liquidity
+                var info = await Zdk!.Embedded.Liquidity
                     .GetLiquidityInfo();
 
                 WriteInfo($"Liquidity info:");
@@ -38,7 +38,7 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                var info = await ZnnClient.Embedded.Liquidity.GetSecurityInfo();
+                var info = await Zdk!.Embedded.Liquidity.GetSecurityInfo();
 
                 WriteInfo($"Security info:");
 
@@ -80,7 +80,7 @@ namespace ZenonCli.Commands
         {
             protected override async Task ProcessAsync()
             {
-                var list = await ZnnClient.Embedded.Liquidity.GetTimeChallengesInfo();
+                var list = await Zdk!.Embedded.Liquidity.GetTimeChallengesInfo();
 
                 if (list == null || list.Count == 0)
                 {
@@ -110,7 +110,7 @@ namespace ZenonCli.Commands
             {
                 var address = ParseAddress(Address);
                 var list =
-                    await ZnnClient.Embedded.Liquidity.GetFrontierRewardByPage(address);
+                    await Zdk!.Embedded.Liquidity.GetFrontierRewardByPage(address);
 
                 if (list.Count > 0)
                 {
@@ -154,7 +154,7 @@ namespace ZenonCli.Commands
             {
                 var address = ParseAddress(Address);
                 var list =
-                    await ZnnClient.Embedded.Liquidity.GetLiquidityStakeEntriesByAddress(address);
+                    await Zdk!.Embedded.Liquidity.GetLiquidityStakeEntriesByAddress(address);
 
                 if (list.Count > 0)
                 {
@@ -174,7 +174,7 @@ namespace ZenonCli.Commands
                         WriteInfo($"      Id: {entry.Id}");
                         WriteInfo($"      Status: {(entry.Amount != 0 && entry.RevokeTime == 0 ? "Active" : "Cancelled")}");
                         WriteInfo($"      Token: {token.Name}");
-                        WriteInfo($"      Amount: {FormatAmount(entry.Amount, token.Decimals)} ${token.Symbol}");
+                        WriteInfo($"      Amount: {FormatAmount(entry.Amount, token.Decimals)} {token.Symbol}");
                         WriteInfo($"      Weighted amount: {FormatAmount(entry.WeightedAmount, token.Decimals)} {token.Symbol}");
                         WriteInfo($"      Duration: {duration} {Constants.StakeUnitDurationName}{(duration > 1 ? "s" : "")}");
                         WriteInfo($"      Time remaining: {FormatDuration(timeRemaining)} day{(timeRemaining > (24 * 60 * 60) ? "s" : "")}");
@@ -199,7 +199,7 @@ namespace ZenonCli.Commands
             {
                 var address = ParseAddress(this.Address);
                 var uncollectedRewards =
-                    await ZnnClient.Embedded.Liquidity.GetUncollectedReward(address);
+                    await Zdk!.Embedded.Liquidity.GetUncollectedReward(address);
 
                 if (uncollectedRewards.ZnnAmount != 0 ||
                     uncollectedRewards.QsrAmount != 0)
@@ -216,7 +216,7 @@ namespace ZenonCli.Commands
         }
 
         [Verb("liquidity.stake", HelpText = "Stake LP tokens.")]
-        public class Stake : KeyStoreAndConnectionCommand
+        public class Stake : WalletAndConnectionCommand
         {
             [Value(0, Required = true, MetaName = "duration", HelpText = "Duration in months")]
             public long Duration { get; set; }
@@ -229,7 +229,7 @@ namespace ZenonCli.Commands
 
             protected override async Task ProcessAsync()
             {
-                var address = ZnnClient.DefaultKeyPair.Address;
+                var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
                 var months = this.Duration;
                 var duration = months * Constants.StakeTimeUnitSec;
                 var tokenStandard = ParseTokenStandard(TokenStandard);
@@ -246,7 +246,7 @@ namespace ZenonCli.Commands
 
                 await AssertBalanceAsync(address, tokenStandard, amount);
 
-                var info = await ZnnClient.Embedded.Liquidity.GetLiquidityInfo();
+                var info = await Zdk!.Embedded.Liquidity.GetLiquidityInfo();
                 if (info.IsHalted)
                 {
                     WriteError("Liquidity contract is halted");
@@ -259,7 +259,7 @@ namespace ZenonCli.Commands
                 {
                     if (amount < liquidityToken.MinAmount)
                     {
-                        WriteError($"Minimum staking requirement: ${FormatAmount(liquidityToken.MinAmount, token.Decimals)} ${token.Symbol}");
+                        WriteError($"Minimum staking requirement: {FormatAmount(liquidityToken.MinAmount, token.Decimals)} {token.Symbol}");
                         return;
                     }
                 }
@@ -270,14 +270,14 @@ namespace ZenonCli.Commands
                 }
 
                 WriteInfo($"Staking {FormatAmount(amount, token.Decimals)} {token.Symbol} for {months} month{(months > 1 ? "s" : "")} ...");
-                var block = ZnnClient.Embedded.Liquidity.LiquidityStake(duration, amount, tokenStandard);
-                await ZnnClient.Send(block);
+                var block = Zdk!.Embedded.Liquidity.LiquidityStake(duration, amount, tokenStandard);
+                await SendAsync(block);
                 WriteInfo("Done");
             }
         }
 
         [Verb("liquidity.cancelStake", HelpText = "Cancel an unlocked stake and receive your LP tokens.")]
-        public class CancelStake : KeyStoreAndConnectionCommand
+        public class CancelStake : WalletAndConnectionCommand
         {
             [Value(0, MetaName = "id", Required = true)]
             public string? Id { get; set; }
@@ -286,8 +286,8 @@ namespace ZenonCli.Commands
             {
                 var id = ParseHash(Id, "id");
 
-                var address = ZnnClient.DefaultKeyPair.Address;
-                var list = await ZnnClient.Embedded.Liquidity
+                var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
+                var list = await Zdk!.Embedded.Liquidity
                     .GetLiquidityStakeEntriesByAddress(address);
 
                 if (list.Count == 0)
@@ -306,8 +306,8 @@ namespace ZenonCli.Commands
                     {
                         WriteInfo("Cancelling liquidity stake ...");
                         var block =
-                            ZnnClient.Embedded.Liquidity.CancelLiquidityStake(id);
-                        await ZnnClient.Send(block);
+                            Zdk!.Embedded.Liquidity.CancelLiquidityStake(id);
+                        await SendAsync(block);
                         WriteInfo("Done");
                         WriteInfo("Use receiveAll to collect your staked amount after 2 momentums");
                     }
@@ -325,13 +325,13 @@ namespace ZenonCli.Commands
         }
 
         [Verb("liquidity.collectRewards", HelpText = "Collect liquidity rewards.")]
-        public class CollectRewards : KeyStoreAndConnectionCommand
+        public class CollectRewards : WalletAndConnectionCommand
         {
             protected override async Task ProcessAsync()
             {
-                var address = ZnnClient.DefaultKeyPair.Address;
+                var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
                 var uncollectedRewards =
-                    await ZnnClient.Embedded.Liquidity.GetUncollectedReward(address);
+                    await Zdk!.Embedded.Liquidity.GetUncollectedReward(address);
 
                 if (uncollectedRewards.ZnnAmount != 0 ||
                     uncollectedRewards.QsrAmount != 0)
@@ -342,8 +342,8 @@ namespace ZenonCli.Commands
                     WriteInfo("");
                     WriteInfo("Collecting rewards ...");
                     var block =
-                        ZnnClient.Embedded.Liquidity.CollectReward();
-                    await ZnnClient.Send(block);
+                        Zdk!.Embedded.Liquidity.CollectReward();
+                    await SendAsync(block);
                     WriteInfo("Done");
                 }
                 else

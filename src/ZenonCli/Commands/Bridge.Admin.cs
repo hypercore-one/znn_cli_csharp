@@ -11,72 +11,72 @@ namespace ZenonCli.Commands
         public class Admin
         {
             [Verb("bridge.admin.emergency", HelpText = "Put the bridge contract in emergency mode.")]
-            public class Emergency : KeyStoreAndConnectionCommand
+            public class Emergency : WalletAndConnectionCommand
             {
                 protected override async Task ProcessAsync()
                 {
                     await AssertBridgeAdminAsync();
 
                     WriteInfo("Initializing bridge emergency mode ...");
-                    await ZnnClient.Send(ZnnClient.Embedded.Bridge.Emergency());
+                    await SendAsync(Zdk!.Embedded.Bridge.Emergency());
                     WriteInfo("Done");
                 }
             }
 
             [Verb("bridge.admin.halt", HelpText = "Halt bridge operations.")]
-            public class Halt : KeyStoreAndConnectionCommand
+            public class Halt : WalletAndConnectionCommand
             {
                 protected override async Task ProcessAsync()
                 {
                     await AssertBridgeAdminAsync();
 
                     WriteInfo("Halting the bridge ...");
-                    await ZnnClient!.Send(ZnnClient!.Embedded.Bridge.Halt(""));
+                    await SendAsync(Zdk!.Embedded.Bridge.Halt(""));
                     WriteInfo("Done");
                 }
             }
 
             [Verb("bridge.admin.unhalt", HelpText = "Unhalt bridge operations.")]
-            public class Unhalt : KeyStoreAndConnectionCommand
+            public class Unhalt : WalletAndConnectionCommand
             {
                 protected override async Task ProcessAsync()
                 {
                     await AssertBridgeAdminAsync();
 
                     WriteInfo("Unhalting the bridge ...");
-                    await ZnnClient.Send(ZnnClient.Embedded.Bridge.Unhalt());
+                    await SendAsync(Zdk!.Embedded.Bridge.Unhalt());
                     WriteInfo("Done");
                 }
             }
 
             [Verb("bridge.admin.enableKeyGen", HelpText = "Enable bridge key generation.")]
-            public class EnableKeyGen : KeyStoreAndConnectionCommand
+            public class EnableKeyGen : WalletAndConnectionCommand
             {
                 protected override async Task ProcessAsync()
                 {
                     await AssertBridgeAdminAsync();
 
                     WriteInfo("Enabling TSS key generation ...");
-                    await ZnnClient.Send(ZnnClient.Embedded.Bridge.SetAllowKeyGen(true));
+                    await SendAsync(Zdk!.Embedded.Bridge.SetAllowKeyGen(true));
                     WriteInfo("Done");
                 }
             }
 
             [Verb("bridge.admin.disableKeyGen", HelpText = "Disable bridge key generation.")]
-            public class DisableKeyGen : KeyStoreAndConnectionCommand
+            public class DisableKeyGen : WalletAndConnectionCommand
             {
                 protected override async Task ProcessAsync()
                 {
                     await AssertBridgeAdminAsync();
 
                     WriteInfo("Disabling TSS key generation ...");
-                    await ZnnClient.Send(ZnnClient.Embedded.Bridge.SetAllowKeyGen(false));
+                    await SendAsync(Zdk!.Embedded.Bridge.SetAllowKeyGen(false));
                     WriteInfo("Done");
                 }
             }
 
             [Verb("bridge.admin.setTokenPair", HelpText = "Set a token pair to enable bridging the asset")]
-            public class SetTokenPair : KeyStoreAndConnectionCommand
+            public class SetTokenPair : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "networkClass", Required = true)]
                 public int? NetworkClass { get; set; }
@@ -106,7 +106,7 @@ namespace ZenonCli.Commands
                 public int? FeePercentage { get; set; }
 
                 [Value(9, MetaName = "redeemDelay", Required = true)]
-                public int? RedeemDelay { get; set; }
+                public long? RedeemDelay { get; set; }
 
                 [Value(10, MetaName = "metadata", Required = true)]
                 public string? Metadata { get; set; }
@@ -116,8 +116,9 @@ namespace ZenonCli.Commands
                     await AssertBridgeAdminAsync();
 
                     var tokenStandard = ParseTokenStandard(TokenStandard);
+                    var token = await GetTokenAsync(tokenStandard);
                     var feePercentage = FeePercentage!.Value * 100;
-                    var minAmount = BigInteger.Parse(MinAmount!);
+                    var minAmount = ParseAmount(MinAmount!, token.Decimals);
                     JsonConvert.DeserializeObject(Metadata!);
 
                     if (feePercentage > Constants.BridgeMaximumFee)
@@ -134,7 +135,7 @@ namespace ZenonCli.Commands
 
                     WriteInfo("Setting token pair ...");
 
-                    var setTokenPair = ZnnClient.Embedded.Bridge.SetTokenPair(
+                    var setTokenPair = Zdk!.Embedded.Bridge.SetTokenPair(
                         (uint)NetworkClass!.Value,
                         (uint)ChainId!.Value,
                         tokenStandard,
@@ -146,14 +147,14 @@ namespace ZenonCli.Commands
                         feePercentage,
                         (ulong)RedeemDelay!.Value,
                         Metadata);
-                    await ZnnClient.Send(setTokenPair);
+                    await SendAsync(setTokenPair);
 
                     WriteInfo("Done");
                 }
             }
 
             [Verb("bridge.admin.removeTokenPair", HelpText = "Remove a token pair to disable bridging the asset")]
-            public class RemoveTokenPair : KeyStoreAndConnectionCommand
+            public class RemoveTokenPair : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "networkClass", Required = true)]
                 public int? NetworkClass { get; set; }
@@ -175,16 +176,16 @@ namespace ZenonCli.Commands
 
                     WriteInfo("Removing token pair ...");
 
-                    var removeTokenPair = ZnnClient.Embedded.Bridge
+                    var removeTokenPair = Zdk!.Embedded.Bridge
                         .RemoveTokenPair((uint)NetworkClass!.Value, (uint)ChainId!.Value, tokenStandard, TokenAddress);
-                    await ZnnClient.Send(removeTokenPair);
+                    await SendAsync(removeTokenPair);
 
                     WriteInfo("Done");
                 }
             }
 
             [Verb("bridge.admin.revokeUnwrapRequest", HelpText = "Revoke an unwrap request to prevent it from being redeemed.")]
-            public class Revoke : KeyStoreAndConnectionCommand
+            public class Revoke : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "transactionHash", Required = true, HelpText = "The hash of the transaction")]
                 public string? TransactionHash { get; set; }
@@ -201,15 +202,15 @@ namespace ZenonCli.Commands
                     WriteInfo("Revoking unwrap request ...");
 
                     var revokeUnwrapRequest =
-                        ZnnClient.Embedded.Bridge.RevokeUnwrapRequest(transactionHash, (uint)LogIndex!.Value);
-                    await ZnnClient.Send(revokeUnwrapRequest);
+                        Zdk!.Embedded.Bridge.RevokeUnwrapRequest(transactionHash, (uint)LogIndex!.Value);
+                    await SendAsync(revokeUnwrapRequest);
 
                     WriteInfo("Done");
                 }
             }
 
             [Verb("bridge.admin.nominateGuardians", HelpText = "Nominate bridge guardians.")]
-            public class NominateGuardians : KeyStoreAndConnectionCommand
+            public class NominateGuardians : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "addresses", Required = true)]
                 public IEnumerable<string>? Addresses { get; set; }
@@ -218,7 +219,7 @@ namespace ZenonCli.Commands
                 {
                     await AssertBridgeAdminAsync();
 
-                    var address = ZnnClient.DefaultKeyPair.Address;
+                    var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
 
                     if (this.Addresses == null)
                     {
@@ -249,7 +250,7 @@ namespace ZenonCli.Commands
                         return;
                     }
 
-                    var tcList = await ZnnClient.Embedded.Bridge
+                    var tcList = await Zdk!.Embedded.Bridge
                         .GetTimeChallengesInfo();
 
                     var tc = tcList.List
@@ -258,8 +259,8 @@ namespace ZenonCli.Commands
 
                     if (tc != null && tc.ParamsHash != Hash.Empty)
                     {
-                        var frontierMomentum = await ZnnClient.Ledger.GetFrontierMomentum();
-                        var secInfo = await ZnnClient.Embedded.Bridge.GetSecurityInfo();
+                        var frontierMomentum = await Zdk!.Ledger.GetFrontierMomentum();
+                        var secInfo = await Zdk!.Embedded.Bridge.GetSecurityInfo();
 
                         if (tc.ChallengeStartHeight + secInfo.AdministratorDelay > frontierMomentum.Height)
                         {
@@ -288,13 +289,13 @@ namespace ZenonCli.Commands
                         WriteInfo("Nominating guardians ...");
                     }
 
-                    await ZnnClient.Send(ZnnClient.Embedded.Bridge.NominateGuardians(guardians));
+                    await SendAsync(Zdk!.Embedded.Bridge.NominateGuardians(guardians));
                     WriteInfo("Done");
                 }
             }
 
             [Verb("bridge.admin.changeAdmin", HelpText = "Change bridge administrator.")]
-            public class ChangeAdministrator : KeyStoreAndConnectionCommand
+            public class ChangeAdministrator : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "address", Required = true)]
                 public string? Address { get; set; }
@@ -303,7 +304,7 @@ namespace ZenonCli.Commands
                 {
                     await AssertBridgeAdminAsync();
 
-                    var address = ZnnClient.DefaultKeyPair.Address;
+                    var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
                     var newAdmin = ParseAddress(this.Address);
 
                     await AssertUserAddressAsync(newAdmin);
@@ -318,13 +319,13 @@ namespace ZenonCli.Commands
                         return;
 
                     WriteInfo("Changing bridge administrator...");
-                    await ZnnClient.Send(ZnnClient.Embedded.Bridge.ChangeAdministrator(newAdmin));
+                    await SendAsync(Zdk!.Embedded.Bridge.ChangeAdministrator(newAdmin));
                     WriteInfo("Done");
                 }
             }
 
             [Verb("bridge.admin.setMetadata", HelpText = "Set the bridge metadata.")]
-            public class SetMetadata : KeyStoreAndConnectionCommand
+            public class SetMetadata : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "metadata")]
                 public string? Metadata { get; set; }
@@ -336,13 +337,13 @@ namespace ZenonCli.Commands
                     JsonConvert.DeserializeObject(Metadata!);
 
                     WriteInfo("Setting bridge metadata ...");
-                    await ZnnClient.Send(ZnnClient.Embedded.Bridge.SetBridgeMetadata(Metadata!));
+                    await SendAsync(Zdk!.Embedded.Bridge.SetBridgeMetadata(Metadata!));
                     WriteInfo("Done");
                 }
             }
 
             [Verb("bridge.admin.setOrchestratorInfo", HelpText = "Get the bridge information.")]
-            public class SetOrchestratorInfo : KeyStoreAndConnectionCommand
+            public class SetOrchestratorInfo : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "windowSize", Required = true, HelpText = "Size in momentums of a window used in the orchestrator to determine which signing ceremony should occur, wrap or unwrap request and to determine the key sign ceremony timeout")]
                 public long? WindowSize { get; set; }
@@ -361,7 +362,7 @@ namespace ZenonCli.Commands
                     await AssertBridgeAdminAsync();
 
                     WriteInfo("Setting orchestrator information...");
-                    await ZnnClient.Send(ZnnClient.Embedded.Bridge.SetOrchestratorInfo((ulong)WindowSize!.Value,
+                    await SendAsync(Zdk!.Embedded.Bridge.SetOrchestratorInfo((ulong)WindowSize!.Value,
                         (uint)KeyGenThreshold!.Value,
                         (uint)ConfirmationsToFinality!.Value,
                         (uint)EstimatedMomentumTime!.Value));
@@ -370,7 +371,7 @@ namespace ZenonCli.Commands
             }
 
             [Verb("bridge.admin.setNetwork", HelpText = "Configure network parameters to allow bridging.")]
-            public class SetNetwork : KeyStoreAndConnectionCommand
+            public class SetNetwork : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "networkClass", Required = true)]
                 public int? NetworkClass { get; set; }
@@ -423,14 +424,14 @@ namespace ZenonCli.Commands
                     JsonConvert.DeserializeObject(Metadata!);
 
                     WriteInfo("Setting bridge network...");
-                    await ZnnClient.Send(ZnnClient.Embedded.Bridge.SetNetwork(
+                    await SendAsync(Zdk!.Embedded.Bridge.SetNetwork(
                         (uint)networkClass, (uint)chainId, name, contractAddress, Metadata));
                     WriteInfo("Done");
                 }
             }
 
             [Verb("bridge.admin.removeNetwork", HelpText = "Remove a network to disable bridging.")]
-            public class Remove : KeyStoreAndConnectionCommand
+            public class Remove : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "networkClass", Required = true)]
                 public int? NetworkClass { get; set; }
@@ -459,13 +460,13 @@ namespace ZenonCli.Commands
 
 
                     WriteInfo("Removing bridge network...");
-                    await ZnnClient.Send(ZnnClient.Embedded.Bridge.RemoveNetwork((uint)networkClass, (uint)chainId));
+                    await SendAsync(Zdk!.Embedded.Bridge.RemoveNetwork((uint)networkClass, (uint)chainId));
                     WriteInfo("Done");
                 }
             }
 
             [Verb("bridge.admin.setNetworkMetadata", HelpText = "Set network metadata.")]
-            public class SetNetworkMetadata : KeyStoreAndConnectionCommand
+            public class SetNetworkMetadata : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "networkClass", Required = true)]
                 public int? NetworkClass { get; set; }
@@ -498,23 +499,7 @@ namespace ZenonCli.Commands
                     JsonConvert.DeserializeObject(Metadata!);
 
                     WriteInfo("Setting bridge network metadata...");
-                    await ZnnClient.Send(ZnnClient.Embedded.Bridge.SetNetworkMetadata((uint)networkClass, (uint)chainId, Metadata!));
-                    WriteInfo("Done");
-                }
-            }
-
-            [Verb("bridge.admin.setRedeemDelay", HelpText = "Set the redeem delay in momentums.")]
-            public class SetRedeemDelay : KeyStoreAndConnectionCommand
-            {
-                [Value(0, MetaName = "redeemDelay", Required = true)]
-                public long? RedeemDelay { get; set; }
-
-                protected override async Task ProcessAsync()
-                {
-                    await AssertBridgeAdminAsync();
-
-                    WriteInfo("Setting bridge redeem delay...");
-                    await ZnnClient.Send(ZnnClient.Embedded.Bridge.SetRedeemDelay((ulong)RedeemDelay!.Value));
+                    await SendAsync(Zdk!.Embedded.Bridge.SetNetworkMetadata((uint)networkClass, (uint)chainId, Metadata!));
                     WriteInfo("Done");
                 }
             }

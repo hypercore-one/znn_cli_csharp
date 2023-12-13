@@ -10,46 +10,46 @@ namespace ZenonCli.Commands
         public class Admin
         {
             [Verb("liquidity.admin.emergency", HelpText = "Put the liquidity contract in emergency mode.")]
-            public class Emergency : KeyStoreAndConnectionCommand
+            public class Emergency : WalletAndConnectionCommand
             {
                 protected override async Task ProcessAsync()
                 {
                     await AssertLiquidityAdminAsync();
 
                     WriteInfo("Initializing liquidity emergency mode ...");
-                    await ZnnClient.Send(ZnnClient.Embedded.Liquidity.Emergency());
+                    await SendAsync(Zdk!.Embedded.Liquidity.Emergency());
                     WriteInfo("Done");
                 }
             }
 
             [Verb("liquidity.admin.halt", HelpText = "Halt liquidity operations.")]
-            public class Halt : KeyStoreAndConnectionCommand
+            public class Halt : WalletAndConnectionCommand
             {
                 protected override async Task ProcessAsync()
                 {
                     await AssertLiquidityAdminAsync();
 
                     WriteInfo("Halting the liquidity ...");
-                    await ZnnClient.Send(ZnnClient.Embedded.Liquidity.SetIsHalted(true));
+                    await SendAsync(Zdk!.Embedded.Liquidity.SetIsHalted(true));
                     WriteInfo("Done");
                 }
             }
 
             [Verb("liquidity.admin.unhalt", HelpText = "Unhalt liquidity operations.")]
-            public class Unhalt : KeyStoreAndConnectionCommand
+            public class Unhalt : WalletAndConnectionCommand
             {
                 protected override async Task ProcessAsync()
                 {
                     await AssertLiquidityAdminAsync();
 
                     WriteInfo("Unhalting the liquidity ...");
-                    await ZnnClient.Send(ZnnClient.Embedded.Liquidity.SetIsHalted(false));
+                    await SendAsync(Zdk!.Embedded.Liquidity.SetIsHalted(false));
                     WriteInfo("Done");
                 }
             }
 
             [Verb("liquidity.admin.changeAdmin", HelpText = "Change liquidity administrator.")]
-            public class ChangeAdmin : KeyStoreAndConnectionCommand
+            public class ChangeAdmin : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "address", Required = true)]
                 public string? Address { get; set; }
@@ -58,7 +58,7 @@ namespace ZenonCli.Commands
                 {
                     await AssertLiquidityAdminAsync();
 
-                    var address = ZnnClient.DefaultKeyPair.Address;
+                    var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
                     var newAdmin = ParseAddress(this.Address);
 
                     await AssertUserAddressAsync(newAdmin);
@@ -73,13 +73,13 @@ namespace ZenonCli.Commands
                         return;
 
                     WriteInfo("Changing liquidity administrator...");
-                    await ZnnClient.Send(ZnnClient.Embedded.Liquidity.ChangeAdministrator(newAdmin));
+                    await SendAsync(Zdk!.Embedded.Liquidity.ChangeAdministrator(newAdmin));
                     WriteInfo("Done");
                 }
             }
 
             [Verb("liquidity.admin.nominateGuardians", HelpText = "Nominate liquidity guardians.")]
-            public class NominateGuardians : KeyStoreAndConnectionCommand
+            public class NominateGuardians : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "addresses", Required = true)]
                 public IEnumerable<string>? Addresses { get; set; }
@@ -88,7 +88,7 @@ namespace ZenonCli.Commands
                 {
                     await AssertLiquidityAdminAsync();
 
-                    var address = ZnnClient.DefaultKeyPair.Address;
+                    var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
 
                     if (this.Addresses == null)
                     {
@@ -119,7 +119,7 @@ namespace ZenonCli.Commands
                         return;
                     }
 
-                    var tcList = await ZnnClient.Embedded.Liquidity
+                    var tcList = await Zdk!.Embedded.Liquidity
                         .GetTimeChallengesInfo();
 
                     var tc = tcList.List
@@ -128,8 +128,8 @@ namespace ZenonCli.Commands
 
                     if (tc != null && tc.ParamsHash != Hash.Empty)
                     {
-                        var frontierMomentum = await ZnnClient.Ledger.GetFrontierMomentum();
-                        var secInfo = await ZnnClient.Embedded.Liquidity.GetSecurityInfo();
+                        var frontierMomentum = await Zdk!.Ledger.GetFrontierMomentum();
+                        var secInfo = await Zdk!.Embedded.Liquidity.GetSecurityInfo();
 
                         if (tc.ChallengeStartHeight + secInfo.AdministratorDelay > frontierMomentum.Height)
                         {
@@ -158,25 +158,25 @@ namespace ZenonCli.Commands
                         WriteInfo("Nominating guardians ...");
                     }
 
-                    await ZnnClient.Send(ZnnClient.Embedded.Liquidity.NominateGuardians(guardians));
+                    await SendAsync(Zdk!.Embedded.Liquidity.NominateGuardians(guardians));
                     WriteInfo("Done");
                 }
             }
 
             [Verb("liquidity.admin.unlockStakeEntries", HelpText = "Allows all staked entries to be cancelled immediately.")]
-            public class UnlockStakeEntries : KeyStoreAndConnectionCommand
+            public class UnlockStakeEntries : WalletAndConnectionCommand
             {
                 protected override async Task ProcessAsync()
                 {
                     var block =
-                        ZnnClient.Embedded.Liquidity.UnlockLiquidityStakeEntries(TokenStandard.Parse("zts17d6yr02kh0r9qr566p7tg6"));
-                    block = await ZnnClient.Send(block);
+                        Zdk!.Embedded.Liquidity.UnlockLiquidityStakeEntries(TokenStandard.Parse("zts17d6yr02kh0r9qr566p7tg6"));
+                    block = await SendAsync(block);
                     WriteInfo(JsonConvert.SerializeObject(block.ToJson(), Formatting.Indented));
                 }
             }
 
             [Verb("liquidity.admin.setAdditionalReward", HelpText = "Set additional liquidity reward percentages.")]
-            public class SetAdditionalReward : KeyStoreAndConnectionCommand
+            public class SetAdditionalReward : WalletAndConnectionCommand
             {
                 [Value(0, Required = true, MetaName = "znnRweard")]
                 public long ZnnReward { get; set; }
@@ -189,14 +189,14 @@ namespace ZenonCli.Commands
                     await AssertLiquidityAdminAsync();
 
                     WriteInfo("Setting additional liquidity reward ...");
-                    var block = ZnnClient.Embedded.Liquidity.SetAdditionalReward(ZnnReward, QsrReward);
-                    await ZnnClient.Send(block);
+                    var block = Zdk!.Embedded.Liquidity.SetAdditionalReward(ZnnReward, QsrReward);
+                    await SendAsync(block);
                     WriteInfo("Done");
                 }
             }
 
             [Verb("liquidity.admin.setTokenTuple", HelpText = "Configure token tuples that can be staked.")]
-            public class SetTokenTuple : KeyStoreAndConnectionCommand
+            public class SetTokenTuple : WalletAndConnectionCommand
             {
                 protected override async Task ProcessAsync()
                 {

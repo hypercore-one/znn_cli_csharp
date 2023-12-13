@@ -1,10 +1,13 @@
-﻿using System.Globalization;
-using System.Numerics;
+﻿using System.Numerics;
 using Zenon;
+using Zenon.Client;
 using Zenon.Model.Embedded;
+using Zenon.Model.NoM;
 using Zenon.Model.Primitives;
 using Zenon.Utils;
 using Zenon.Wallet;
+using Zenon.Wallet.Ledger;
+using Zenon.Wallet.Ledger.Exceptions;
 using ZenonCli.Options;
 
 namespace ZenonCli.Commands
@@ -12,31 +15,45 @@ namespace ZenonCli.Commands
     public abstract class CommandBase : ICommand
     {
         public CommandBase()
-        {
-            ZnnClient = Znn.Instance;
-        }
+        { }
 
-        protected Znn ZnnClient { get; }
+        protected IEnumerable<IWalletManager> WalletManagers = new List<IWalletManager>()
+        {
+            new KeyStoreManager(),
+            new LedgerManager(),
+        };
+        protected IWalletDefinition? WalletDefinition;
+        protected Zenon.Wallet.IWalletOptions? WalletOptions;
+        protected int AccountIndex;
+        protected IWalletManager? WalletManager;
+        protected IWallet? Wallet;
+        protected IWalletAccount? WalletAccount;
+        protected Zdk? Zdk;
 
         public async Task ExecuteAsync()
         {
             try
             {
-                if (this is IKeyStoreOptions)
+                if (this is Options.IWalletOptions)
                 {
-                    await InitKeyStoreAsync((IKeyStoreOptions)this);
+                    await InitWalletAsync((Options.IWalletOptions)this);
                 }
 
-                if (this is IConnectionOptions)
+                if (this is IClientOptions)
                 {
-                    await ConnectAsync((IConnectionOptions)this);
+                    await ConnectAsync((IClientOptions)this);
                 }
 
                 await ProcessAsync();
 
-                if (this is IConnectionOptions)
+                if (this is IClientOptions)
                 {
-                    await DisconnectAsync((IConnectionOptions)this);
+                    await DisconnectAsync((IClientOptions)this);
+                }
+
+                if (this is Options.IWalletOptions)
+                {
+                    await DisposeWalletAsync((Options.IWalletOptions)this);
                 }
             }
             catch (Exception e)
@@ -47,45 +64,69 @@ namespace ZenonCli.Commands
 
         protected virtual Task ProcessAsync() { throw new NotSupportedException(); }
 
-        #region IKeyStoreOptions
+        #region IWalletOptions
 
-        protected async Task InitKeyStoreAsync(IKeyStoreOptions options)
+        protected async Task DisposeWalletAsync(Options.IWalletOptions options)
         {
             await Task.Run(() =>
             {
-                var allKeyStores =
-                    ZnnClient.KeyStoreManager.ListAllKeyStores();
+                Helper.Dispose(Wallet);
+                Helper.Dispose(WalletManager);
 
-                string? keyStorePath = null;
-                if (allKeyStores == null || allKeyStores.Length == 0)
-                {
-                    // Make sure at least one keyStore exists
-                    ThrowError("No keyStore in the default directory");
-                }
-                else if (options.KeyStore != null)
-                {
-                    // Use user provided keyStore: make sure it exists
-                    keyStorePath = Path.Join(ZnnPaths.Default.Wallet, options.KeyStore);
+                WalletAccount = null;
+                Wallet = null;
+                WalletManager = null;
+            });
+        }
 
-                    WriteInfo(keyStorePath);
+        protected async Task InitWalletAsync(Options.IWalletOptions options)
+        {
+            var walletDefinitions = await GetAllWalletDefinitionsAsync();
 
-                    if (!File.Exists(keyStorePath))
-                    {
-                        ThrowError($"The keyStore {options.KeyStore} does not exist in the default directory");
-                    }
-                }
-                else if (allKeyStores.Length == 1)
+            string? keyStorePath = null;
+            if (walletDefinitions == null || walletDefinitions.Count() == 0)
+            {
+                ThrowError("No wallets founds");
+            }
+            else if (options.WalletName != null)
+            {
+                string? walletName;
+
+                if (options.WalletName == "nanos" ||
+                    options.WalletName == "nanosp" ||
+                    options.WalletName == "nanox" ||
+                    options.WalletName == "stax")
                 {
-                    // In case there is just one keyStore, use it by default
-                    WriteInfo($"Using the default keyStore {Path.GetFileName(allKeyStores[0])}");
-                    keyStorePath = allKeyStores[0];
+                    walletName = options.WalletName.Insert(4, " ").Trim();
                 }
                 else
                 {
-                    // Multiple keyStores present, but none is selected: action required
-                    ThrowError($"Please provide a keyStore or an address. Use wallet.list to list all available keyStores");
+                    walletName = options.WalletName;
                 }
 
+                // Use user provided keyStore: make sure it exists
+                WalletDefinition = walletDefinitions.FirstOrDefault(x => String.Equals(x.WalletName, walletName, StringComparison.OrdinalIgnoreCase));
+
+                if (WalletDefinition == null)
+                {
+                    ThrowError($"The wallet {options.WalletName} does not exist");
+                }
+            }
+            else if (walletDefinitions.Count() == 1)
+            {
+                // In case there is just one keyStore, use it by default
+                WriteInfo($"Using the default wallet {walletDefinitions.First().WalletName}");
+
+                WalletDefinition = walletDefinitions.First();
+            }
+            else
+            {
+                // Multiple wallets present, but none is selected: action required
+                ThrowError($"Please provide a wallet name. Use wallet.list to list all available wallets");
+            }
+
+            if (WalletDefinition is KeyStoreDefinition)
+            {
                 string? passphrase = options.Passphrase;
 
                 if (passphrase == null)
@@ -94,51 +135,142 @@ namespace ZenonCli.Commands
                     passphrase = ReadPassword();
                 }
 
-                int index = options.Index;
+                WalletOptions = new KeyStoreOptions() { DecryptionPassword = passphrase };
+            }
+            else
+            {
+                WalletOptions = null;
+            }
 
-                try
-                {
-                    ZnnClient.DefaultKeyStore = ZnnClient.KeyStoreManager.ReadKeyStore(passphrase, keyStorePath);
-                    ZnnClient.DefaultKeyStorePath = keyStorePath;
-                }
-                catch (IncorrectPasswordException)
-                {
-                    ThrowError($"Invalid passphrase for keyStore {keyStorePath}");
-                }
+            AccountIndex = options.Index;
 
-                ZnnClient.DefaultKeyPair = ZnnClient.DefaultKeyStore.GetKeyPair(index);
-            });
+            try
+            {
+                foreach (var walletManager in WalletManagers)
+                {
+                    if (await walletManager.SupportsWalletAsync(WalletDefinition))
+                    {
+                        WalletManager = walletManager;
+                        Wallet = await walletManager!.GetWalletAsync(WalletDefinition, WalletOptions);
+                        WalletAccount = await Wallet!.GetAccountAsync(AccountIndex);
+                        break;
+                    }
+                }
+            }
+            catch (IncorrectPasswordException)
+            {
+                ThrowError($"Invalid passphrase for wallet {keyStorePath}");
+            }
         }
 
         #endregion
 
-        #region IConnectionOptions
+        #region IClientOptions
 
-        protected async Task ConnectAsync(IConnectionOptions options)
+        protected async Task ConnectAsync(IClientOptions options)
         {
-            if (options.Verbose)
-                ((Zenon.Client.WsClient)ZnnClient.Client.Value).TraceSourceLevels =
-                    System.Diagnostics.SourceLevels.Verbose;
+            var clientOptions = new WsClientOptions()
+            {
+                ProtocolVersion = Constants.ProtocolVersion,
+                ChainIdentifier = Constants.ChainId,
+                TraceSourceLevels = options.Verbose ? System.Diagnostics.SourceLevels.Verbose : System.Diagnostics.SourceLevels.Warning
+            };
 
-            await ZnnClient.Client.Value.StartAsync(new Uri(options.Url!), false);
+            var client = new WsClient(options.Url!, clientOptions);
+            await client.ConnectAsync();
 
             if (options.Chain != null)
             {
                 if (!String.Equals(options.Chain, "auto", StringComparison.OrdinalIgnoreCase))
                 {
-                    ZnnClient.ChainIdentifier = ulong.Parse(options.Chain);
+                    Helper.Dispose(client);
+
+                    clientOptions.ChainIdentifier = int.Parse(options.Chain);
+                    client = new WsClient(options.Url!, clientOptions);
+                    await client.ConnectAsync();
                 }
                 else
                 {
-                    var momentum = await ZnnClient.Ledger.GetFrontierMomentum();
-                    ZnnClient.ChainIdentifier = momentum.ChainIdentifier;
+                    var momentum = await new Zdk(client).Ledger.GetFrontierMomentum();
+
+                    Helper.Dispose(client);
+
+                    clientOptions.ChainIdentifier = (int)momentum.ChainIdentifier;
+                    client = new WsClient(options.Url!, clientOptions);
+                    await client.ConnectAsync();
                 }
+            }
+
+            Zdk = new Zdk(client);
+            Zdk!.DefaultWalletAccount = WalletAccount;
+        }
+
+        protected async Task<AccountBlockTemplate> SendAsync(AccountBlockTemplate blockTemplate, bool reconnect = false, int retries = 1)
+        {
+            try
+            {
+                if (reconnect)
+                {
+                    // Dispose wallet
+                    Helper.Dispose(Wallet);
+
+                    // Wait 1 sec.
+                    Thread.Sleep(1000);
+
+                    // Reconnect wallet
+                    Wallet = await WalletManager!.GetWalletAsync(WalletDefinition, WalletOptions);
+                    WalletAccount = await Wallet!.GetAccountAsync(AccountIndex);
+                    Zdk!.DefaultWalletAccount = WalletAccount;
+                }
+                return await Zdk!.SendAsync(blockTemplate);
+            }
+            catch (Exception e)
+            {
+                if (e is ResponseException)
+                {
+                    var returnCode = ((ResponseException)e).ReturnCode;
+
+                    if (returnCode == StatusCode.AppIsNotOpen)
+                    {
+                        WriteError($"The Zenon app is not open on the Ledger {WalletDefinition!.WalletName}.");
+                    }
+                    else if (returnCode == StatusCode.WrongResponseLength)
+                    {
+                        // This happens when the Ledger device was opened by another process.
+                        if (retries > 0)
+                        {
+                            return await SendAsync(blockTemplate, true, retries - 1);
+                        }
+                    }
+                    else
+                    {
+                        WriteError($"{e.Message}.");
+                    }
+                }
+                else
+                {
+                    WriteError($"Failed to send transaction. {e.Message}");
+                }
+
+                if (retries > 0)
+                {
+                    if (Confirm("Do you want to retry?"))
+                    {
+                        return await SendAsync(blockTemplate, true);
+                    }
+                }
+
+                throw;
             }
         }
 
-        protected async Task DisconnectAsync(IConnectionOptions options)
+        protected async Task DisconnectAsync(IClientOptions options)
         {
-            await ZnnClient.Client.Value.StopAsync();
+            await Task.Run(() =>
+            {
+                Helper.Dispose(Zdk!.Client);
+                Zdk = null;
+            });
         }
 
         #endregion
@@ -231,7 +363,7 @@ namespace ZenonCli.Commands
 
         public async Task AssertBalanceAsync(Address address, TokenStandard tokenStandard, BigInteger amount)
         {
-            var account = await ZnnClient.Ledger
+            var account = await Zdk!.Ledger
                 .GetAccountInfoByAddress(address);
 
             var balance = account.BalanceInfoList
@@ -257,9 +389,9 @@ namespace ZenonCli.Commands
 
         public async Task AssertLiquidityGuardianAsync()
         {
-            var address = ZnnClient.DefaultKeyPair.Address;
+            var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
 
-            var info = await ZnnClient.Embedded.Liquidity
+            var info = await Zdk!.Embedded.Liquidity
                 .GetSecurityInfo();
 
             if (!info.Guardians.Any(x => x == address))
@@ -270,9 +402,9 @@ namespace ZenonCli.Commands
 
         public async Task AssertLiquidityAdminAsync()
         {
-            var address = ZnnClient.DefaultKeyPair.Address;
+            var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
 
-            var info = await ZnnClient.Embedded.Liquidity
+            var info = await Zdk!.Embedded.Liquidity
                 .GetLiquidityInfo();
 
             if (info.Administrator != address)
@@ -283,9 +415,9 @@ namespace ZenonCli.Commands
 
         public async Task AssertBridgeGuardianAsync()
         {
-            var address = ZnnClient.DefaultKeyPair.Address;
+            var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
 
-            var info = await ZnnClient.Embedded.Bridge
+            var info = await Zdk!.Embedded.Bridge
                 .GetSecurityInfo();
 
             if (!info.Guardians.Any(x => x == address))
@@ -296,9 +428,9 @@ namespace ZenonCli.Commands
 
         public async Task AssertBridgeAdminAsync()
         {
-            var address = ZnnClient.DefaultKeyPair.Address;
+            var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
 
-            var info = await ZnnClient.Embedded.Bridge
+            var info = await Zdk!.Embedded.Bridge
                 .GetBridgeInfo();
 
             if (info.Administrator != address)
@@ -315,7 +447,7 @@ namespace ZenonCli.Commands
         {
             try
             {
-                var token = await ZnnClient.Embedded.Token.GetByZts(tokenStandard);
+                var token = await Zdk!.Embedded.Token.GetByZts(tokenStandard);
                 return token!;
             }
             catch (Exception e)
@@ -325,6 +457,18 @@ namespace ZenonCli.Commands
         }
 
         #endregion
+
+        protected async Task<IEnumerable<IWalletDefinition>> GetAllWalletDefinitionsAsync()
+        {
+            var result = new List<IWalletDefinition>();
+
+            foreach (var walletManager in WalletManagers)
+            {
+                result.AddRange(await walletManager.GetWalletDefinitionsAsync());
+            }
+
+            return result;
+        }
 
         protected string GetTokenType(TokenStandard zts)
         {
@@ -389,7 +533,7 @@ namespace ZenonCli.Commands
             WriteInfo($"   Network class: {request.NetworkClass}");
             WriteInfo($"   Chain id: {request.ChainId}");
             WriteInfo($"   To: {request.ToAddress}");
-            WriteInfo($"   From: {(await ZnnClient.Ledger.GetAccountBlockByHash(request.Id))?.Address}");
+            WriteInfo($"   From: {(await Zdk!.Ledger.GetAccountBlockByHash(request.Id))?.Address}");
             WriteInfo($"   Token standard: {request.TokenStandard}");
             WriteInfo($"   Amount: {FormatAmount(request.Amount, decimals)} {symbol}");
             WriteInfo($"   Fee: {FormatAmount(request.Fee, decimals)} {symbol}");

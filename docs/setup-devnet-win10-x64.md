@@ -1,6 +1,6 @@
-# Setup Zenon Network devnet with HTLC branch and Zenon CLI for .NET on Windows 10+
+# Setup Zenon devnet node on Windows 10+
 
-The instructions below are for setting up a Zenon Network **devnet** with the **HTLC** branch merged and Zenon CLI for .NET for Windows 10+.
+The instructions below are for setting up a Zenon **devnet** node on Windows 10+.
 
 ## Required software
 
@@ -26,14 +26,6 @@ We will need Golang to to compile the go-zenon code. Execute the following comma
 
 ``` powershell
 choco install go -y
-```
-
-### .Net SDK
-
-We will need DotNet SDK to compile the znn-cli-cscharp code. Execute the following command in PowerShell.
-
-``` powershell
-choco install dotnet-sdk -y
 ```
 
 ### GCC compiler
@@ -65,12 +57,12 @@ mkdir repos
 cd repos
 ```
 
-### BICH go-zenon
+### Zenon node
 
-Create a clone of the **devnet** branch of the [Big Inches Club House go-zenon repository](https://github.com/Big-Inches-Club-House/go-zenon.git).
+Create a clone of the **devnet** branch of the [zenon-network/go-zenon repository](https://github.com/zenon-network/go-zenon.git).
 
 ``` powershell
-git clone -b devnet https://github.com/Big-Inches-Club-House/go-zenon.git
+git clone https://github.com/zenon-network/go-zenon.git
 ```
 
 Change directory to the **go-zenon** directory.
@@ -79,27 +71,64 @@ Change directory to the **go-zenon** directory.
 cd go-zenon
 ```
 
-Merge the **htlc** branch with the **devnet** branch.
-
-``` powershell
-git merge origin/htlc
-```
-
 Compile the **go-zenon** code.
 
 ``` powershell
-go build -o build/libznn.dll -buildmode=c-shared -tags libznn main_libznn.go
-go build -o build/znnd.exe main.go
+go build -o build/libznn.dll -buildmode=c-shared -tags libznn cmd/libznn/main_libznn.go
+go build -o build/znnd.exe cmd/znnd/main.go
 ```
 
-Configure and run a **devnet** node.
+Change directory to the parent directory.
 
 ``` powershell
-./build/znnd --data ./devnet generate-devnet --genesis-block=z1qqjnwjjpnue8xmmpanz6csze6tcmtzzdtfsww7,40000,400000
-./build/znnd --data ./devnet
+cd ..
 ```
 
-Keep the shell open during the duration of this tutorial. It is now possible to connect the **Zenon Explorer** to the node.
+### NoM community controller
+
+Create a clone of the **master** branch of the [hypercore-one/nomctl repository](https://github.com/hypercore-one/nomctl.git).
+
+``` powershell
+git clone https://github.com/hypercore-one/nomctl.git
+```
+
+Change directory to the **nomctl** directory.
+
+``` powershell
+cd nomctl
+```
+
+Compile the **nomctl** code.
+
+``` powershell
+go build -o build/nomctl.exe
+```
+
+Change directory to the parent directory.
+
+``` powershell
+cd ..
+```
+
+## Running
+
+Generate **devnet** configuration.
+
+``` powershell
+./nomctl/build/nomctl generate-devnet --data ./devnet --genesis-block=z1qqjnwjjpnue8xmmpanz6csze6tcmtzzdtfsww7/40000/400000
+```
+
+> Replace the genesis-block address if you want to use another address for you devnet.
+
+Run the node with **devnet** configuration.
+
+``` powershell
+./go-zenon/build/znnd --data ./devnet
+```
+
+## Explorer
+
+While keeping the shell with the node running it is now possible to connect the **Zenon Explorer** to the node.
 
 Open a web browser and go to https://explorer.zenon.network and connect the **Zenon Explorer** to http://127.0.0.1:35997
 
@@ -107,47 +136,12 @@ Search for the address **z1qqjnwjjpnue8xmmpanz6csze6tcmtzzdtfsww7**
 
 > Try the Firefox or Brave browser if the Zenon Explorer does not want to connect. Google Chrome can throw a mixed content error when connecting to an insecure destination.
 
-### Zenon CLI for .NET
-
-Open a new [PowerShell administrative shell](https://www.howtogeek.com/742916/how-to-open-windows-powershell-as-an-admin-in-windows-10/) and change directory to **repos**.
-
-``` powershell
-cd $ENV:USERPROFILE/repos
-```
-
-Create a clone of the [KingGorrin znn-cli-csharp repository](https://github.com/KingGorrin/znn_cli_csharp.git).
-
-``` powershell
-git clone https://github.com/KingGorrin/znn_cli_csharp.git
-```
-
-Change directory to the **znn_cli_csharp** directory.
-
-``` powershell
-cd znn_cli_csharp
-```
-
-Compile the **znn_cli_csharp** code
-
-``` powershell
-dotnet build ./src/ZenonCli/ZenonCli.csproj
-```
-
-Change directory to the binaries directory.
-
-``` powershell
-cd ./bin/ZenonCli/net6.0/
-```
-
 ## Clean up
 
 Execute the following commands in order to undo all the installation files of this tutorial.
 
 ``` powershell
-del $ENV:AppData\znn\wallet\Alice
-del $ENV:AppData\znn\wallet\Bob
 rm $ENV:USERPROFILE/repos -r -force
-choco uninstall dotnet-sdk -y
 choco uninstall mingw -y
 choco uninstall go -y
 choco uninstall git -y

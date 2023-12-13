@@ -8,7 +8,7 @@ namespace ZenonCli.Commands
         public class Unwrap
         {
             [Verb("bridge.unwrap.redeem", HelpText = "Redeem a pending unwrap request for any recipient.")]
-            public class Redeem : KeyStoreAndConnectionCommand
+            public class Redeem : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "hash", Required = true, HelpText = "The transaction hash")]
                 public string? Hash { get; set; }
@@ -18,19 +18,19 @@ namespace ZenonCli.Commands
 
                 protected override async Task ProcessAsync()
                 {
-                    var address = ZnnClient.DefaultKeyPair.Address;
+                    var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
                     var transactionHash = ParseHash(Hash);
 
-                    var request = await ZnnClient.Embedded.Bridge
+                    var request = await Zdk!.Embedded.Bridge
                         .GetUnwrapTokenRequestByHashAndLog(transactionHash, (uint)LogIndex!.Value);
 
                     if (request.Redeemed == 0 && request.Revoked == 0)
                     {
                         await WriteRedeemAsync(request);
 
-                        var redeem = ZnnClient.Embedded.Bridge
+                        var redeem = Zdk!.Embedded.Bridge
                             .Redeem(request.TransactionHash, request.LogIndex);
-                        await ZnnClient.Send(redeem);
+                        await SendAsync(redeem);
 
                         WriteInfo("Done");
                         if (request.ToAddress == address)
@@ -46,19 +46,19 @@ namespace ZenonCli.Commands
             }
 
             [Verb("bridge.unwrap.redeemAll", HelpText = "Redeem all pending unwrap requests for yourself or all addresses.")]
-            public class RedeemAll : KeyStoreAndConnectionCommand
+            public class RedeemAll : WalletAndConnectionCommand
             {
                 [Value(0, MetaName = "redeem", Default = false, HelpText = "If the boolean is true, all unredeemed transactions will be redeemed")]
                 public bool? Redeem { get; set; }
 
                 protected override async Task ProcessAsync()
                 {
-                    var address = ZnnClient.DefaultKeyPair.Address;
+                    var address = await Zdk!.DefaultWalletAccount.GetAddressAsync();
 
                     var redeemAllGlobally = Redeem.HasValue ? Redeem.Value : false;
 
                     var allUnwrapRequests =
-                        await ZnnClient.Embedded.Bridge.GetAllUnwrapTokenRequests();
+                        await Zdk!.Embedded.Bridge.GetAllUnwrapTokenRequests();
 
                     int redeemedSelf = 0;
                     int redeemedTotal = 0;
@@ -71,9 +71,9 @@ namespace ZenonCli.Commands
                                 (!Redeem.HasValue && request.ToAddress == address))
                             {
                                 await WriteRedeemAsync(request);
-                                var redeem = ZnnClient.Embedded.Bridge
+                                var redeem = Zdk!.Embedded.Bridge
                                     .Redeem(request.TransactionHash, request.LogIndex);
-                                await ZnnClient.Send(redeem);
+                                await SendAsync(redeem);
                                 if (request.ToAddress == address)
                                 {
                                     redeemedSelf += 1;
@@ -102,7 +102,7 @@ namespace ZenonCli.Commands
             {
                 protected override async Task ProcessAsync()
                 {
-                    var list = await ZnnClient.Embedded.Bridge.GetAllUnwrapTokenRequests();
+                    var list = await Zdk!.Embedded.Bridge.GetAllUnwrapTokenRequests();
 
                     WriteInfo("All unwrap token requests:");
                     WriteInfo($"Count: {list.Count}");
@@ -127,7 +127,7 @@ namespace ZenonCli.Commands
                 {
                     var toAddress = ParseAddress(ToAddress);
 
-                    var list = await ZnnClient.Embedded.Bridge
+                    var list = await Zdk!.Embedded.Bridge
                         .GetAllUnwrapTokenRequestsByToAddress(toAddress.ToString());
 
                     if (list.Count > 0)
@@ -154,7 +154,7 @@ namespace ZenonCli.Commands
                 protected override async Task ProcessAsync()
                 {
                     var allUnwrapRequests =
-                        await ZnnClient.Embedded.Bridge.GetAllUnwrapTokenRequests();
+                        await Zdk!.Embedded.Bridge.GetAllUnwrapTokenRequests();
 
                     var unredeemed = new List<UnwrapTokenRequest>();
 
@@ -196,7 +196,7 @@ namespace ZenonCli.Commands
                 {
                     var transactionHash = ParseHash(Hash);
 
-                    var request = await ZnnClient.Embedded.Bridge
+                    var request = await Zdk!.Embedded.Bridge
                         .GetUnwrapTokenRequestByHashAndLog(transactionHash, (uint)LogIndex!.Value);
 
                     await WriteAsync(request);

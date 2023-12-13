@@ -4,12 +4,12 @@ namespace ZenonCli.Commands
 {
     public class Stats
     {
-        [Verb("os.info", HelpText = "Get the os info.")]
+        [Verb("stats.osInfo", HelpText = "Get the os info.")]
         public class OsInfo : ConnectionCommand
         {
             protected override async Task ProcessAsync()
             {
-                var osInfo = await ZnnClient.Stats.OsInfo();
+                var osInfo = await Zdk!.Stats.OsInfo();
 
                 WriteInfo($"os: {osInfo.os}");
                 WriteInfo($"platform: {osInfo.platform}");
@@ -17,7 +17,7 @@ namespace ZenonCli.Commands
                 WriteInfo($"platformVersion: {osInfo.platformVersion}");
                 WriteInfo($"kernelVersion: {osInfo.kernelVersion}");
                 WriteInfo($"memoryTotal: {osInfo.memoryTotal} ({FormatMemory(osInfo.memoryTotal)})");
-                WriteInfo($"memoryFree: ${osInfo.memoryFree} ({FormatMemory(osInfo.memoryFree)})");
+                WriteInfo($"memoryFree: {osInfo.memoryFree} ({FormatMemory(osInfo.memoryFree)})");
                 WriteInfo($"numCPU: {osInfo.numCPU}");
                 WriteInfo($"numGoroutine: {osInfo.numGoroutine}");
             }
@@ -31,24 +31,24 @@ namespace ZenonCli.Commands
             }
         }
 
-        [Verb("process.info", HelpText = "Get the process info.")]
+        [Verb("stats.processInfo", HelpText = "Get the process info.")]
         public class ProcessInfo : ConnectionCommand
         {
             protected override async Task ProcessAsync()
             {
-                var processInfo = await ZnnClient.Stats.ProcessInfo();
+                var processInfo = await Zdk!.Stats.ProcessInfo();
 
                 WriteInfo($"version: {processInfo.version}");
                 WriteInfo($"commit: {processInfo.commit}");
             }
         }
 
-        [Verb("network.info", HelpText = "Get the network info.")]
+        [Verb("stats.networkInfo", HelpText = "Get the network info.")]
         public class NetworkInfo : ConnectionCommand
         {
             protected override async Task ProcessAsync()
             {
-                var networkInfo = await ZnnClient.Stats.NetworkInfo();
+                var networkInfo = await Zdk!.Stats.NetworkInfo();
 
                 WriteInfo($"numPeers: {networkInfo.numPeers}");
                 foreach (var peer in networkInfo.peers)
@@ -60,12 +60,12 @@ namespace ZenonCli.Commands
             }
         }
 
-        [Verb("sync.info", HelpText = "Get the sync info.")]
+        [Verb("stats.syncInfo", HelpText = "Get the sync info.")]
         public class SyncInfo : ConnectionCommand
         {
             protected override async Task ProcessAsync()
             {
-                var syncInfo = await ZnnClient.Stats.SyncInfo();
+                var syncInfo = await Zdk!.Stats.SyncInfo();
 
                 WriteInfo($"state: {syncInfo.state}");
                 WriteInfo($"currentHeight: {syncInfo.currentHeight}");

@@ -67,6 +67,8 @@ jobs:
         run: dotnet test $env:PROJECT_PATH --no-restore --no-build --verbosity normal
       - name: Publish
         run: dotnet publish $env:PROJECT_PATH --configuration Release --runtime win-x64 --no-self-contained --no-restore --no-build
+      - name: Copy Native Libraries
+        run: Copy lib\hidapi-win\x64\hidapi.dll bin\ZenonCli\release\net6.0\win-x64\publish\
       - name: Package into zip
         run: |
           Compress-Archive -Path bin\ZenonCli\release\net6.0\win-x64\publish\* -DestinationPath .\znn-cli-dotnet-windows-amd64.zip

@@ -2,7 +2,7 @@
 
 namespace ZenonCli.Commands
 {
-    public abstract class ConnectionCommand : CommandBase, IConnectionOptions
+    public abstract class ConnectionCommand : CommandBase, IClientOptions
     {
         public bool Verbose { get; set; }
         public string? Url { get; set; }
