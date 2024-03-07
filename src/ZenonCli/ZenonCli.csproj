@@ -28,9 +28,9 @@
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
     <PackageReference Include="Cryptography.ECDSA.Secp256k1" Version="1.1.3" />
-    <PackageReference Include="HidApi.Net" Version="1.0.0" />
+    <PackageReference Include="HidApi.Net" Version="1.0.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="Zenon.Wallet.Ledger" Version="0.1.1" />
+    <PackageReference Include="Zenon.Wallet.Ledger" Version="0.1.2" />
   </ItemGroup>
 
 </Project>
