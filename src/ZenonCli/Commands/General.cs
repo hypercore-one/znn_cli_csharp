@@ -1,5 +1,6 @@
 ﻿using CommandLine;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Collections.Concurrent;
 using System.Reflection;
 using System.Text;
@@ -148,20 +149,25 @@ namespace ZenonCli.Commands
                 var queue = new BlockingCollection<Hash>();
 
                 WriteInfo("Subscribing for account-block events ...");
-                await Zdk!.Subscribe.ToAllAccountBlocks((json) =>
+                var subscriptionId = "";
+                Zdk!.Client.Subscribe("ledger.subscription", (string subscription, JToken[] result) =>
                 {
-                    for (var i = 0; i < json.Length; i += 1)
+                    if (subscription == subscriptionId)
                     {
-                        var tx = json[i];
-                        if (tx.Value<string>("toAddress") != address.ToString())
+                        for (var i = 0; i < result.Length; i += 1)
                         {
-                            continue;
+                            var tx = result[i];
+                            if (tx.Value<string>("toAddress") != address.ToString())
+                            {
+                                continue;
+                            }
+                            var hash = ParseHash(tx.Value<string>("hash"));
+                            WriteInfo($"receiving transaction with hash {hash}");
+                            queue.Add(hash);
                         }
-                        var hash = ParseHash(tx.Value<string>("hash"));
-                        WriteInfo($"receiving transaction with hash {hash}");
-                        queue.Add(hash);
                     }
                 });
+                subscriptionId = await Zdk!.Subscribe.ToAllAccountBlocks();
                 WriteInfo("Subscribed successfully!");
 
                 while (true)
