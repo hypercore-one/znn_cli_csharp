@@ -1,4 +1,5 @@
 ﻿using CommandLine;
+using Newtonsoft.Json.Linq;
 using System.Numerics;
 using Zenon;
 using Zenon.Abi;
@@ -410,20 +411,26 @@ namespace ZenonCli.Commands
                 var queue = new List<Hash>();
 
                 WriteInfo("Subscribing for htlc-contract events ...");
-                await zdk.Subscribe.ToAllAccountBlocks((json) =>
+                var subscriptionId = "";
+                Zdk!.Client.Subscribe("ledger.subscription", (string subscription, JToken[] result) =>
                 {
-                    // Extract hashes for all new tx that interact with the htlc contract
-                    for (var i = 0; i < json.Length; i += 1)
+                    if (subscription == subscriptionId)
                     {
-                        var tx = json[i];
-                        if (tx.Value<string>("toAddress") != Address.HtlcAddress.ToString())
-                            continue;
+                        // Extract hashes for all new tx that interact with the htlc contract
+                        for (var i = 0; i < result.Length; i += 1)
+                        {
+                            var tx = result[i];
+                            if (tx.Value<string>("toAddress") != Address.HtlcAddress.ToString())
+                                continue;
 
-                        var hash = Hash.Parse(tx.Value<string>("hash"));
-                        WriteInfo($"Receiving transaction with hash {hash}");
-                        queue.Add(hash);
+                            var hash = Hash.Parse(tx.Value<string>("hash"));
+                            WriteInfo($"Receiving transaction with hash {hash}");
+                            queue.Add(hash);
+                        }
                     }
                 });
+                subscriptionId = await Zdk!.Subscribe.ToAllAccountBlocks();
+                WriteInfo("Subscribed successfully!");
 
                 while (true)
                 {
